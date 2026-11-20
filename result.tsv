@@ -1,0 +1,44 @@
+id	status	seconds	xfo	frame_ancestors	acao	final_url
+waterlevel	000	25.000782	-	-	-	https://infobanjir.terengganu.gov.my/WaterLevel/District/4
+rainfall	000	25.002566	-	-	-	https://infobanjir.terengganu.gov.my/Rainfall/District/4
+infobanjir	000	25.002728	-	-	-	https://infobanjir.terengganu.gov.my/
+camera	000	25.002413	-	-	-	https://infobanjir.terengganu.gov.my/Camera
+floodhub	200	1.822296	DENY	-	-	https://sites.research.google/floods/l/4.2266/103.4191/13.4/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1
+jpsaras	200	1.087575	SAMEORIGIN	-	-	https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/aras-air-data/?state=TRG&district=ALL&station=ALL&lang=en
+jpsrain	200	0.436533	SAMEORIGIN	-	-	https://publicinfobanjir.water.gov.my/wp-content/themes/shapely/agency/searchresultrainfall.php?state=TRG&district=ALL&station=ALL&language=1&loginStatus=0
+jpspeta	200	0.862772	SAMEORIGIN	-	-	https://publicinfobanjir.water.gov.my/main/
+zoomearth	200	0.624700	SAMEORIGIN	-	-	https://zoom.earth/places/malaysia/chukai/#map=radar
+windy	200	0.309297	-	frame-ancestors 'self' *.windy.com:*	-	https://www.windy.com/4.245/103.408?rain,3.494,103.409,8
+windyembed	200	0.217424	-	-	-	https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&zoom=8&overlay=wind&product=ecmwf&level=surface&lat=4.23&lon=103.42&detailLat=4.23&detailLon=103.42&detail=true
+windywebcamembed	200	0.141458	-	-	https://azizdigital.github.io	https://webcams.windy.com/webcams/public/embed/player/1733738208/day
+ventusky	200	0.333152	-	-	-	https://www.ventusky.com/precipitation-map/from#p=4.12;103.13;8
+rainviewer	200	0.238354	ALLOWALL	frame-ancestors *	-	https://www.rainviewer.com/map.html?loc=4.245,103.408,8
+metmalaysia	000	25.002255	-	-	-	https://www.met.gov.my/en/forecast/weather/district/Ds065/
+metradar	000	25.001793	-	-	-	https://www.met.gov.my/en/pencerapan/radar-semenanjung/
+himawari	200	0.206163	SAMEORIGIN	-	-	https://slider.cira.colostate.edu/?sat=himawari&sec=full_disk
+nullschool	200	0.297432	-	-	-	https://earth.nullschool.net/#current/ocean/primary/waves/overlay=significant_wave_height/orthographic=103.423,4.232,3000
+blitzortung	200	0.871274	-	-	-	https://map.blitzortung.org/#7/4.232/103.423
+lightningmaps	200	1.179192	sameorigin	-	-	https://www.lightningmaps.org/#m=oss;t=3;s=0;o=0;b=;ts=0;y=4.23;x=103.42;z=7;d=2;dl=2;dc=0;
+vesselfinder	200	0.875162	DENY	frame-ancestors 'self'	-	https://www.vesselfinder.com/
+vfembed	200	0.737133	-	-	-	https://www.vesselfinder.com/aismap.js
+myshiptracking	403	0.094504	SAMEORIGIN	-	-	https://www.myshiptracking.com/?zoom=8&lat=4.23&lng=103.42
+tideforecast	200	0.382039	SAMEORIGIN	-	-	https://www.tide-forecast.com/locations/Cukai/tides/latest
+tideschart	403	0.075082	SAMEORIGIN	-	-	https://www.tideschart.com/Malaysia/Terengganu/Cukai/
+tides4fishing	200	1.410116	SAMEORIGIN	frame-ancestors 'none'	-	https://tides4fishing.com/my/terengganu/chukai
+jalanow	200	1.421808	-	-	-	https://www.jalanow.com/malaysia-highways-live-traffic-cameras.htm
+nadma	200	1.411056	allow-from https://www.nadma.gov.my/	-	-	https://portalbencana.nadma.gov.my/ms/
+storms	200	0.238881	SAMEORIGIN	-	-	https://zoom.earth/
+meteoblue14	200	0.512561	SAMEORIGIN	-	-	https://www.meteoblue.com/en/weather/14-days/chukai_malaysia_1736405
+meteobluewidget	200	0.285682	-	-	-	https://www.meteoblue.com/en/weather/widget/daily?geoloc=fixed&days=7&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&precipunit=MILLIMETER&coloured=coloured&pictoicon=1&maxtemperature=1&mintemperature=1&windspeed=1&windgust=1&winddirection=1&uv=0&humidity=0&precipitation=1&precipitationprobability=1&spot=0&pressure=0&layout=light&lat=4.23&lon=103.42
+meteobluemap	200	0.221618	-	-	-	https://www.meteoblue.com/en/weather/maps/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=fixed&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=7&autowidth=auto&lat=4.23&lon=103.42
+windfinder	404	0.769451	-	frame-ancestors 'none'	-	https://www.windfinder.com/forecast/kemaman
+windfinderwidget	404	0.670487	-	-	-	https://www.windfinder.com/widget/forecast/embed.htm?spot=kemaman&unit_wave=m&unit_rain=mm&unit_temperature=c&unit_wind=kmh&columns=2&days=4&show_day=1&show_waves=1
+surfforecast	404	0.155022	-	-	-	https://www.surf-forecast.com/breaks/Teluk-Cempedak/forecasts/latest
+windguru	200	1.145506	-	frame-ancestors 'self'	-	https://www.windguru.cz/
+openmeteo	000	25.002919	-	-	-	https://api.open-meteo.com/v1/forecast?latitude=4.23&longitude=103.42&daily=temperature_2m_max&forecast_days=16
+omensemble	200	0.907312	-	-	*	https://ensemble-api.open-meteo.com/v1/ensemble?latitude=4.23&longitude=103.42&daily=wind_speed_10m_max,precipitation_sum&models=ecmwf_ifs025&forecast_days=35
+omseasonal	200	0.799879	-	-	*	https://seasonal-api.open-meteo.com/v1/seasonal?latitude=4.23&longitude=103.42&daily=precipitation_sum&forecast_days=45
+ommarine	200	0.655212	-	-	*	https://marine-api.open-meteo.com/v1/marine?latitude=4.23&longitude=103.42&daily=wave_height_max,swell_wave_height_max&forecast_days=16
+datagovwarn	200	2.168183	DENY	-	*	https://api.data.gov.my/weather/warning/?limit=3
+datagovflood	200	2.766242	DENY	-	*	https://api.data.gov.my/flood-warning/?limit=3
+datagovfc	200	1.397302	DENY	-	*	https://api.data.gov.my/weather/forecast/?contains=Kemaman@location__location_name&limit=3
