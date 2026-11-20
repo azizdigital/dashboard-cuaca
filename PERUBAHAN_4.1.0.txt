@@ -12,3 +12,12 @@ Dashboard Cuaca Aziz 4.1.0 - rupa app lama, data baru
 - Laman baru: Windy Swell, Meteoblue 7 hari.
 - Relay Cloudflare tidak digunakan lagi (tetapan relay lama dikosongkan).
 - App desktop (Electron) turut membaca jadual pasang surut Cukai.
+
+4.1.1
+- Flood Hub (menolak dipaparkan dalam app) diganti kad baru "Ramalan aliran sungai 30 hari" (GloFAS,
+  model banjir global): aliran sekarang, puncak 30 hari & bila, julat 25-75 %, larian tertinggi.
+  Titik sungai boleh diubah di Tetapan (Kemaman: Sungai Kemaman di atas Chukai).
+- JPS Peta dibawa ke kad paras air JPS; Himawari diganti peta awan Windy (embed).
+- NADMA & Kamera banjir Terengganu terus dibuka (iPhone / iPad dari Skrin Utama: lapisan atas app
+  dengan "Done") tanpa kad tengah. Kad hanya muncul jika pop-up disekat.
+- Mirror GitHub: jadual dialih ke minit 7, 22, 37, 52 (minit 0 paling sesak di GitHub).

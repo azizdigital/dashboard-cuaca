@@ -89,6 +89,10 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
               <div class="card-h"><h3>📅 Ramalan</h3><small id="fcSub"></small><div class="sp"></div><div class="seg" id="fcSeg" role="tablist"><button data-days="7">7 hari</button><button data-days="14">14 hari</button><button data-days="28">28 hari</button></div></div>
               <div class="card-b" id="fcBody"></div>
             </section>
+            <section class="card wide land-only" id="cardFlood">
+              <div class="card-h"><h3>🏞️ Ramalan aliran sungai 30 hari</h3><small id="floodSub">GloFAS (model banjir global, sama jenis dengan Flood Hub)</small><div class="sp"></div><a class="btn sm" target="_blank" rel="noopener" href="https://sites.research.google/floods/l/4.226693947058215/103.41916850003622/13.39981973087496/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1">Flood Hub ↗</a></div>
+              <div class="card-b" id="floodBody"></div>
+            </section>
             <section class="card" id="cardRain">
               <div class="card-h"><h3>🌧️ Hujan setiap jam</h3><small>24 jam lalu · 24 jam ramalan</small></div>
               <div class="card-b"><div class="legend"><span><i style="background:var(--chart-past)"></i>Lepas</span><span><i style="background:var(--chart-future)"></i>Ramalan</span></div><div class="chart" id="chartRain"></div></div>
@@ -215,6 +219,7 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
               <div class="fld"><label for="f_kind">Jenis lokasi<small>Offshore: tiada sungai, fokus angin & laut</small></label><select class="sel" id="f_kind" name="kind"><option value="land">Darat</option><option value="offshore">Offshore</option></select></div>
               <div class="fld"><label for="f_lat">Latitud / longitud cuaca<small>Titik ramalan hujan, angin & penglihatan</small></label><div style="display:flex;gap:6px"><input class="inp" id="f_lat" name="lat" inputmode="decimal"><input class="inp" id="f_lon" name="lon" inputmode="decimal"></div></div>
               <div class="fld"><label for="f_marineLat">Latitud / longitud laut<small>Titik di laut untuk ombak & alun</small></label><div style="display:flex;gap:6px"><input class="inp" id="f_marineLat" name="marineLat" inputmode="decimal"><input class="inp" id="f_marineLon" name="marineLon" inputmode="decimal"></div></div>
+              <div class="fld land-field"><label for="f_riverLat">Latitud / longitud sungai<small>Titik di atas sungai untuk ramalan aliran 30 hari (GloFAS)</small></label><div style="display:flex;gap:6px"><input class="inp" id="f_riverLat" name="riverLat" inputmode="decimal"><input class="inp" id="f_riverLon" name="riverLon" inputmode="decimal"></div></div>
               <div class="fld"><label for="f_metLocationId">Kod lokasi MET<small>Ds065 = Daerah Kemaman · kosongkan untuk offshore</small></label><input class="inp" id="f_metLocationId" name="metLocationId"></div>
               <div class="fld"><label for="f_warningKeywords">Kata kunci amaran MET<small>Offshore: Terengganu, Condore, Reef North</small></label><input class="inp" id="f_warningKeywords" name="warningKeywords"></div>
               <div class="fld land-field"><label for="f_waterDistrict">Daerah paras air JPS<small>cth. Kemaman (stesen JPS negeri Terengganu)</small></label><input class="inp" id="f_waterDistrict" name="waterDistrict"></div>

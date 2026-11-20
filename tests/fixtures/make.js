@@ -161,11 +161,20 @@ function tideMirror(now) {
   for (let i = 0; i < 12; i++) ev.push({ type: i % 2 ? 'low' : 'high', time: new Date(t0 + (i * 6.2 + 1) * 3600000).toISOString(), m: i % 2 ? 0.7 : 1.9 });
   return { place: 'cukai', url: 'https://www.tide-forecast.com/locations/Cukai/tides/latest', events: ev, eventsAt: new Date(now).toISOString() };
 }
+function river(now) {
+  const d0 = Date.parse(new Date(now + 8 * 3600000).toISOString().slice(0, 10)) - 7 * 86400000, D = { time: [] };
+  for (let i = 0; i < 37; i++) D.time.push(new Date(d0 + i * 86400000).toISOString().slice(0, 10));
+  D.river_discharge = D.time.map((t, i) => 30 + (i > 10 && i < 16 ? 60 : 0));
+  D.river_discharge_median = D.river_discharge; D.river_discharge_p25 = D.river_discharge.map(v => v * 0.8); D.river_discharge_p75 = D.river_discharge.map(v => v * 1.3);
+  D.river_discharge_max = D.river_discharge.map(v => v * 2); D.river_discharge_min = D.river_discharge.map(v => v * 0.6);
+  return { daily: D };
+}
 function forUrl(url, now) {
   const lat = +((url.match(/latitude=([\d.]+)/) || [])[1] || 0), offshore = lat > 5;
   if (/open-meteo\.com\/v1\/forecast/.test(url) && /api\.open-meteo/.test(url)) return Promise.resolve(openMeteo(now, offshore));
   if (/marine-api\.open-meteo/.test(url)) return Promise.resolve(marine(now, offshore));
   if (/ensemble-api\.open-meteo/.test(url)) return Promise.resolve(ensemble(now));
+  if (/flood-api\.open-meteo/.test(url)) return Promise.resolve(river(now));
   if (/raw\.githubusercontent\.com\/.*tide-cukai/.test(url)) return Promise.resolve(tideMirror(now));
   if (/weather\/forecast/.test(url)) return Promise.resolve(metForecast(now));
   if (/weather\/warning/.test(url)) return Promise.resolve(metWarning(now));

@@ -39,10 +39,13 @@ test('all 28 sites open as tabs (6 kept, oldest closed), then "Close all"', asyn
   expect(ids.length).toBe(28);
   /* sites whose stand-in is a card on the dashboard (MET, JPS, tides) */
   const toCard = await page.evaluate(() => MCCore.SITES.filter(s => { const a = MCCore.altFor(s, MC.state.settings); return a && a.kind === 'view'; }).map(s => s.id));
-  expect(toCard.length).toBe(8);
+  expect(toCard.length).toBe(10);
   await page.click('.site[data-site="tideforecast"]');
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
-  const framed = ids.filter(x => !toCard.includes(x));
+  /* no stand-in at all (Kamera banjir, NADMA): straight to a new tab, no tab here */
+  const direct = await page.evaluate(() => MCCore.SITES.filter(s => s.noFrame && !MCCore.altFor(s, MC.state.settings)).map(s => s.id));
+  expect(direct.sort()).toEqual(['camera', 'nadma']);
+  const framed = ids.filter(x => !toCard.includes(x) && !direct.includes(x));
   for (const id of framed) {
     await page.click('.site[data-site="' + id + '"]');
     await expect(page.locator('#view-site')).toHaveClass(/on/);
@@ -57,20 +60,29 @@ test('all 28 sites open as tabs (6 kept, oldest closed), then "Close all"', asyn
   await expect(page.locator('.stab')).toHaveCount(0);
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
   /* keyboard: Ctrl+Shift+W closes all too */
-  await page.click('.site[data-site="nadma"]'); await page.click('.site[data-site="storms"]');
+  await page.click('.site[data-site="ventusky"]'); await page.click('.site[data-site="storms"]');
   await expect(page.locator('.stab')).toHaveCount(2);
   await page.keyboard.press('Control+Shift+W');
   await expect(page.locator('.stab')).toHaveCount(0);
   expect(problems).toEqual([]);
 });
 
-test('sites that refuse frames show an "open in new tab" card on phones / browsers', async ({ page }) => {
+test('sites that refuse frames: a new tab straight away, a stand-in inside the app, or a card if pop-ups are blocked', async ({ page, context }) => {
   await guard(page, []);
   await ready(page);
   await page.evaluate(() => fetch('/api/refresh', { method: 'POST', headers: { 'X-MC': '1' } }));
   /* site health check runs 20 s after start in the mock server; wait for it */
   await page.waitForFunction(() => MC.state.snap.sites && MC.state.snap.sites.windy, null, { timeout: 40000 });
-  await page.click('.site[data-site="floodhub"]');
+  /* refused (by the PC's live check) and no stand-in */
+  const bare = await page.evaluate(() => MCCore.SITES.filter(s => MCCore.siteBlocked(s, MC.state.snap.sites[s.id]) && !MCCore.altFor(s, MC.state.settings)).map(s => s.id));
+  expect(bare.length).toBeGreaterThan(0);
+  await context.route(/^https:\/\/(portalbencana\.nadma\.gov\.my|infobanjir\.terengganu\.gov\.my)\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: 'x' }));
+  const [tab] = await Promise.all([context.waitForEvent('page'), page.click('.site[data-site="' + bare[0] + '"]')]);
+  await tab.close();
+  await expect(page.locator('.stab[data-tab="' + bare[0] + '"]')).toHaveCount(0);
+  /* pop-ups blocked: the card with the button */
+  await page.evaluate(() => { window.open = () => null; });
+  await page.click('.site[data-site="' + bare[0] + '"]');
   await expect(page.locator('#siteHost .frame.on .fmsg')).toContainText('does not allow');
   /* Windy refuses too, but has a stand-in from the same source (Windy embed) */
   await page.click('.site[data-site="windy"]');

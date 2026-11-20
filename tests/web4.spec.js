@@ -2,6 +2,7 @@
 const { test, expect } = require('@playwright/test');
 const F = require('./web-fixtures/make');
 
+const flood = [];
 async function sources(page, opts = {}) {
   const now = Date.now(), m = F.mirror(now);
   if (opts.jps) opts.jps(m.jps);
@@ -9,6 +10,7 @@ async function sources(page, opts = {}) {
   await page.route(/^https:\/\/api\.open-meteo\.com\//, r => json(r, F.forecast(now, { gust: opts.gust })));
   await page.route(/^https:\/\/marine-api\.open-meteo\.com\//, r => json(r, F.shiftOpenMeteo('om-marine.json', now)));
   await page.route(/^https:\/\/ensemble-api\.open-meteo\.com\//, r => json(r, F.shiftOpenMeteo('om-ensemble-gfs.json', now)));
+  await page.route(/^https:\/\/flood-api\.open-meteo\.com\//, r => { flood.push(r.request().url()); return json(r, F.shiftOpenMeteo('om-flood.json', now - 7 * 86400000)); });
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/warning/, r => json(r, F.warnings(now)));
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/forecast/, r => json(r, F.metForecast(now).map(x => Object.assign(x, { location: { location_id: 'Ds065', location_name: 'Kemaman' } }))));
   await page.route(/^https:\/\/api\.data\.gov\.my\/flood-warning/, r => json(r, []));
@@ -44,6 +46,10 @@ test('old look with the new data: mirror JPS stations, full JPS table, 7/14/28 d
   await expect(page.locator('#seaBody tbody tr')).toHaveCount(10);
   await expect(page.locator('#tideSub')).toContainText('Tide Forecast');
   await expect(page.locator('#tideBody tbody tr')).toHaveCount(8);
+  /* river flow forecast (stand-in for Flood Hub) at the river point */
+  await expect(page.locator('#floodBody')).toContainText('m³/s');
+  await expect(page.locator('#floodBody svg.chart')).toHaveCount(1);
+  expect(flood.some(u => /latitude=4\.25&longitude=103\.4/.test(u))).toBe(true);
   expect(api).toEqual([]);
   await page.screenshot({ path: '/tmp/shots/v41-' + test.info().project.name + '.png', fullPage: true });
 });
@@ -54,8 +60,12 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
   await expect(page.locator('.frame.on iframe, #siteHost .frame.on iframe').first()).toHaveAttribute('src', /embed\.windy\.com.*overlay=waves/);
   await page.locator('[data-site="tideforecast"]').first().click();
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
-  await context.route(/^https:\/\/sites\.research\.google\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: 'x' }));
-  const [tab] = await Promise.all([context.waitForEvent('page'), page.locator('[data-site="floodhub"]').first().click()]);
+  await page.locator('[data-site="floodhub"]').first().click();
+  await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
+  /* no stand-in: straight to the site in a new tab, no card in between */
+  await context.route(/^https:\/\/portalbencana\.nadma\.gov\.my\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: 'x' }));
+  const [tab] = await Promise.all([context.waitForEvent('page'), page.locator('[data-site="nadma"]').first().click()]);
   await tab.waitForLoadState();
-  expect(tab.url()).toMatch(/sites\.research\.google/);
+  expect(tab.url()).toMatch(/nadma\.gov\.my/);
+  await expect(page.locator('.stab[data-tab="nadma"]')).toHaveCount(0);
 });

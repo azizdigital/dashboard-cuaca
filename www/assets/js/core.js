@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.0';
+  var VERSION = '4.1.1';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -82,6 +82,9 @@
     tideschart: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
     tides4fishing: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
     metmalaysia: { view: 'dashboard', anchor: 'cardMet', title: 'Ramalan & amaran MET di Dashboard (data rasmi MET)' },
+    floodhub: { view: 'dashboard', anchor: 'cardFlood', title: 'Ramalan aliran sungai 30 hari di Dashboard (GloFAS)' },
+    jpspeta: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
+    himawari: { url: WINDY + '&zoom=5&overlay=clouds&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - awan' },
     windy: { url: WINDY + '&zoom=8&overlay=rain&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - hujan & ribut petir' },
     windywave: { url: WINDY + '&zoom=7&overlay=waves&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - ombak' },
     windywind: { url: WINDY + '&zoom=7&overlay=wind&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - angin' },
@@ -139,6 +142,7 @@
   var DEFAULTS = {
     locationName: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229,
     marineLat: 4.26, marineLon: 103.52,
+    riverLat: 4.25, riverLon: 103.40,  /* a point on the river (GloFAS grid ~5 km): Sungai Kemaman above Chukai */
     metLocationId: 'Ds065',
     warningKeywords: 'Terengganu, Kemaman',
     waterDistrict: 'Kemaman',
@@ -162,7 +166,7 @@
     tidePlace: 'cukai',              /* tide times: 'cukai' = Tide Forecast table (GitHub mirror), 'model' = Open-Meteo sea level */
     jpsState: 'TRG'                  /* web app: JPS Public Infobanjir state code for water level & rainfall (read through the relay) */
   };
-  var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
+  var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
     'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace'];
   var CAN_BE_EMPTY = ['adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
@@ -242,6 +246,10 @@
     ['lat', 'marineLat'].forEach(function (k2) { if (out[k2] < -90 || out[k2] > 90) out[k2] = DEFAULTS[k2]; });
     ['lon', 'marineLon'].forEach(function (k2) { if (out[k2] < -180 || out[k2] > 180) out[k2] = DEFAULTS[k2]; });
     if (out.metLocationId !== '' && !/^[A-Za-z]{2}\d{3}$/.test(out.metLocationId)) out.metLocationId = DEFAULTS.metLocationId;
+    ['riverLat', 'riverLon'].forEach(function (k) {
+      var v = out[k] === '' || out[k] === null || out[k] === undefined ? NaN : +out[k];
+      out[k] = isFinite(v) && Math.abs(v) <= (k === 'riverLat' ? 90 : 180) ? v : (k === 'riverLat' ? out.lat : out.lon);
+    });
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
     out.jpsState = String(out.jpsState).toUpperCase();
     if (JPS_STATES.indexOf(out.jpsState) < 0) out.jpsState = DEFAULTS.jpsState;
@@ -252,7 +260,7 @@
   var OFFSHORE_BASE = { kind: 'offshore', metLocationId: '', warningKeywords: 'Terengganu, Condore, Reef North', waterDistrict: '', tidePlace: 'model',
     scrapeInfobanjir: false, useDataGovFlood: false, rain3hMm: 30, rain24hMm: 80, gustKmh: 50, waveM: 2.5, visKm: 2, thunderAlert: true };
   var DEFAULT_PROFILES = [
-    { id: 'kemaman', name: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229, marineLat: 4.26, marineLon: 103.52, metLocationId: 'Ds065',
+    { id: 'kemaman', name: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229, marineLat: 4.26, marineLon: 103.52, riverLat: 4.25, riverLon: 103.40, metLocationId: 'Ds065',
       warningKeywords: 'Terengganu, Kemaman', waterDistrict: 'Kemaman', scrapeInfobanjir: true, useDataGovFlood: true },
     Object.assign({ id: 'irong-barat', name: 'Irong Barat (offshore)', lat: 5.5501, lon: 104.7745, marineLat: 5.5501, marineLon: 104.7745 }, OFFSHORE_BASE)
   ];
@@ -288,12 +296,16 @@
     /* 28 days: GFS ensemble (31 runs), the only free model that goes past 16 days day by day */
     var outlook = 'https://ensemble-api.open-meteo.com/v1/ensemble?latitude=' + s.lat + '&longitude=' + s.lon + '&models=gfs05&wind_speed_unit=kmh' +
       '&daily=precipitation_sum,wind_speed_10m_max,temperature_2m_max,temperature_2m_min&timezone=Asia%2FKuala_Lumpur&forecast_days=35';
+    /* river discharge (GloFAS, the global flood model): 7 days back, 30 days ahead */
+    var flood = 'https://flood-api.open-meteo.com/v1/flood?latitude=' + (s.riverLat === '' ? s.lat : s.riverLat) + '&longitude=' + (s.riverLon === '' ? s.lon : s.riverLon) +
+      '&daily=river_discharge,river_discharge_median,river_discharge_max,river_discharge_min,river_discharge_p25,river_discharge_p75&past_days=7&forecast_days=30';
     var out = {
       openMeteo: om,
       marine: marine,
       outlook: outlook,
       metWarning: 'https://api.data.gov.my/weather/warning?limit=60&sort=-warning_issue__issued'
     };
+    if (s.kind !== 'offshore') out.river = flood;
     if (s.metLocationId) out.metForecast = 'https://api.data.gov.my/weather/forecast?contains=' + encodeURIComponent(s.metLocationId) + '@location__location_id';
     if (s.useDataGovFlood && s.waterDistrict) out.flood = 'https://api.data.gov.my/flood-warning?limit=200&contains=' + encodeURIComponent(s.waterDistrict) + '@district';
     return out;
@@ -549,6 +561,22 @@
         wind: Math.max.apply(null, part.map(function (d) { return d.wind || 0; })), windHi: Math.max.apply(null, part.map(function (d) { return d.windHi || 0; })) });
     }
     return { days: days, weeks: weeks };
+  }
+  /* GloFAS river discharge -> days with the middle forecast, its 25-75 % range and the highest run */
+  function parseRiver(j, now) {
+    if (!j || !j.daily || !j.daily.time) throw new Error(L('Format data aliran sungai tidak dikenali'));
+    var D = j.daily, today = dateKey(now || Date.now());
+    var days = D.time.map(function (t, i) {
+      var g = function (k) { return num((D[k] || [])[i]); };
+      var mid = g('river_discharge_median'); if (mid === null) mid = g('river_discharge');
+      return { date: t, past: t < today, q: mid, lo: g('river_discharge_p25'), hi: g('river_discharge_p75'), max: g('river_discharge_max'), min: g('river_discharge_min') };
+    }).filter(function (d) { return d.q !== null; });
+    if (!days.length) throw new Error(L('Tiada sungai di titik ini - tetapkan titik sungai di Tetapan'));
+    var ahead = days.filter(function (d) { return !d.past; }), now0 = ahead[0] || days[days.length - 1];
+    var peak = ahead.reduce(function (a, d) { return !a || d.q > a.q ? d : a; }, null);
+    var past = days.filter(function (d) { return d.past; }).map(function (d) { return d.q; });
+    var base = past.length ? past.reduce(function (a, b) { return a + b; }, 0) / past.length : now0.q;
+    return { days: days, now: now0, peak: peak, ratio: base > 0 && peak ? r1(peak.q / base, 1) : null };
   }
   function parseTideMirror(j) {
     if (!j || !j.events) throw new Error(L('Tiada waktu pasang surut'));
@@ -924,6 +952,8 @@
     }
     snap.weather = src('openMeteo', L('Open-Meteo (cuaca & hujan)'), function (r) { return parseOpenMeteo(r.data, now); }, prev.weather || null);
     snap.marine = src('marine', L('Open-Meteo Marine (ombak & paras laut)'), function (r) { return parseMarine(r.data, now); }, prev.marine || null);
+    off.river = s.kind === 'offshore';
+    snap.river = off.river ? null : src('river', L('Open-Meteo Flood (GloFAS, aliran sungai)'), function (r) { return parseRiver(r.data, now); }, prev.river || null);
     snap.outlook = src('outlook', L('Open-Meteo Ensemble (28 hari)'), function (r) { return parseOutlook(r.data); }, prev.outlook || null);
     off.tideMirror = s.tidePlace !== 'cukai';
     snap.tide = off.tideMirror ? null : src('tideMirror', L('Tide Forecast - Cukai (mirror GitHub)'), function (r) { return parseTideMirror(r.data); }, prev.tide || null);
@@ -1068,7 +1098,7 @@
   return {
     siteBlocked: siteBlocked, altFor: altFor, ALT: ALT, adHosts: adHosts, relayHosts: relayHosts, relayReady: relayReady, relayFor: relayFor, relayAdsFor: relayAdsFor, relayVerdict: relayVerdict, relayUrlFor: relayUrlFor, relayCode: relayCode, parseMetText: parseMetText, metType: metType, metSummary: metSummary, metShort: metShort, metWhen: metWhen, metRange: metRange, windText: windText, metDate: metDate,
     VERSION: VERSION, CATEGORIES: CATEGORIES, SITES: SITES, siteById: siteById, siteUrl: siteUrl, hostOf: hostOf, certAllowed: certAllowed, CERT_ALLOW: CERT_ALLOW,
-    DEFAULTS: DEFAULTS, REFRESH_CHOICES: REFRESH_CHOICES, cleanSettings: cleanSettings, urls: urls, SCRAPE: SCRAPE, jpsUrls: jpsUrls, mirrorBase: mirrorBase, mirrorUrls: mirrorUrls, fromMirror: fromMirror, parseOutlook: parseOutlook, parseTideMirror: parseTideMirror, parseJps: parseJps, htmlRows: htmlRows, htmlText: htmlText, JPS_STATES: JPS_STATES,
+    DEFAULTS: DEFAULTS, REFRESH_CHOICES: REFRESH_CHOICES, cleanSettings: cleanSettings, urls: urls, SCRAPE: SCRAPE, jpsUrls: jpsUrls, mirrorBase: mirrorBase, mirrorUrls: mirrorUrls, fromMirror: fromMirror, parseOutlook: parseOutlook, parseTideMirror: parseTideMirror, parseRiver: parseRiver, parseJps: parseJps, htmlRows: htmlRows, htmlText: htmlText, JPS_STATES: JPS_STATES,
     PROFILE_KEYS: PROFILE_KEYS, DEFAULT_PROFILES: DEFAULT_PROFILES, OFFSHORE_BASE: OFFSHORE_BASE, cleanProfile: cleanProfile, profileSettings: profileSettings,
     newestDate: newestDate, kt: kt,
     num: num, localMs: localMs, flexTime: flexTime, myt: myt, dateKey: dateKey, wmo: wmo, compass: compass,

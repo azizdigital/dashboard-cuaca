@@ -320,7 +320,12 @@
           toast(L('Laman ganti: ') + L(alt.title), '');
           return;
         }
-        if (!alt && tapped) { try { window.open(siteUrl(site), '_blank', 'noopener'); } catch (e) { /* blocked: the card's button still works */ } }
+        if (!alt && tapped) {
+          /* no stand-in: straight to the site (iPhone / iPad home-screen app: a sheet over the app with "Done"); the card only if the window was blocked */
+          var w = null;
+          try { w = window.open(siteUrl(site), '_blank'); } catch (e) { w = null; }
+          if (w) { try { w.opener = null; } catch (e2) { /* */ } return; }
+        }
       }
       this.activate(id); show('site');
     },
@@ -692,7 +697,7 @@
         { name: L('Ambang alert'), color: '#c98500', dash: '4 4', unit: 'm', digits: 1, points: hh.length ? [[hh[0].t, state.settings.waveM], [hh[hh.length - 1].t, state.settings.waveM]] : [] }] });
     } else $('seaBody').innerHTML = '<div class="empty">Tiada data laut.</div>';
 
-    renderForecast(s); renderTide(s);
+    renderForecast(s); renderTide(s); renderRiver(s);
 
     /* sources + site health */
     var srcs = s.sources || {}, keys = Object.keys(srcs).filter(function (k) { return !srcs[k].skipped; });
@@ -793,6 +798,25 @@
         yMin: Math.min.apply(null, pts.map(function (h) { return h.sea; })), series: [{ name: L('Paras laut'), color: '#3987e5', unit: 'm', digits: 2, points: pts.map(function (h) { return [h.t, h.sea]; }) }] });
     }
   }
+  /* river discharge forecast (GloFAS) - the app's own view of what Flood Hub shows */
+  function renderRiver(s) {
+    var r = s.river, body = $('floodBody');
+    if (!body) return;
+    if (!r) { body.innerHTML = '<div class="empty">' + L('Tiada data aliran sungai.') + '</div>'; return; }
+    var lvl = r.ratio === null ? 'normal' : r.ratio >= 3 ? 'danger' : r.ratio >= 2 ? 'warning' : r.ratio >= 1.5 ? 'alert' : 'normal';
+    body.innerHTML = '<div class="kv"><div><span>' + L('Aliran sekarang') + '</span><b>' + f(r.now.q, 0) + ' m³/s</b></div>' +
+      '<div><span>' + L('Puncak 30 hari') + '</span><b>' + (r.peak ? f(r.peak.q, 0) + ' m³/s' : '-') + '</b></div>' +
+      '<div><span>' + L('Bila') + '</span><b>' + (r.peak ? esc(dayName(r.peak.date)) : '-') + '</b></div>' +
+      '<div><span>' + L('Berbanding 7 hari lalu') + '</span><b>' + chip(lvl) + ' ' + (r.ratio === null ? '' : '×' + f(r.ratio, 1)) + '</b></div></div>' +
+      '<div class="chartbox" id="chartRiver"></div><p class="note">' + L('Model GloFAS (Copernicus), grid ~5 km di lokasi profil. Ini anggaran aliran sungai, bukan paras air stesen JPS - gunakan sebagai amaran awal.') + '</p>';
+    var mid = function (d) { return C.localMs(d) + 12 * 3600000; };
+    window.Charts.chart($('chartRiver'), { height: 170, now: Date.now(), yLabel: 'm³/s', ticks: r.days.filter(function (x, i) { return i % 7 === 0; }).map(function (x) { return C.localMs(x.date); }), xFormat: tickDay,
+      tipTime: function (t) { return dayName(C.dateKey(t)); }, yMin: 0, series: [
+        { name: L('Julat 25–75%'), kind: 'band', color: '#3987e5', unit: 'm³/s', digits: 0, points: r.days.map(function (x) { return [mid(x.date), x.lo, x.hi]; }) },
+        { name: L('Aliran (tengah)'), color: '#3987e5', unit: 'm³/s', digits: 0, points: r.days.map(function (x) { return [mid(x.date), x.q]; }) },
+        { name: L('Larian tertinggi'), color: '#d95926', dash: '4 4', unit: 'm³/s', digits: 0, points: r.days.map(function (x) { return [mid(x.date), x.max]; }) }] });
+  }
+
   /* the full JPS tables, same columns as the JPS pages */
   var jpsOpen = load('mc_jps_full', { water: false, rain: false, all: false });
   function renderJpsFull(s) {
@@ -1388,7 +1412,7 @@
     var name = $('newProfName').value.trim(), lat = parseFloat($('newProfLat').value), lon = parseFloat($('newProfLon').value), kind = $('newProfKind').value;
     if (!name) return toast(L('Isi nama profil'), '', 'warning');
     if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return toast(L('Koordinat tidak sah'), L('Contoh: 5.5501 dan 104.7745'), 'warning');
-    var prof = { name: name, kind: kind, lat: lat, lon: lon };
+    var prof = { name: name, kind: kind, lat: lat, lon: lon, riverLat: lat, riverLon: lon };
     if (kind === 'offshore') { prof.marineLat = lat; prof.marineLon = lon; }
     Data.profile('save', { profile: prof, activate: true }).then(function () {
       ['newProfName', 'newProfLat', 'newProfLon'].forEach(function (i) { $(i).value = ''; });

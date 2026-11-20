@@ -4,7 +4,7 @@ name: Mirror data (JPS & tides)
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
