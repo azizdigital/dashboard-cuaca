@@ -158,7 +158,7 @@
     lang: 'en',                      /* en | ms */
     adblock: true,                   /* desktop: block ads, ad pop-ups and cookie notices inside the sites */
     adblockExcept: '',               /* sites left alone, host names separated by commas */
-    relayUrl: '',                    /* iPad / phone: your Cloudflare relay, e.g. https://cuaca-relay.aziz.workers.dev */
+    relayUrl: 'https://dashboardcuaca.aziz-mohamad-ai.workers.dev',   /* Aziz's own relay; the key is set on each device */
     relayKey: '',                    /* its secret key (letters, numbers, - and _) */
     relayBad: '',                    /* sites the relay could not fetch at the last test (opened in the browser instead) */
     relayAltOff: '',                 /* stand-ins that failed the last relay test (site ids) */
