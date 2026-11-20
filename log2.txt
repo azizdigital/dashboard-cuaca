@@ -1,0 +1,8 @@
+flood 4.2367,103.4180 200 2375
+flood 4.25,103.40 200 2633
+flood 4.30,103.35 200 2625
+HTTP/1.1 200 OK
+access-control-allow-origin: *
+access-control-allow-headers: accept, authorization, content-type, origin, x-requested-with, user-agent, access-control-allow-origin, range, if-match, if-unmodified-since
+access-control-allow-methods: GET, POST, OPTIONS
+access-control-max-age: 600
