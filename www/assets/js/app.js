@@ -285,7 +285,9 @@
       var st = C.siteById(id);
       if (!st) return false;
       if (isDesktop || !st.noFrame) return true;
-      var a = C.altFor(st, load('mc_settings', null) || C.DEFAULTS);
+      var ss = load('mc_settings', null) || C.DEFAULTS;
+      if (C.relayFor(st, ss)) return true;
+      var a = C.altFor(st, ss);
       return !!(a && a.kind === 'url');
     }),
     frames: {}, current: null, auto: load('mc_auto', {}), MAX: 6,
@@ -957,8 +959,6 @@
       if (state.snap) { renderAll(); }
       if (isDesktop) return this.connectPC();
       if (isWeb) {
-        /* 4.1: no relay any more - JPS & tides come from the GitHub mirror, refusing sites get a stand-in or a new tab */
-        if (state.settings.relayUrl || state.settings.relayKey) { state.settings.relayUrl = ''; state.settings.relayKey = ''; state.settings.relayBad = ''; save('mc_settings', state.settings); }
         setMode('direct'); return Direct.run();
       }
       /* phone / browser: is the PC there? */
@@ -1480,10 +1480,7 @@
     return C.SITES.filter(function (x) { return C.siteBlocked(x, snapSites[x.id]); })
       .map(function (x) { return { id: x.id, url: C.siteUrl(x, state.settings) }; })
       /* stand-ins on other relayed pages (e.g. JPS rainfall for Rainfall Kemaman) are checked too */
-      .concat(C.SITES.filter(function (x) { var a = C.ALT[x.id]; return a && a.relay && a.url && C.siteBlocked(x, snapSites[x.id]); })
-        .map(function (x) { return { id: 'alt:' + x.id, url: C.ALT[x.id].url }; }))
-      /* the JPS water level table the web app reads for the dashboard */
-      .concat(C.jpsUrls(state.settings).jpsWater ? [{ id: 'alt:jpsdata', url: C.jpsUrls(state.settings).jpsWater }] : []);
+;
   }
   function relayCheck(s, targets) {
     if (!C.relayReady(s)) return Promise.resolve({ code: 'missing', sites: [] });

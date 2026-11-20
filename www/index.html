@@ -254,9 +254,9 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
             <section class="card land-only pc-only"><div class="card-h"><h3>Diagnostik</h3><small>jadual infobanjir</small></div><div class="card-b">
               <div class="fld wide"><label>Apa yang app baca dari laman infobanjir<small>Untuk semak jika paras air kosong</small></label><div class="diag" id="diagBox" data-noi18n>-</div></div>
             </div></section>
-            <section class="card" id="relayCard" hidden><div class="card-h"><h3>Relay laman</h3><small>Cloudflare percuma</small></div><div class="card-b">
+            <section class="card" id="relayCard"><div class="card-h"><h3>Relay laman</h3><small>Cloudflare percuma</small></div><div class="card-b">
               <p class="muted relay-intro">Sesetengah laman (titik biru) tidak membenarkan dirinya dipaparkan di dalam app lain. Relay percuma anda di Cloudflare membuang sekatan itu, supaya laman tersebut keluar di dalam app, di mana-mana, tanpa PC. Tanpa relay, laman itu dibuka dalam pelayar di atas app.</p>
-              <p class="muted relay-intro web-only">Dalam app web, relay juga membaca <b>paras air &amp; hujan JPS</b> untuk dashboard, dan <b>membuang iklan</b> dari laman yang dibuka melaluinya.</p>
+              <p class="muted relay-intro web-only">Relay juga <b>membuang iklan</b> dari laman yang dibuka melaluinya. infobanjir Terengganu &amp; met.gov.my hanya menerima sambungan dari Malaysia, jadi kedua-duanya tetap diganti dengan kad di Dashboard atau dibuka di tab baru.</p>
               <ol class="relay-steps">
                 <li>Daftar akaun percuma di <b>dash.cloudflare.com</b> (emel + kata laluan).</li>
                 <li><b>Workers &amp; Pages</b> → <b>Create</b> → <b>Hello World</b> → beri nama (cth <code>cuaca-relay</code>) → <b>Deploy</b>.</li>

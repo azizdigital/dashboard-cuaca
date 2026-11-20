@@ -69,3 +69,23 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
   expect(tab.url()).toMatch(/nadma\.gov\.my/);
   await expect(page.locator('.stab[data-tab="nadma"]')).toHaveCount(0);
 });
+
+test('relay again: a refused site (Flood Hub) shows inside the app through the relay; relay test lists it', async ({ page, baseURL }) => {
+  const harness = require('./relay-harness');
+  const core = require('../www/assets/js/core');
+  const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page' : null });
+  try {
+    await open(page, baseURL);
+    await page.click('[data-view="settings"]');
+    await expect(page.locator('#relayCard')).toBeVisible();
+    await page.fill('#f_relayUrl', 'http://127.0.0.1:' + R.relay.port);
+    await page.fill('#f_relayKey', 'k3y-web-411');
+    await page.click('#setSave');
+    await page.waitForFunction(() => MC.state.settings.relayKey === 'k3y-web-411');
+    await page.locator('[data-site="floodhub"]').first().click();
+    await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /\/k3y-web-411\/https\/sites\.research\.google\//);
+    await page.reload();
+    await page.waitForFunction(() => window.MC && MC.state.snap);
+    expect(await page.evaluate(() => MC.state.settings.relayKey)).toBe('k3y-web-411');     /* kept */
+  } finally { R.stop(); }
+});
