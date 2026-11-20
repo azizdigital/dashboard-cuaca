@@ -1,0 +1,108 @@
+/* Dashboard Cuaca Aziz - parsers for the pages GitHub mirrors (JPS Public Infobanjir, Tide Forecast).
+   Plain functions, no packages: used by mirror.js (GitHub) and by the tests. */
+'use strict';
+
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
+function text(h) {
+  return String(h || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '')
+    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+\d*);/gi, (all, e) => {
+      if (ENT[e.toLowerCase()] !== undefined) return ENT[e.toLowerCase()];
+      if (e[0] === '#') { const n = /x/i.test(e[1]) ? parseInt(e.slice(2), 16) : +e.slice(1); return n ? String.fromCharCode(n) : ''; }
+      return all;
+    }).replace(/\s+/g, ' ').trim();
+}
+
+/* Table rows as arrays of cell texts. JPS pages leave out many <tr> tags, so a row also starts at a cell marked data-th='No'. */
+function rows(html) {
+  html = String(html || '').replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '');
+  const out = []; let row = [];
+  const re = /<tr\b[^>]*>|<t[dh]\b([^>]*)>([\s\S]*?)(?=<t[dh]\b|<\/?tr\b|<\/table|$)/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    if (/^<tr/i.test(m[0])) { if (row.length) out.push(row); row = []; continue; }
+    if (/data-th\s*=\s*["']?No["'\s>]/i.test(m[1] || '') && row.length) { out.push(row); row = []; }
+    row.push(text(m[2].replace(/<\/t[dh]>[\s\S]*$/i, '')));
+  }
+  if (row.length) out.push(row);
+  return out;
+}
+
+function num(v) {
+  const m = /-?\d+(?:\.\d+)?/.exec(String(v === undefined || v === null ? '' : v));
+  if (!m) return null;
+  const n = +m[0];
+  return n <= -999 ? null : n;                 /* -9999 = no reading */
+}
+/* "20/11/2026 21:15" or "20/11/2026 21:00:00" (Malaysia time) -> "2026-11-20T21:15:00+08:00" */
+function mytIso(s) {
+  const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(String(s || ''));
+  if (!m) return null;
+  const p = n => String(n).padStart(2, '0');
+  return m[3] + '-' + p(m[2]) + '-' + p(m[1]) + 'T' + p(m[4] || 0) + ':' + p(m[5] || 0) + ':' + p(m[6] || 0) + '+08:00';
+}
+function isoDate(s) { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(s || '')); return m ? m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0') : null; }
+
+/* JPS water level: No | Station ID | Station Name | District | Main Basin | Sub River Basin | Last Updated | Water Level (m) | Normal | Alert | Warning | Danger */
+function jpsWater(html) {
+  const seen = new Set(), out = [];
+  for (const r of rows(html)) {
+    if (r.length < 12 || !/^\d+$/.test(r[0]) || !r[2]) continue;
+    const key = r[1] + '|' + r[2];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ no: +r[0], id: r[1], name: r[2], district: r[3], basin: r[4], subBasin: r[5], updated: mytIso(r[6]),
+      level: num(r[7]), normal: num(r[8]), alert: num(r[9]), warning: num(r[10]), danger: num(r[11]) });
+  }
+  return out;
+}
+
+/* JPS rainfall: No | Station ID | Station | District | Last Updated | 6 x daily | Rainfall from Midnight | Total 1 Hour */
+function jpsRain(html) {
+  const all = rows(html), seen = new Set(), stations = [];
+  let days = [], today = null;
+  for (const r of all) {
+    const dates = r.map(isoDate).filter(Boolean);
+    if (!/^\d+$/.test(r[0] || '') && dates.length >= 6 && !days.length) days = dates.slice(0, 6);
+    const mid = r.find(c => /midnight/i.test(c));
+    if (mid && !today) today = isoDate(mid);
+  }
+  for (const r of all) {
+    if (r.length < 13 || !/^\d+$/.test(r[0]) || !r[2]) continue;
+    const key = r[1] + '|' + r[2];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    stations.push({ no: +r[0], id: r[1], name: r[2], district: r[3], updated: mytIso(r[4]),
+      daily: r.slice(5, 11).map(num), today: num(r[11]), hour: num(r[12]) });
+  }
+  if (!today && stations.length && stations[0].updated) today = stations[0].updated.slice(0, 10);
+  return { days, today, stations };
+}
+
+/* Tide Forecast page: every "High Tide / Low Tide" row with its time, date and height in metres */
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+function tides(html, nowMs) {
+  html = String(html || '');
+  const now = new Date((nowMs || Date.now()) + 8 * 3600000);        /* Malaysia time */
+  const y0 = now.getUTCFullYear(), m0 = now.getUTCMonth();
+  const out = [], seen = new Set();
+  const re = /<tr>\s*<td>\s*(High|Low) Tide\s*<\/td>\s*<td>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const when = text(m[2]), h = text(m[3]);
+    const t = /(\d{1,2}):(\d{2})\s*(AM|PM)/i.exec(when), d = /(\d{1,2})\s+([A-Za-z]+)\)/.exec(when), mt = /\((-?\d+(?:\.\d+)?)\s*m\)/.exec(h);
+    if (!t || !d || !mt) continue;
+    const mon = MONTHS.indexOf(d[2].toLowerCase());
+    if (mon < 0) continue;
+    let year = y0;
+    if (mon < m0 - 6) year++; else if (mon > m0 + 6) year--;      /* December page showing January, and the reverse */
+    let hr = +t[1] % 12; if (/pm/i.test(t[3])) hr += 12;
+    const p = n => String(n).padStart(2, '0');
+    const iso = year + '-' + p(mon + 1) + '-' + p(+d[1]) + 'T' + p(hr) + ':' + t[2] + ':00+08:00';
+    if (seen.has(iso)) continue;
+    seen.add(iso);
+    out.push({ type: m[1].toLowerCase() === 'high' ? 'high' : 'low', time: iso, m: +mt[1] });
+  }
+  return out.sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
+}
+
+module.exports = { text, rows, num, mytIso, jpsWater, jpsRain, tides };

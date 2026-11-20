@@ -1,8 +1,5 @@
-node_modules/
-dist/
+node_modules
 test-results/
 playwright-report/
-tests/.data/
-*.log
-.data/
+out/
 *.zip

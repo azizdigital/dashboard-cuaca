@@ -1,387 +1,177 @@
-// Dashboard Cuaca Aziz - browser checks against `node server-only.js --mock` (made-up data, no internet needed).
+// Dashboard Cuaca Aziz 4 in a browser (PC, iPad and phone sizes). Every outside source is answered by the test.
 const { test, expect } = require('@playwright/test');
-const fx = require('./fixtures/make');
+const fs = require('fs'), path = require('path');
+const F = require('./fixtures/make');
+const fx = f => fs.readFileSync(path.join(__dirname, 'fixtures', f), 'utf8');
 
-/* the page itself must never load anything from the internet; web sites inside frames are cut off in tests */
-async function guard(page, problems) {
-  page.on('pageerror', e => problems.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) problems.push('console: ' + m.text()); });
-  await page.route(u => !/^http:\/\/127\.0\.0\.1:/.test(u.href), r => r.abort());
+async function sources(page, opts = {}) {
+  const now = Date.now(), m = F.mirror(now);
+  if (opts.jps) opts.jps(m.jps);
+  const calls = [];
+  const json = (route, body, status = 200) => route.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: typeof body === 'string' ? body : JSON.stringify(body) });
+  await page.route('https://api.open-meteo.com/**', r => { calls.push('fc'); return opts.fcDown ? r.abort() : json(r, F.forecast(now, { gust: opts.gust })); });
+  await page.route('https://marine-api.open-meteo.com/**', r => { calls.push('marine:' + new URL(r.request().url()).searchParams.get('latitude')); return json(r, F.shiftOpenMeteo('om-marine.json', now)); });
+  await page.route('https://ensemble-api.open-meteo.com/**', r => { calls.push('outlook'); return json(r, F.shiftOpenMeteo('om-ensemble-gfs.json', now)); });
+  await page.route('https://geocoding-api.open-meteo.com/**', r => json(r, { results: [{ name: 'Kuantan', latitude: 3.8077, longitude: 103.326, admin1: 'Pahang', country: 'Malaysia' }] }));
+  await page.route('https://api.data.gov.my/weather/warning**', r => { calls.push('warn'); return json(r, F.warnings(now)); });
+  await page.route('https://api.data.gov.my/weather/forecast**', r => { calls.push('met'); return json(r, F.metForecast(now)); });
+  await page.route('https://raw.githubusercontent.com/**', r => {
+    const u = r.request().url(); calls.push('mirror:' + u.replace(/^.*\/data\//, '').replace(/\?.*$/, ''));
+    if (/jps-TRG\.json/.test(u)) return json(r, m.jps);
+    if (/tide-cukai\.json/.test(u)) return json(r, m.tide);
+    return json(r, {}, 404);
+  });
+  /* sites shown inside the app: a plain page instead of the real site */
+  await page.route(/^https:\/\/(embed\.windy\.com|www\.rainviewer\.com|webcams\.windy\.com|www\.ventusky\.com|www\.meteoblue\.com|map\.blitzortung\.org|earth\.nullschool\.net|www\.jalanow\.com|www\.vesselfinder\.com)\//,
+    r => r.fulfill({ status: 200, contentType: /aismap/.test(r.request().url()) ? 'text/javascript' : 'text/html', body: /aismap/.test(r.request().url()) ? 'document.body.insertAdjacentHTML("beforeend","<p id=vf>map</p>")' : '<h1 id="h">' + new URL(r.request().url()).hostname + '</h1>' }));
+  return calls;
 }
-async function ready(page) {
-  await page.goto('/');
-  await page.waitForFunction(() => window.MC && MC.state.snap && (MC.state.snap.stations || []).length > 0, null, { timeout: 20000 });
+async function ready(page, opts) {
+  const calls = await sources(page, opts);
+  const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto('./');
+  await page.waitForFunction(() => window.DCAPP && DCAPP.state().data.fc && DCAPP.state().data.jps);
+  return { calls, errs };
 }
 
-test('dashboard shows water levels, weather, MET and alerts', async ({ page }) => {
-  const problems = []; await guard(page, problems);
-  await ready(page);
-  await expect(page.locator('#dashTiles .tile')).toHaveCount(6);
-  await expect(page.locator('#waterBody tr.click')).toHaveCount(6);            /* 4 fresh + 2 old (in <details>) */
-  await expect(page.locator('#waterBody > table tr.click').first()).toContainText('Sg. Chukai');
-  await expect(page.locator('#waterBody > table')).toContainText('Warning');
-  await expect(page.locator('#metBody .fc .d')).toHaveCount(7);
-  await expect(page.locator('#warnBody')).toContainText('Continuous Rain');
-  await expect(page.locator('#chartRain svg')).toBeVisible();
-  await expect(page.locator('#seaBody svg')).toBeVisible();
-  await expect(page.locator('#bellBadge')).toHaveText('5');
-  await expect(page.locator('#dashLinks .link')).toHaveCount(26);
-  await expect(page.locator('#cardOffshore')).toBeHidden();
-  await expect(page.locator('#profName')).toHaveText('Kemaman');
-  await expect(page.locator('#statusText')).toContainText('Updated');
-  expect(problems).toEqual([]);
+test('Kemaman: now, MET warning for my area, tides from the Cukai mirror, forecast, sea, MET 7 days, JPS tables like the original', async ({ page }) => {
+  const { calls, errs } = await ready(page);
+  await expect(page.locator('#cNow')).toContainText('27°');
+  await expect(page.locator('#cNow')).toContainText('km/h');
+  await expect(page.locator('#cNow')).toContainText('kt');
+  await expect(page.locator('#cWarn .warn.mine')).toHaveCount(1);
+  await expect(page.locator('#cWarn .warn.mine')).toContainText('Strong Winds and Rough Seas Warning');
+  await expect(page.locator('#cWarn .warn.mine mark').first()).toHaveText(/Terengganu/i);
+  await expect(page.locator('#alerts .arow.danger')).toContainText('MET');
+  await expect(page.locator('#cTide')).toContainText('Tide Forecast - Cukai');
+  await expect(page.locator('#cTide table.tide tr')).toHaveCount(6);
+  await expect(page.locator('#cTide svg.chart')).toHaveCount(1);
+  await expect(page.locator('#cFc table.days tbody tr')).toHaveCount(7);
+  await expect(page.locator('#cFc svg.chart')).toHaveCount(1);
+  await expect(page.locator('#cSea table.days tbody tr')).toHaveCount(10);
+  await expect(page.locator('#cMet tbody tr')).toHaveCount(7);
+  await expect(page.locator('#cMet')).toContainText('Thunderstorms in');
+  /* JPS: the same columns as the original page */
+  const heads = await page.locator('#cWater table.jps thead th').allTextContents();
+  expect(heads).toEqual(['No.', 'Station ID', 'Station Name', 'District', 'Main Basin', 'Sub River Basin', 'Last Updated', 'Water Level (m)', 'Normal', 'Alert', 'Warning', 'Danger']);
+  await expect(page.locator('#cWater tbody tr')).toHaveCount(8);
+  await expect(page.locator('#cWater')).toContainText('Sg. Mas di Kg. Sg. Mas (F2)');
+  await expect(page.locator('#cRain tbody tr')).toHaveCount(17);
+  await expect(page.locator('#cRain thead')).toContainText('Rainfall from Midnight');
+  await expect(page.locator('#cRain thead')).toContainText('Total 1 Hour (Now)');
+  /* whole state */
+  await page.locator('#cWater [data-all="1"]').click();
+  await expect(page.locator('#cWater tbody tr')).toHaveCount(46);
+  await page.locator('#cWater [data-all="0"]').click();
+  expect(calls).toEqual(expect.arrayContaining(['fc', 'marine:4.26', 'outlook', 'warn', 'met', 'mirror:jps-TRG.json', 'mirror:tide-cukai.json']));
+  expect(errs).toEqual([]);
 });
 
-test('all 26 sites open as tabs (6 kept, oldest closed), then "Close all"', async ({ page }) => {
-  const problems = []; await guard(page, problems);
+test('7 / 14 / 28 days', async ({ page }) => {
   await ready(page);
-  const ids = await page.evaluate(() => MCCore.SITES.map(s => s.id));
-  expect(ids.length).toBe(26);
-  /* Met Malaysia refuses framing and its stand-in is the MET card on the dashboard */
-  await page.click('.site[data-site="metmalaysia"]');
-  await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
-  for (const id of ids.filter(x => x !== 'metmalaysia')) {
-    await page.click('.site[data-site="' + id + '"]');
-    await expect(page.locator('#view-site')).toHaveClass(/on/);
-    await expect(page.locator('.stab[aria-current="true"]')).toHaveAttribute('data-tab', id);
-    await expect(page.locator('#siteHost .frame.on')).toHaveCount(1);
-  }
-  await expect(page.locator('.stab')).toHaveCount(6);
-  await page.click('.stab[data-tab="' + ids.filter(x => x !== 'metmalaysia').pop() + '"] .x');
-  await expect(page.locator('.stab')).toHaveCount(5);
-  await expect(page.locator('#closeAllBtn')).toHaveText('Close all (5)');
-  await page.click('#closeAllBtn');
-  await expect(page.locator('.stab')).toHaveCount(0);
-  await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
-  /* keyboard: Ctrl+Shift+W closes all too */
-  await page.click('.site[data-site="nadma"]'); await page.click('.site[data-site="storms"]');
-  await expect(page.locator('.stab')).toHaveCount(2);
-  await page.keyboard.press('Control+Shift+W');
-  await expect(page.locator('.stab')).toHaveCount(0);
-  expect(problems).toEqual([]);
-});
-
-test('sites that refuse frames show an "open in new tab" card on phones / browsers', async ({ page }) => {
-  await guard(page, []);
-  await ready(page);
-  await page.evaluate(() => fetch('/api/refresh', { method: 'POST', headers: { 'X-MC': '1' } }));
-  /* site health check runs 20 s after start in the mock server; wait for it */
-  await page.waitForFunction(() => MC.state.snap.sites && MC.state.snap.sites.windy, null, { timeout: 40000 });
-  await page.click('.site[data-site="windy"]');
-  await expect(page.locator('#siteHost .frame.on .fmsg')).toContainText('does not allow');
-  await page.click('.site[data-site="ventusky"]');
-  await expect(page.locator('#siteHost .frame.on iframe')).toHaveCount(1);
-});
-
-test('command palette (Ctrl+K) finds a site and opens it', async ({ page }) => {
-  await guard(page, []);
-  await ready(page);
-  await page.keyboard.press('Control+k');
-  await page.fill('#palInput', 'tides 4');
-  await page.keyboard.press('Enter');
-  await expect(page.locator('#topTitle')).toHaveText('Tides 4 Fishing');
-});
-
-test('settings are saved on the PC and come back after reload', async ({ page }) => {
-  await guard(page, []);
-  await ready(page);
-  await page.click('[data-view="settings"]');
-  await page.fill('#f_rain3hMm', '35');
-  await page.selectOption('#f_refreshMin', '15');
-  await page.click('#setSave');
-  await expect(page.locator('#setMsg')).toContainText('Saved');
+  await page.locator('#cFc [data-days="14"]').click();
+  await expect(page.locator('#cFc table.days tbody tr')).toHaveCount(14);
+  await page.locator('#cFc [data-days="28"]').click();
+  await expect(page.locator('#cFc table.days tbody tr')).toHaveCount(28);
+  await expect(page.locator('#cFc table.weeks tbody tr')).toHaveCount(4);
+  await expect(page.locator('#cFc')).toContainText('GFS');
   await page.reload();
-  await page.waitForFunction(() => window.MC && MC.state.snap);
-  await page.click('[data-view="settings"]');
-  await expect(page.locator('#f_rain3hMm')).toHaveValue('35');
-  await expect(page.locator('#f_refreshMin')).toHaveValue('15');
-  /* put it back for the other tests */
-  await page.fill('#f_rain3hMm', '20'); await page.selectOption('#f_refreshMin', '10'); await page.click('#setSave');
-  await expect(page.locator('#setMsg')).toContainText('Saved');
+  await page.waitForFunction(() => window.DCAPP && DCAPP.state().data.outlook);
+  await expect(page.locator('#cFc [data-days="28"]')).toHaveAttribute('aria-selected', 'true');     /* remembered */
 });
 
-test('acknowledging alerts clears the badge; test alert shows a toast', async ({ page }) => {
-  await guard(page, []);
+test('JPS station at warning level + heavy rain + strong gusts: alert strip, colours, sound only once', async ({ page }) => {
+  await ready(page, { gust: 66, jps: j => { const s = j.water.find(x => x.name.startsWith('Sg. Mas')); s.level = 31.7; const r = j.rain.stations.find(x => x.name === 'JPS Kemaman'); r.hour = 28; } });
+  await expect(page.locator('#alerts')).toContainText('Sg. Mas di Kg. Sg. Mas (F2)');
+  await expect(page.locator('#alerts')).toContainText('WARNING');
+  await expect(page.locator('#alerts')).toContainText('JPS Kemaman');
+  await expect(page.locator('#alerts')).toContainText('Wind gusts up to');
+  await expect(page.locator('#cWater tr.st-warning')).toHaveCount(1);
+  await expect(page.locator('#cRain tr.st-warning')).toHaveCount(1);
+  const seen = await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('dc4_seen'))).length);
+  expect(seen).toBeGreaterThanOrEqual(4);
+});
+
+test('Irong Barat (offshore): sea point, no JPS / MET district, tides from the model', async ({ page }) => {
+  const { calls } = await ready(page);
+  await page.locator('.chip[data-p="irong-barat"]').click();
+  await page.waitForFunction(() => DCAPP.state().ACTIVE === 'irong-barat' && DCAPP.state().data.marine);
+  await expect(page.locator('#cWater')).toBeHidden();
+  await expect(page.locator('#cMet')).toBeHidden();
+  await expect(page.locator('#cTide')).toContainText('model sea level');
+  await expect(page.locator('#cWarn .warn.mine')).toHaveCount(1);              /* Terengganu waters */
+  expect(calls).toContain('marine:5.5501');
+});
+
+test('sites: in-app tiles open inside, the rest open a new tab; Back closes the viewer', async ({ page, context }) => {
   await ready(page);
-  await page.click('[data-view="alerts"]');
-  await expect(page.locator('#aActive .aitem')).toHaveCount(5);
-  await expect(page.locator('#aActive .aitem', { hasText: 'MET: Strong Winds' })).toContainText('wind 40–50 km/h (22–27 knot)');
-  await page.click('#aTest');
-  await expect(page.locator('#toasts .toast').first()).toContainText('Test alert');
-  await page.click('#aAckAll');
-  await expect(page.locator('#bellBadge')).toBeHidden();
-  await expect(page.locator('#aActive .aitem.acked')).toHaveCount(5);
-  await expect(page.locator('#aLog tr').first()).toBeVisible();
+  await page.locator('[data-site="w-waves"]').click();
+  await expect(page.locator('#viewer')).toBeVisible();
+  await expect(page.locator('#vFrame')).toHaveAttribute('src', /embed\.windy\.com.*overlay=waves.*lat=4\.260&lon=103\.520/);
+  await expect(page.frameLocator('#vFrame').locator('#h')).toHaveText('embed.windy.com');
+  await page.locator('#vBack').click();
+  await expect(page.locator('#viewer')).toBeHidden();
+  await page.locator('[data-site="vessels"]').click();
+  await expect(page.frameLocator('#vFrame').locator('#vf')).toHaveText('map');
+  await page.evaluate(() => history.back());                                    /* Android back button */
+  await expect(page.locator('#viewer')).toBeHidden();
+  await context.route('https://publicinfobanjir.water.gov.my/**', r => r.fulfill({ status: 200, contentType: 'text/html', body: 'JPS' }));
+  const [tab] = await Promise.all([context.waitForEvent('page'), page.locator('[data-site="jpsaras"]').click()]);
+  await tab.waitForLoadState();
+  expect(tab.url()).toMatch(/publicinfobanjir\.water\.gov\.my/);
+  await tab.close();
+  await expect(page.locator('.site.in')).toHaveCount(await page.locator('.site .badge', { hasText: '▣' }).count());
 });
 
-test('history chart draws after a few updates, CSV downloads', async ({ page }) => {
-  await guard(page, []);
+test('add a location by search, edit it, delete it; BM / EN', async ({ page }) => {
   await ready(page);
-  await page.click('#btnRefresh');
-  await page.waitForTimeout(500);
-  await page.click('#btnRefresh');
-  await page.waitForTimeout(500);
-  await page.click('[data-view="history"]');
-  await expect(page.locator('#hStation option').first()).toContainText('Sg. Chukai');
-  await expect(page.locator('#chartLevel svg path.ln')).toHaveCount(1);
-  await expect(page.locator('#chartLevel svg .thl')).toHaveCount(3);
-  const dl = page.waitForEvent('download');
-  await page.click('#hCsv');
-  expect((await dl).suggestedFilename()).toMatch(/^dashboard-cuaca-history-.*\.csv$/);
-});
-
-test('wall shows 4 panes, then 6', async ({ page }) => {
-  await guard(page, []);
-  await ready(page);
-  await page.click('[data-view="wall"]');
-  await expect(page.locator('#wall .pane')).toHaveCount(4);
-  await page.selectOption('#wLayout', '2x3');
-  await expect(page.locator('#wall .pane')).toHaveCount(6);
-  await page.selectOption('#wall .pane:first-child select', 'nadma');
-  await expect(page.locator('#wall .pane:first-child select')).toHaveValue('nadma');
-});
-
-test('phone layout: bottom bar and slide-in site list', async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  const page = await ctx.newPage();
-  await guard(page, []);
-  await ready(page);
-  const rail = await page.locator('.rail').boundingBox();
-  expect(rail.y).toBeGreaterThan(700);
-  await page.click('#topMenu');
-  await expect(page.locator('#app')).toHaveClass(/side-open/);
-  await page.click('.site[data-site="nadma"]');
-  await expect(page.locator('#app')).not.toHaveClass(/side-open/);
-  await expect(page.locator('#topTitle')).toHaveText('NADMA Portal');
-  await ctx.close();
-});
-
-test('phone without the PC: falls back to fetching the public APIs directly', async ({ browser }) => {
-  const ctx = await browser.newContext();
-  const page = await ctx.newPage();
-  const problems = [];
-  page.on('pageerror', e => problems.push(e.message));
-  /* PC unreachable */
-  await page.route(/\/api\//, r => r.abort());
-  /* public APIs answer (they allow cross-origin requests) */
-  await page.route(u => /open-meteo\.com|api\.data\.gov\.my/.test(u.href), async r => {
-    const data = await fx.forUrl(r.request().url(), Date.now());
-    await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(data) });
-  });
-  await page.goto('/');
-  await page.waitForFunction(() => window.MC && MC.state.mode === 'direct' && MC.state.snap && MC.state.snap.weather, null, { timeout: 20000 });
-  await expect(page.locator('#statusText')).toContainText('direct mode');
-  await expect(page.locator('#metBody .fc .d')).toHaveCount(7);
-  await expect(page.locator('#waterBody')).toContainText('Site relay');
-  await expect(page.locator('#bellBadge')).not.toBeHidden();
-  expect(problems).toEqual([]);
-  await ctx.close();
-});
-
-test('service worker keeps the app for the phone', async ({ page }) => {
-  await page.goto('/');
-  const cached = await page.evaluate(async () => {
-    await navigator.serviceWorker.ready;
-    for (let i = 0; i < 40; i++) {
-      const keys = await caches.keys();
-      if (keys.length) { const c = await caches.open(keys[0]); const n = (await c.keys()).length; if (n >= 20) return n; }
-      await new Promise(r => setTimeout(r, 250));
-    }
-    return 0;
-  });
-  expect(cached).toBeGreaterThanOrEqual(20);
-});
-
-test('profile switch: Irong Barat offshore dashboard, sites follow the profile, history shows sea readings', async ({ page }) => {
-  const problems = []; await guard(page, problems);
-  await ready(page);
-  await page.click('.site[data-site="windywave"]');
-  await expect(page.locator('#sUrl')).toContainText('4.232/103.423');
-  await page.click('[data-view="dashboard"]');
-  await page.click('#profBtn');
-  await expect(page.locator('#profMenu [data-prof]')).toHaveCount(2);
-  await page.click('#profMenu [data-prof="irong-barat"]');
-  await page.waitForFunction(() => MC.state.snap && MC.state.snap.profile && MC.state.snap.profile.id === 'irong-barat', null, { timeout: 15000 });
-  await expect(page.locator('#profName')).toHaveText('Irong Barat (offshore)');
-  await expect(page.locator('#cardOffshore')).toBeVisible();
-  await expect(page.locator('#cardWater')).toBeHidden();
-  await expect(page.locator('#cardMet')).toBeHidden();
-  await expect(page.locator('#dashTiles .tile')).toHaveCount(7);
-  await expect(page.locator('#dashTiles')).toContainText('knot');
-  await expect(page.locator('#dashTiles')).toContainText('HIGH');
-  await expect(page.locator('#offTable tbody tr')).toHaveCount(9);
-  await expect(page.locator('#chartWave svg .th')).toHaveCount(1);
-  await expect(page.locator('#bellBadge')).toHaveText('6');
-  await expect(page.locator('#topSub')).toContainText('offshore 5.5501, 104.7745');
-  /* the open map moved to the profile's point */
-  await page.click('.site[data-site="windywave"]');
-  await expect(page.locator('#sUrl')).toContainText('5.550/104.775');
-  await page.click('[data-view="history"]');
-  await expect(page.locator('#hStation option')).toHaveCount(4);
-  await expect(page.locator('#hStation')).toHaveValue('@wave');
-  await page.click('[data-view="settings"]');
-  await expect(page.locator('#f_profileName')).toHaveValue('Irong Barat (offshore)');
-  await expect(page.locator('#f_waterDistrict')).toBeHidden();
-  await expect(page.locator('#profList .prow.on')).toContainText('Irong Barat');
-  /* back to Kemaman for the other tests */
-  await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
-  await page.waitForFunction(() => MC.state.snap && MC.state.snap.profile && MC.state.snap.profile.id === 'kemaman', null, { timeout: 15000 });
-  await page.click('[data-view="dashboard"]');
-  await expect(page.locator('#cardWater')).toBeVisible();
-  /* Kemaman's own alerts are back (acknowledgements made earlier are kept); no offshore alerts linger */
-  const keys = await page.evaluate(() => MC.state.snap.alerts.active.map(a => a.key.split(':')[0]));
-  expect(keys).toContain('water');
-  expect(keys).not.toContain('thunder');
-  expect(problems).toEqual([]);
-});
-
-test('add a new profile from Settings, then delete it', async ({ page }) => {
-  await guard(page, []);
-  await ready(page);
-  await page.click('[data-view="settings"]');
-  await page.fill('#newProfName', 'Platform Ujian');
-  await page.selectOption('#newProfKind', 'offshore');
-  await page.fill('#newProfLat', '5.3');
-  await page.fill('#newProfLon', '104.9');
-  await page.click('#newProfAdd');
-  await expect(page.locator('#profName')).toHaveText('Platform Ujian');
-  await expect(page.locator('#profList .prow')).toHaveCount(3);
-  await expect(page.locator('#f_marineLat')).toHaveValue('5.3');
+  await page.locator('#addLoc').click();
+  await page.fill('#geoQ', 'Kuantan');
+  await page.locator('#geoGo').click();
+  await page.locator('.geo').first().click();
+  await expect(page.locator('#pJpsState')).toHaveValue('PHG');
+  await page.fill('#pSeaLon', '103.45');
+  await page.locator('#pSave').click();
+  await page.waitForFunction(() => DCAPP.state().ACTIVE === 'kuantan' && DCAPP.state().data.marine);
+  await expect(page.locator('.chip.on')).toContainText('Kuantan');
+  expect(await page.evaluate(() => DCAPP.state().PROFILES.find(p => p.id === 'kuantan'))).toMatchObject({ lat: 3.8077, seaLon: 103.45, jpsState: 'PHG', tide: 'model' });
+  await page.locator('#lang').click();
+  await expect(page.locator('#cNow .card-h h2')).toHaveText('Sekarang');
+  await expect(page.locator('#sites h2')).toContainText('Laman');
+  await page.locator('#gear').click();
   page.once('dialog', d => d.accept());
-  await page.click('#profList .prow.on [data-prof-del]').catch(async () => {
-    const id = await page.evaluate(() => MC.state.profiles.active);
-    await page.click('[data-prof-del="' + id + '"]');
-  });
-  await expect(page.locator('#profList .prow')).toHaveCount(2);
-  await expect(page.locator('#profName')).toHaveText('Kemaman');
+  await page.locator('[data-del="kuantan"]').click();
+  await page.waitForFunction(() => DCAPP.state().ACTIVE === 'kemaman' && DCAPP.state().PROFILES.length === 2);
 });
 
-test('splash page (phones) has the logo, name and loading bar', async ({ page }) => {
-  await page.goto('/splash.html');
-  await expect(page.locator('.app-name')).toHaveText('Dashboard Cuaca Aziz');
-  await expect(page.locator('.subtext')).toContainText('Loading');
-  expect(await page.locator('img.logo').evaluate(i => i.naturalWidth)).toBe(256);
-  await expect(page.locator('.copyright')).toContainText('Aziz Mohamad');
-});
-
-/* Malay words that must not appear anywhere when English is on (place names like "Sg." / "Kg." are allowed). */
-const MALAY = /\b(daftar|percuma|tekan|emel|ke|aktif|baharu|ralat|sambung|pasang|kosong|purata|arah|suhu|kelembapan|penglihatan|alun|tiupan|paparan|cari|padam|naik|turun|terbuka|maks|kemas|muat|aktifkan|titik|lihat|dan|atau|tiada|amaran|waspada|bahaya|tetapan|simpan|tutup|buka|sejarah|kemas kini|ramalan|hujan|angin|ombak|laman|paras|lalu|sekarang|telefon|semua|profil baharu|jarak|ribut|petir|sumber|gagal|minit|jam|hari ini|esok|tinggi|rendah|sederhana|untuk|dengan|tidak|belum|sila|pilih|tukar|bunyi|notifikasi|ambang|kategori|cuaca|banjir|kecemasan|kamera|lokasi|negeri|daerah|stesen)\b/i;
-const ALLOWED = /Dashboard Cuaca Aziz|cuaca-relay|Info Banjir|Monitor Cuaca|Sg\.|Kg\.|Jambatan|Air Putih|Ban Ho|Bahasa Melayu|Cuaca Local CA|dashboard-cuaca|Pejabat|Tebak|Cherul/g;
-
-async function malayLeft(page) {
-  return page.evaluate(([src, allow]) => {
-    const re = new RegExp(src, 'i'), al = new RegExp(allow, 'g'), out = [];
-    const skip = el => el.closest('script,style,webview,iframe,textarea,[data-noi18n],[hidden],.frame');
-    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let n;
-    while ((n = w.nextNode())) {
-      const p = n.parentElement; if (!p || skip(p)) continue;
-      const t = n.nodeValue.replace(al, ' ');
-      if (re.test(t) && p.getClientRects().length) out.push(t.trim().slice(0, 90));
-    }
-    document.querySelectorAll('[title],[placeholder],[aria-label]').forEach(e => {
-      if (skip(e)) return;
-      ['title', 'placeholder', 'aria-label'].forEach(a => { const v = (e.getAttribute(a) || '').replace(al, ' '); if (re.test(v)) out.push('@' + a + ': ' + v.slice(0, 90)); });
-    });
-    return [...new Set(out)];
-  }, [MALAY.source, ALLOWED.source]);
-}
-
-async function snapReady(page) {
-  await page.waitForFunction(() => window.MC && MC.state.snap && MC.state.snap.profile, null, { timeout: 20000 });
-}
-
-test('English everywhere: no Malay left in any view, then BM switch and back', async ({ page }) => {
-  await guard(page, []);
+test('settings link moves locations & limits to another device', async ({ page, browser }) => {
   await ready(page);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  const found = [];
-  for (const v of ['dashboard', 'history', 'wall', 'settings', 'alerts']) {
-    const b = page.locator('[data-view="' + v + '"]').first();
-    if (await b.count()) { await b.click(); await page.waitForTimeout(300); found.push(...(await malayLeft(page)).map(x => v + ': ' + x)); }
-  }
-  await page.click('#btnBell').catch(() => {}); await page.waitForTimeout(200);
-  found.push(...(await malayLeft(page)).map(x => 'bell: ' + x));
-  await page.keyboard.press('Escape');
-  await page.click('#profBtn'); await page.waitForTimeout(150);
-  found.push(...(await malayLeft(page)).map(x => 'profile menu: ' + x));
-  await page.click('#profBtn');
-  await page.keyboard.press('Control+k'); await page.keyboard.type('a'); await page.waitForTimeout(200);
-  found.push(...(await malayLeft(page)).map(x => 'palette: ' + x));
-  await page.keyboard.press('Escape');
-  /* offshore profile too */
-  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
-  await expect(page.locator('#profName')).toHaveText('Irong Barat (offshore)');
-  await page.waitForFunction(() => MC.state.snap && MC.state.snap.profile && MC.state.snap.profile.id === 'irong-barat', null, { timeout: 15000 });
-  await page.click('[data-view="dashboard"]'); await page.waitForTimeout(500);
-  found.push(...(await malayLeft(page)).map(x => 'offshore: ' + x));
-  expect(found).toEqual([]);
-
-  /* switch to BM */
-  await expect(page.locator('#langBtn')).toHaveText('BM');
-  await Promise.all([page.waitForEvent('load'), page.click('#langBtn')]);
-  await snapReady(page);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'ms');
-  await expect(page.locator('#langBtn')).toHaveText('EN');
-  await expect(page.locator('#statusText')).toContainText('Kemas kini');
-  await expect(page.locator('#dashTiles')).toContainText('TINGGI');
-  await page.click('[data-view="settings"]');
-  await expect(page.locator('#f_lang')).toHaveValue('ms');
-  /* back to English through Settings */
-  await page.selectOption('#f_lang', 'en');
-  await Promise.all([page.waitForEvent('load'), page.click('#setSave')]);
-  await snapReady(page);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('#statusText')).toContainText('Updated');
-  await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
-  await expect(page.locator('#profName')).toHaveText('Kemaman');
+  await page.locator('#gear').click();
+  await page.fill('#sGust', '70');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.locator('#sCopy').click();
+  await expect(page.locator('#sMsg')).toContainText('Link copied');
+  const link = await page.evaluate(() => navigator.clipboard.readText());
+  const ctx = await browser.newContext(); const p2 = await ctx.newPage();
+  await sources(p2);
+  p2.on('dialog', d => d.accept());
+  await p2.goto(link);
+  await p2.waitForFunction(() => window.DCAPP && DCAPP.state().S.gustKmh === 70);
+  expect(await p2.evaluate(() => location.hash)).toBe('');
+  await ctx.close();
 });
 
-test('phone setup pages follow the language', async ({ page }) => {
-  await page.goto('/phone.html');
-  await expect(page.locator('h1')).toHaveText('Set up this phone / tablet', { useInnerText: true });
-  await page.click('#langSw');
-  await expect(page.locator('h1')).toHaveText('Sediakan telefon / tablet ini', { useInnerText: true });
-  await page.goto('/splash.html');
-  await expect(page.locator('.subtext')).toContainText('Loading');
+test('offline / source down: last data stays, the card says why', async ({ page }) => {
+  await ready(page);
+  await page.unroute('https://api.open-meteo.com/**');
+  await page.route('https://api.open-meteo.com/**', r => r.abort());
+  await page.locator('#refresh').click();
+  await expect(page.locator('#cNow .err')).toContainText('showing older data');
+  await expect(page.locator('#cNow')).toContainText('27°');
 });
 
-test('MET warning card: tiles, your areas, full text folded; same in BM', async ({ page }) => {
-  await guard(page, []);
-  await page.goto('/');
-  await snapReady(page);
-  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
-  await page.waitForFunction(() => MC.state.snap && MC.state.snap.profile && MC.state.snap.profile.id === 'irong-barat', null, { timeout: 15000 });
-  const card = page.locator('#warnBody .mcard', { hasText: 'Strong winds and rough seas' });
-  await expect(card).toHaveCount(1);                                   /* three copies from MET, one card */
-  await expect(card.locator('.mtile')).toHaveCount(4);
-  await expect(card.locator('.mtile').first()).toContainText('40–50');
-  await expect(card.locator('.mtile').first()).toContainText('22–27 knot');
-  await expect(card.locator('.mrow:not(.other) > b')).toHaveText(['Terengganu', 'Condore', 'Reef North']);
-  await expect(card.locator('.mrow', { hasText: 'Reef North' })).toContainText('western part');
-  const full = card.locator('details.mfull');
-  await expect(full).not.toHaveAttribute('open', '');
-  await expect(card.locator('.mtext')).toBeHidden();
-  await full.locator('summary').click();
-  await expect(card.locator('.mtext .msec').first()).toHaveText('Section A · For Malaysian waters (within 24 nautical miles)');
-  await expect(card.locator('.mtext .me').first()).toHaveText('Terengganu');
-  await expect(card.locator('.mtext .minstr')).toContainText('These strong winds and rough seas conditions are dangerous.');
-  /* every word MET wrote is still there */
-  const words = await card.locator('.mtext').innerText();
-  for (const w of ['Lahad Datu', 'small crafts, recreational sea activities and water sports', 'Eastern part of Phuket', 'Layang-Layang']) expect(words).toContain(w);
-  /* stays open across a data refresh */
-  await page.evaluate(() => MC.renderAll());
-  await expect(card.locator('details.mfull')).toHaveAttribute('open', '');
-  /* BM uses MET's own BM text */
-  await Promise.all([page.waitForEvent('load'), page.click('#langBtn')]);
-  await snapReady(page);
-  const kad = page.locator('#warnBody .mcard', { hasText: 'Amaran angin kencang' });
-  await expect(kad.locator('.mtile').first()).toContainText('km/j');
-  await kad.locator('details.mfull summary').click();
-  await expect(kad.locator('.mtext .msec').first()).toHaveText('Seksyen A · Untuk perairan Malaysia (dalam lingkungan 24 batu nautika)');
-  await expect(kad.locator('.mtext')).toContainText('sehingga 50 kmsj');
-  await Promise.all([page.waitForEvent('load'), page.click('#langBtn')]);
-  await snapReady(page);
-  await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
-  await expect(page.locator('#profName')).toHaveText('Kemaman');
+test('layout: nothing wider than the screen', async ({ page }) => {
+  await ready(page);
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(over).toBeLessThanOrEqual(0);
 });

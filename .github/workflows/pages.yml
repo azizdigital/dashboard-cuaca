@@ -1,10 +1,11 @@
-# Dashboard Cuaca Aziz - publishes the web app (folder www/) to GitHub Pages on every push to main.
-# One-time: repo Settings > Pages > Source: "GitHub Actions".
+# Dashboard Cuaca Aziz - publishes the app (folder app/) to GitHub Pages on every push to main.
+# One-time: repo Settings > Pages > Source: "GitHub Actions" (done).
 name: Web app (GitHub Pages)
 
 on:
   push:
     branches: [main]
+    paths-ignore: ['mirror/**', '.github/workflows/mirror.yml', 'legacy/**']
   workflow_dispatch:
 
 permissions:
@@ -27,13 +28,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Mark as the web app
-        run: sed -i 's/<html lang="ms"/<html lang="ms" data-web/' www/index.html
-      - name: Service worker file list (new version on every change)
-        run: node tools/build-precache.js
+      - name: Tests
+        run: node tests/unit.js
+      - name: Offline file list (new version on every change)
+        run: node tools/precache.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: www
+          path: app
       - id: deployment
         uses: actions/deploy-pages@v4

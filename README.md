@@ -1,73 +1,43 @@
-# Dashboard Cuaca Aziz 3.6
+# Dashboard Cuaca Aziz 4
 
-Weather, flood, sea and offshore conditions by **location profile** (Kemaman, Irong Barat, and others).
+**https://azizdigital.github.io/dashboard-cuaca/** - one web app (PWA) for PC, iPad, iPhone, Android phones & tablets.
 
-## Web app (main way to use it)
+Weather now, MET warnings, 7 / 14 / 28-day forecast, waves & swell, tides, JPS water level & rainfall (tables like the original pages), and the weather / sea / camera sites as tiles. Locations: Kemaman, Irong Barat (offshore), and any place you add.
 
-**https://azizdigital.github.io/dashboard-cuaca/**
+## Where the data comes from
 
-Open it in Chrome / Edge on the PC (menu ⋮ › *Install Dashboard Cuaca Aziz*) and in Safari on the iPad (Share › *Add to Home Screen*).
-No PC server, no QR, no zip: every push to `main` publishes the folder `www/` again (`.github/workflows/pages.yml`), and the app updates itself.
+| Data | Source | How |
+|---|---|---|
+| Weather now, 16-day forecast, wind & gusts | Open-Meteo | live, read by the device |
+| Waves, swell, model sea level (tide curve) | Open-Meteo Marine | live |
+| 28-day outlook | Open-Meteo Ensemble (GFS, 31 runs) | live |
+| MET warnings, MET 7-day district forecast | data.gov.my (MET Malaysia) | live |
+| JPS water level & rainfall (Terengganu) | JPS Public Infobanjir | GitHub mirror, ~15 min (`mirror/`) |
+| Tide times Cukai | Tide Forecast | GitHub mirror, ~15 min |
 
-- Data comes straight from Open-Meteo and data.gov.my (MET Malaysia).
-- **JPS water level & rainfall** (Kemaman) and the sites that refuse to be shown inside another app go through your own free **Cloudflare relay** (Settings › Site relay). The relay also **removes the ads** from the tide and traffic sites.
-- Each device keeps its own settings and profiles. Settings › *Other devices* › **Copy settings link** moves them to another device (on the iPad: *Paste link from another device*).
+JPS and Tide Forecast do not let other web pages read them, so GitHub reads them (`.github/workflows/mirror.yml`) and writes small JSON files to the branch **data**; the app reads those.
 
-Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes: **PERUBAHAN_3.6.0.txt**
+infobanjir.terengganu.gov.my and met.gov.my only answer connections from Malaysia, so they are tiles that open in a new tab.
 
-## Windows desktop app (optional, kept in this repo)
+## Sites
 
-The Electron app still works (`npm install` → `npm start`). It reads infobanjir Terengganu itself and has its own ad blocker.
+▣ = shown inside the app (the site allows it - checked 20 Nov 2026). ↗ = opens in a new tab (the site refuses to be shown inside another app). List: `app/js/sites.js`.
 
-- `npm install` → `npm start` (run) → `npm run dist` (portable `.exe` in `dist/`)
-- `npm run dist:setup` → normal installer
-- `npm run server` → server only, without Electron (http://127.0.0.1:30040)
-- `node server-only.js --mock` → made-up data, no internet needed (for demos / tests)
-- `npm run fix-icon` → Windows: clear the icon cache if the taskbar shows the Electron icon (restarts Explorer)
-- `npm run adblock:build` → rebuild the ad lists shipped inside the app (lib/adblock-engine.bin)
-- `npm test` → all tests. First time only: `npx playwright install chromium`
-
-Older changes: PERUBAHAN_3.5.1.txt … PERUBAHAN_3.0.0.txt, CHANGES_3.3.0.txt, CHANGES_3.2.1.txt, CHANGES_3.2.0.txt
-
-## Structure
+## Folders
 
 ```
-main.js            Electron shell: splash, window, tray, notifications, webviews, infobanjir table reader, 3.0 data migration
-preload.js         Desktop functions the page can reach (window.mcDesktop)
-server-only.js     Server + data collector without Electron (--mock for made-up data)
-lib/server.js      Local server: app 30040, phone 30041 (certificate) / 30042 (HTTPS)
-lib/api.js         /api/* (snapshot, SSE events, history, settings, profiles, alerts)
-lib/collector.js   Fetches the active profile's data every N minutes, alerts, history, checks every site
-lib/store.js       Shared settings + profiles, snapshot & history per profile, alert log
-lib/adblock.js     Ad blocker for the sites in the app (Ghostery engine, EasyList + uBlock lists, daily update)
-lib/adblock-*.js   List addresses + worker that builds a new engine; adblock-engine.bin = lists shipped with the app
-lib/certs.js       Own CA "Dashboard Cuaca Local CA" for phone HTTPS
-www/splash.html          5-second splash (OIM Wazira style)
-www/embed/vessels.html   VesselFinder's official embeddable map (iPad / phone stand-in)
-www/relay-worker.js      Cloudflare Worker relay: sites that refuse framing, JPS tables for the web app, ad removal (Settings › Site relay)
-www/assets/js/i18n.js    English / Bahasa Melayu: dictionary, MET forecast phrases, page translator
-www/assets/js/core.js    26 sites, profiles, default settings, parsers for every source, alert rules, date detector (shared by PC + phone)
-www/assets/js/app.js     The page: land/offshore dashboard, sites, wall, history, alerts, settings, profiles, Ctrl+K
-www/assets/js/charts.js  SVG charts (no library)
-tools/build-precache.js  Offline file list + version from a content hash
-tests/                   unit.js (Node), app.spec.js, relay.spec.js, web.spec.js (Playwright), fixtures/make.js (made-up data)
-.github/workflows/pages.yml  Publishes www/ to GitHub Pages on every push to main
+app/                  the web app (published to GitHub Pages by .github/workflows/pages.yml)
+  js/data.js          sources, readers, alert rules (also runs in the tests)
+  js/app.js           the page
+  js/sites.js         site tiles
+  js/charts.js        SVG charts
+mirror/               GitHub mirror: parse.js (JPS, Tide Forecast), mirror.js
+tests/                unit.js (node), app.spec.js (Playwright: PC, iPad, phone), fixtures/ (real samples)
+tools/precache.js     offline file list + version
+legacy/               the old 3.x app (Windows Electron + PC server), kept as it was
 ```
 
-### How the two languages work
-
-Bahasa Melayu is the source text in the code. `i18n.js` holds the English dictionary (about 550 entries). In English mode it:
-
-- translates texts made in code through `L('...')` (alerts, notifications, menus, tray, status),
-- translates the fixed text of the page (labels, buttons, tooltips) as it appears,
-- translates MET Malaysia forecast phrases (e.g. *Ribut petir di beberapa tempat* → *Thunderstorms in scattered places*), and uses the English text MET publishes for its warnings.
-
-The chosen language is saved on the PC (`config.json`), so the desktop app, the tray, Windows notifications and connected phones all follow it. Place and station names (Sg. Chukai, Kg. Tebak, Info Banjir…) are not translated.
-
-## Bahasa Melayu
-
-Aplikasi ini dalam **English secara lalai**. Tekan butang **BM** di bar atas (atau Tetapan › Bahasa) untuk tukar semua ke Bahasa Melayu. Panduan penuh dalam BM: **PANDUAN.md**.
-
-Data: MET Malaysia through data.gov.my · Open-Meteo (CC BY 4.0) · infobanjir Terengganu (JPS).
-
-© 2026 Aziz Mohamad · Monitoring & Analysis Division
+- `node tests/unit.js` - unit tests (no packages)
+- `npm install && npx playwright test` - browser tests
+- `node tests/serve.js 8080` - try the app locally
+- `node mirror/mirror.js out` - run the mirror once (JPS_STATES=TRG,PHG for more states)
