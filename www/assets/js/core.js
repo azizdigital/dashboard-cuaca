@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.5';
+  var VERSION = '4.1.6';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -85,14 +85,14 @@
     floodhub: { view: 'dashboard', anchor: 'cardFlood', title: 'Ramalan aliran sungai 30 hari di Dashboard (GloFAS)' },
     jpspeta: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
     himawari: { url: WINDY + '&zoom=5&overlay=clouds&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - awan' },
-    windy: { url: WINDY + '&zoom=8&overlay=rain&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - hujan & ribut petir' },
-    windywave: { url: WINDY + '&zoom=7&overlay=waves&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - ombak' },
-    windywind: { url: WINDY + '&zoom=7&overlay=wind&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - angin' },
+    windy: { prefer: true, url: WINDY + '&zoom=8&overlay=rain&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - hujan & ribut petir' },
+    windywave: { prefer: true, url: WINDY + '&zoom=7&overlay=waves&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - ombak' },
+    windywind: { prefer: true, url: WINDY + '&zoom=7&overlay=wind&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - angin' },
     metradar: { url: 'https://www.rainviewer.com/map.html?loc={lat},{lon},7&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=3&o=83&lm=1&layer=radar&sm=1&sn=1', title: 'RainViewer - radar hujan langsung' },
     zoomearth: { url: 'https://www.rainviewer.com/map.html?loc={lat},{lon},7&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=3&o=83&lm=1&layer=radar&sm=1&sn=1', title: 'RainViewer - radar & awan' },
     storms: { url: WINDY + '&zoom=4&overlay=wind&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - angin & ribut tropika' },
-    webcam: { url: 'https://webcams.windy.com/webcams/public/embed/player/1733738208/day', title: 'Webcam Jambatan Lama Teladas (Windy Webcams embed)' },
-    vesselfinder: { url: 'embed/vessels.html?lat={mlat}&lon={mlon}&zoom=8', local: true, title: 'VesselFinder - peta kapal (versi embed rasmi)' }
+    webcam: { prefer: true, url: 'https://webcams.windy.com/webcams/public/embed/player/1733738208/day', title: 'Webcam Jambatan Lama Teladas (Windy Webcams embed)' },
+    vesselfinder: { prefer: true, url: 'embed/vessels.html?lat={mlat}&lon={mlon}&zoom=8', local: true, title: 'VesselFinder - peta kapal (versi embed rasmi)' }
   };
 
   /* -> { kind: 'url' | 'view', url, viaRelay, title, view, anchor } or null when no stand-in can be shown here */
@@ -185,6 +185,8 @@
   /* can this site be shown through the relay? (relay set up, and the site did not fail the last relay test) */
   function relayFor(site, s) {
     if (!relayReady(s) || !site) return false;
+    /* the site's own embed is better than the relayed page (Windy shows a red "www.windy.com" screen when relayed) */
+    if (ALT[site.id] && ALT[site.id].prefer) return false;
     var h = '';
     try { h = new URL(siteUrl(site, s)).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { return false; }
     return !adHosts(s.relayBad).concat(RELAY_NEVER).some(function (x) { return h === x || h.slice(-x.length - 1) === '.' + x; });
