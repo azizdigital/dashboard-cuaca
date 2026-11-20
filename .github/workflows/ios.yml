@@ -1,0 +1,49 @@
+# Dashboard Cuaca Aziz - builds the iPad / iPhone app (ios/) on a free macOS runner, unsigned.
+# The .ipa goes to the release "ipad-app"; Sideloadly (Windows) signs and installs it with your Apple ID.
+name: iPad app (IPA)
+
+on:
+  push:
+    branches: [main]
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: XcodeGen
+        run: brew install xcodegen
+      - name: Project
+        working-directory: ios
+        run: xcodegen generate
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          xcodebuild -project DashboardCuaca.xcodeproj -target DashboardCuaca -configuration Release -sdk iphoneos \
+            SYMROOT="$PWD/build" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build > build.log 2>&1 \
+            || { grep -E "error:|warning: .*Swift" -A3 build.log | head -80; tail -30 build.log; exit 1; }
+          tail -5 build.log
+          test -d build/Release-iphoneos/DashboardCuaca.app
+      - name: IPA
+        working-directory: ios
+        run: |
+          mkdir -p Payload
+          cp -R build/Release-iphoneos/DashboardCuaca.app Payload/
+          zip -qry DashboardCuaca.ipa Payload
+          ls -la DashboardCuaca.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DashboardCuaca-ipa
+          path: ios/DashboardCuaca.ipa
+      - name: Release "ipad-app"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view ipad-app >/dev/null 2>&1 || gh release create ipad-app --title "App iPad / iPhone" --notes "Pasang dengan Sideloadly (lihat IPAD.md). Dibina semula setiap kali kod iPad berubah."
+          gh release upload ipad-app ios/DashboardCuaca.ipa --clobber
