@@ -1,0 +1,20 @@
+jps-water-TRG.html 200 34336 1.149152
+jps-rain-TRG.html 200 42806 0.403832
+jps-water-PHG.html 200 49069 0.630520
+tide-cukai.html 200 381686 0.181986
+tide-cukai-7.html 200 381686 0.162440
+curl: (28) Operation timed out after 40002 milliseconds with 0 bytes received
+om-forecast.json 000 0 40.002618
+om-forecast.json FAIL
+om-marine.json 200 23187 0.569549
+om-marine-offshore.json 200 6922 0.452516
+om-ensemble.json 200 50086 0.701430
+om-ensemble-gfs.json 200 16021 0.578539
+om-seasonal.json 200 45612 0.753950
+om-geocode.json 200 298 0.485032
+dg-warning.json 200 11152 1.245265
+dg-forecast-kemaman.json 200 4335 1.856074
+dg-forecast-ds.json 200 2452 1.686967
+dg-flood.json 200 7329 1.614885
+dg-earthquake.json 200 2608 1.574859
+rainviewer.json 200 818 0.433230
