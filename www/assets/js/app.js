@@ -1477,7 +1477,8 @@
   };
   function relayTargets() {
     var snapSites = (state.snap && state.snap.sites) || {};
-    return C.SITES.filter(function (x) { return C.siteBlocked(x, snapSites[x.id]); })
+    var fresh = Object.assign({}, state.settings, { relayBad: '' });
+    return C.SITES.filter(function (x) { return C.siteBlocked(x, snapSites[x.id]) && (!C.relayReady(fresh) || C.relayFor(x, fresh)); })
       .map(function (x) { return { id: x.id, url: C.siteUrl(x, state.settings) }; })
       /* stand-ins on other relayed pages (e.g. JPS rainfall for Rainfall Kemaman) are checked too */
 ;
