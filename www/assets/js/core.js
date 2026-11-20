@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.6';
+  var VERSION = '4.1.7';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -193,6 +193,11 @@
   }
   /* these only answer connections from Malaysia: Cloudflare gets HTTP 522, so never send them through the relay */
   var RELAY_NEVER = ['infobanjir.terengganu.gov.my', 'met.gov.my'];
+  function malaysiaOnly(site, s) {
+    var h = '';
+    try { h = new URL(siteUrl(site, s)).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { return false; }
+    return RELAY_NEVER.some(function (x) { return h === x || h.slice(-x.length - 1) === '.' + x; });
+  }
   /* web / phone: ad-heavy sites go through the relay too (it removes the ads), when the user wants that */
   function relayAdsFor(site, s) { return !!(site && site.ads && s && s.relayAds && relayFor(site, s)); }
   /* what a relay test answer means, from the relay's reply to one site */
@@ -1100,7 +1105,7 @@
   }
 
   return {
-    siteBlocked: siteBlocked, altFor: altFor, ALT: ALT, adHosts: adHosts, relayHosts: relayHosts, relayReady: relayReady, relayFor: relayFor, relayAdsFor: relayAdsFor, relayVerdict: relayVerdict, relayUrlFor: relayUrlFor, relayCode: relayCode, parseMetText: parseMetText, metType: metType, metSummary: metSummary, metShort: metShort, metWhen: metWhen, metRange: metRange, windText: windText, metDate: metDate,
+    siteBlocked: siteBlocked, altFor: altFor, ALT: ALT, adHosts: adHosts, relayHosts: relayHosts, relayReady: relayReady, relayFor: relayFor, malaysiaOnly: malaysiaOnly, relayAdsFor: relayAdsFor, relayVerdict: relayVerdict, relayUrlFor: relayUrlFor, relayCode: relayCode, parseMetText: parseMetText, metType: metType, metSummary: metSummary, metShort: metShort, metWhen: metWhen, metRange: metRange, windText: windText, metDate: metDate,
     VERSION: VERSION, CATEGORIES: CATEGORIES, SITES: SITES, siteById: siteById, siteUrl: siteUrl, hostOf: hostOf, certAllowed: certAllowed, CERT_ALLOW: CERT_ALLOW,
     DEFAULTS: DEFAULTS, REFRESH_CHOICES: REFRESH_CHOICES, cleanSettings: cleanSettings, urls: urls, SCRAPE: SCRAPE, jpsUrls: jpsUrls, mirrorBase: mirrorBase, mirrorUrls: mirrorUrls, fromMirror: fromMirror, parseOutlook: parseOutlook, parseTideMirror: parseTideMirror, parseRiver: parseRiver, parseJps: parseJps, htmlRows: htmlRows, htmlText: htmlText, JPS_STATES: JPS_STATES,
     PROFILE_KEYS: PROFILE_KEYS, DEFAULT_PROFILES: DEFAULT_PROFILES, OFFSHORE_BASE: OFFSHORE_BASE, cleanProfile: cleanProfile, profileSettings: profileSettings,

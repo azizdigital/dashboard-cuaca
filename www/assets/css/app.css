@@ -529,3 +529,7 @@ tr.js-danger td { background: var(--soft-danger); } tr.js-danger td.lv { color: 
   #statusText { display: none; }
   #statusPill { padding: 0 10px; }
 }
+.ios-hint { position: fixed; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 90; display: flex; gap: 10px; align-items: center;
+  background: var(--brand); color: var(--brand-ink); border-radius: 12px; padding: 10px 12px; font-size: 14px; box-shadow: var(--shadow); }
+.ios-hint button { background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; }
+@media (min-width: 761px) { .ios-hint { left: auto; right: 16px; bottom: 16px; max-width: 460px; } }

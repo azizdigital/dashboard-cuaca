@@ -23,6 +23,29 @@
   function load(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* full / private */ } }
   function f(v, d) { return v === null || v === undefined || !isFinite(v) ? '-' : (+v).toFixed(d === undefined ? 1 : d); }
+  /* the iPad app (ios/ in the repo): a native shell around this page. Sites open in full native browser views,
+     so no site can refuse to be shown and the Malaysia-only sites answer (the iPad is in Malaysia). */
+  var Native = {
+    ok: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.dcOpen),
+    open: function (site) {
+      try { window.webkit.messageHandlers.dcOpen.postMessage({ id: site.id, title: L(site.title), url: siteUrl(site) }); } catch (e) { /* */ }
+    }
+  };
+  if (Native.ok) document.documentElement.classList.add('is-native');
+  /* iPad / iPhone in a Safari tab: sites that open "outside" become Safari tabs. From the Home Screen icon they open
+     as a sheet over the app with "Done" - say how, once */
+  (function iosHint() {
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var standalone = navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    if (!ios || standalone || Native.ok || isDesktop) return;
+    try { if (localStorage.getItem('mc_ios_hint_off')) return; } catch (e) { /* */ }
+    var d = document.createElement('div');
+    d.className = 'ios-hint';
+    d.innerHTML = '<span>📲 ' + L('Pasang app ini: butang Kongsi ⬆️ → Tambah ke Skrin Utama, kemudian buka dari ikon itu. Laman yang dibuka di luar akan keluar di atas app dengan butang Done.') + '</span><button type="button" aria-label="OK">✕</button>';
+    d.querySelector('button').onclick = function () { d.remove(); try { localStorage.setItem('mc_ios_hint_off', '1'); } catch (e) { /* */ } };
+    document.addEventListener('DOMContentLoaded', function () { document.body.appendChild(d); });
+    if (document.readyState !== 'loading') document.body.appendChild(d);
+  })();
   function toast(title, body, level, ms) {
     var t = document.createElement('div');
     t.className = 'toast ' + (level || '');
@@ -317,6 +340,15 @@
     /* tapped = opened by the user's own tap/click (the phone may then open a window) */
     show: function (id, tapped) {
       var site = C.siteById(id);
+      /* the iPad app: every site in its own full browser view (like Electron on the PC) */
+      if (Native.ok && site && tapped) { Native.open(site); return; }
+      /* infobanjir Terengganu & met.gov.my only answer from Malaysia (not through the relay): the real site, over the app
+         (iPad / iPhone home-screen app: a Safari sheet with "Done"); their data is also on the dashboard cards */
+      if (!isDesktop && site && tapped && C.malaysiaOnly(site, state.settings)) {
+        var mw = null;
+        try { mw = window.open(siteUrl(site), '_blank'); } catch (e) { mw = null; }
+        if (mw) { try { mw.opener = null; } catch (e2) { /* */ } return; }
+      }
       /* iPad / phone without a relay: a site that refuses to be framed opens at once in the app's own browser sheet
          (iOS: over the app, with "Done" to come back); its tab keeps a card with the same button */
       if (!isDesktop && site && C.siteBlocked(site, (state.snap && state.snap.sites || {})[id]) && !C.relayFor(site, state.settings)) {

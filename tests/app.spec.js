@@ -45,7 +45,10 @@ test('all 28 sites open as tabs (6 kept, oldest closed), then "Close all"', asyn
   /* no stand-in at all (Kamera banjir, NADMA): straight to a new tab, no tab here */
   const direct = await page.evaluate(() => MCCore.SITES.filter(s => s.noFrame && !MCCore.altFor(s, MC.state.settings)).map(s => s.id));
   expect(direct.sort()).toEqual(['camera', 'nadma']);
-  const framed = ids.filter(x => !toCard.includes(x) && !direct.includes(x));
+  /* infobanjir Terengganu & met.gov.my: the real site in a window over the app */
+  const myOnly = await page.evaluate(() => MCCore.SITES.filter(s => MCCore.malaysiaOnly(s, MC.state.settings)).map(s => s.id));
+  expect(myOnly.sort()).toEqual(['camera', 'infobanjir', 'metmalaysia', 'metradar', 'rainfall', 'waterlevel']);
+  const framed = ids.filter(x => !toCard.includes(x) && !direct.includes(x) && !myOnly.includes(x));
   for (const id of framed) {
     await page.click('.site[data-site="' + id + '"]');
     await expect(page.locator('#view-site')).toHaveClass(/on/);

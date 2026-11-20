@@ -458,6 +458,7 @@
  "Paras m - ": "Level m - ",
  "Paras naik cepat (m / 1 jam)": "Fast rise (m / 1 hour)",
  "Pasang Surut": "Tides",
+ "Pasang app ini: butang Kongsi ⬆️ → Tambah ke Skrin Utama, kemudian buka dari ikon itu. Laman yang dibuka di luar akan keluar di atas app dengan butang Done.": "Install this app: Share ⬆️ → Add to Home Screen, then open it from that icon. Sites that open outside will show over the app with a Done button.",
  "Pasang surut": "Tides",
  "Pasang surut 30 hari": "30-day tides",
  "Pasang surut Cukai di Dashboard": "Cukai tides on the Dashboard",
