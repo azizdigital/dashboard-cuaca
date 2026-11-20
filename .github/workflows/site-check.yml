@@ -1,0 +1,19 @@
+# Temporary: which sites allow being shown inside the app, and which data sources GitHub can reach.
+name: Site check
+on:
+  push:
+    branches: [site-check]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./check.sh
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add result.tsv
+          git commit -m "Site check result [skip ci]"
+          git push
