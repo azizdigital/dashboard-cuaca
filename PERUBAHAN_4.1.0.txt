@@ -21,3 +21,9 @@ Dashboard Cuaca Aziz 4.1.0 - rupa app lama, data baru
 - NADMA & Kamera banjir Terengganu terus dibuka (iPhone / iPad dari Skrin Utama: lapisan atas app
   dengan "Done") tanpa kad tengah. Kad hanya muncul jika pop-up disekat.
 - Mirror GitHub: jadual dialih ke minit 7, 22, 37, 52 (minit 0 paling sesak di GitHub).
+
+4.1.2
+- PC (tetingkap sederhana): kotak tidak lari ke tepi lagi - jadual lebar skrol di dalam kadnya sendiri,
+  bar atas muat dalam tetingkap, nama stesen tidak dipecah perkataan demi perkataan.
+- Versi baru dipasang sendiri: app muat semula sekali bila versi baru sampai (tiada lagi "tutup & buka").
+- Tab laman yang tidak boleh dipaparkan (cth. Flood Hub dari sesi lepas) tidak dibuka semula sebagai kad.

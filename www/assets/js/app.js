@@ -279,7 +279,15 @@
 
   /* --------------------------------------------------------- site viewer */
   var Sites = {
-    open: load('mc_open', []).filter(function (id) { return !!C.siteById(id); }),
+    /* tabs kept from last time; on phones / browsers not the sites that refuse framing and have no stand-in frame
+       (they open in their own window, or go to a card on the dashboard) */
+    open: load('mc_open', []).filter(function (id) {
+      var st = C.siteById(id);
+      if (!st) return false;
+      if (isDesktop || !st.noFrame) return true;
+      var a = C.altFor(st, load('mc_settings', null) || C.DEFAULTS);
+      return !!(a && a.kind === 'url');
+    }),
     frames: {}, current: null, auto: load('mc_auto', {}), MAX: 6,
     activate: function (id) {
       if (!C.siteById(id)) return;
@@ -316,7 +324,7 @@
           show(alt.view);
           var card = $(alt.anchor);
           if (!card || !card.offsetParent) card = $('cardWarn');
-          if (card) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); card.classList.add('flash'); setTimeout(function () { card.classList.remove('flash'); }, 1600); }, 60);
+          if (card) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' }); card.classList.add('flash'); setTimeout(function () { card.classList.remove('flash'); }, 1600); }, 60);
           toast(L('Laman ganti: ') + L(alt.title), '');
           return;
         }
@@ -1590,9 +1598,17 @@
 
   /* ------------------------------------------------------------------ PWA */
   if (!isDesktop && 'serviceWorker' in navigator && (location.protocol === 'https:' || /^(127\.0\.0\.1|localhost)$/.test(location.hostname))) {
-    navigator.serviceWorker.register('sw.js').catch(function () { });
+    /* a new version takes over by itself: the page reloads once (no "close and open again") */
+    var swReg = null;
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (r) { swReg = r; }).catch(function () { });
     var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadController) toast(L('Versi baru dipasang'), L('Muat semula untuk guna versi terkini.')); });
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) return;
+      var k = 'mc_sw_reload', last = 0;
+      try { last = +sessionStorage.getItem(k) || 0; sessionStorage.setItem(k, String(Date.now())); } catch (e) { /* */ }
+      if (Date.now() - last > 30000) location.reload();
+    });
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && swReg) swReg.update().catch(function () { }); });
   }
 
   /* ---------------------------------------------------------------- start */

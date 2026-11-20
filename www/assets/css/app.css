@@ -518,3 +518,14 @@ tr.js-normal td.lv { color: var(--st-normal); }
 tr.js-alert td { background: var(--soft-alert); } tr.js-alert td.lv { color: var(--st-alert); }
 tr.js-warning td { background: var(--soft-warning); } tr.js-warning td.lv { color: var(--st-warning); }
 tr.js-danger td { background: var(--soft-danger); } tr.js-danger td.lv { color: var(--st-danger); }
+/* 4.1.1: nothing may push the page sideways (wide tables scroll inside their own card) */
+.main { overflow: hidden; }
+.view { overflow-x: hidden; overflow-y: auto; }
+.card-b { min-width: 0; }
+#waterBody, #rainStBody, #offTable, #seaBody, #fcBody, #tideBody, #floodBody, #metBody { overflow-x: auto; }
+#waterBody .st-name { min-width: 170px; }
+#waterBody td:nth-child(2) { min-width: 180px; }
+@media (min-width: 761px) and (max-width: 1180px) {
+  #statusText { display: none; }
+  #statusPill { padding: 0 10px; }
+}
