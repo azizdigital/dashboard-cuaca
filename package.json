@@ -1,15 +1,72 @@
 {
   "name": "dashboard-cuaca-aziz",
-  "version": "4.0.0",
+  "productName": "Dashboard Cuaca Aziz",
+  "version": "4.1.0",
+  "description": "Dashboard Cuaca Aziz - cuaca, banjir, laut & offshore: profil lokasi, alert ambang, laman web, PWA telefon melalui QR",
+  "main": "main.js",
+  "author": "Aziz Mohamad",
+  "license": "UNLICENSED",
   "private": true,
-  "description": "Dashboard Cuaca Aziz - weather, MET warnings, sea, tides, JPS water level & rainfall (PWA on GitHub Pages)",
   "scripts": {
-    "test": "node tests/unit.js && playwright test",
-    "serve": "node tests/serve.js",
-    "precache": "node tools/precache.js",
-    "mirror": "node mirror/mirror.js out"
+    "start": "electron .",
+    "server": "node server-only.js",
+    "build-www": "node tools/build-precache.js",
+    "test:unit": "node tests/unit.js",
+    "test": "node tools/build-precache.js && node tests/unit.js && playwright test",
+    "dist": "node tools/build-precache.js && electron-builder --win portable --x64",
+    "dist:setup": "node tools/build-precache.js && electron-builder --win nsis --x64",
+    "adblock:build": "node tools/build-adblock.js",
+    "fix-icon": "node tools/fix-icon.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0"
+    "@playwright/test": "1.65.1",
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "local.dashboardcuaca.aziz",
+    "productName": "Dashboard Cuaca Aziz",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "www/**",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "Dashboard Cuaca Aziz ${version}.exe",
+      "unpackDirName": "DashboardCuacaAziz"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Dashboard Cuaca Aziz",
+      "artifactName": "Dashboard Cuaca Aziz Setup ${version}.exe",
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "2.20.3"
   }
 }

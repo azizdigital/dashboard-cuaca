@@ -1,0 +1,14 @@
+Dashboard Cuaca Aziz 4.1.0 - rupa app lama, data baru
+=====================================================
+
+- Rupa sama seperti 3.x (rel kiri, senarai laman, jubin ringkasan, kad).
+- Ramalan 7 / 14 / 28 hari (kad baru): jadual & graf. 28 hari = trend 31 larian model GFS.
+- Laut: jadual ombak & swell 10 hari (tinggi, tempoh, arah) + graf 4 hari.
+- Pasang surut (kad baru): jadual Cukai dari Tide Forecast (mirror GitHub) + graf paras laut.
+- Paras air & hujan JPS Kemaman dibaca oleh GitHub setiap ~15 min (tanpa relay).
+  "Jadual penuh JPS" menunjukkan lajur sama seperti laman asal; "Semua negeri" untuk semua stesen.
+- Laman yang menolak dipaparkan dalam app: versi ganti dari sumber sama (Windy embed, RainViewer,
+  webcam embed, kad JPS / MET / pasang surut) atau dibuka di tab baru - tiada lagi "refused to connect".
+- Laman baru: Windy Swell, Meteoblue 7 hari.
+- Relay Cloudflare tidak digunakan lagi (tetapan relay lama dikosongkan).
+- App desktop (Electron) turut membaca jadual pasang surut Cukai.
