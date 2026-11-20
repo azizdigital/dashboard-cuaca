@@ -33,3 +33,8 @@ Dashboard Cuaca Aziz 4.1.0 - rupa app lama, data baru
   dipaparkan dibuka melalui relay di dalam app; relay juga buang iklan. infobanjir Terengganu &
   met.gov.my (hanya terima sambungan dari Malaysia) tetap ke kad Dashboard / tab baru.
 - Data JPS & pasang surut kekal dari mirror GitHub (tidak perlu relay).
+
+4.1.4 - 4.1.5
+- infobanjir Terengganu & met.gov.my tidak lagi dihantar melalui relay (HTTP 522).
+- Dengan relay: paras air & hujan JPS dan pasang surut Cukai dibaca TERUS (setiap kemas kini app),
+  tidak perlu tunggu GitHub. Mirror GitHub hanya sandaran jika relay gagal.

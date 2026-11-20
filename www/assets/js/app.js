@@ -794,7 +794,7 @@
   function renderTide(s) {
     var m = s.marine, tm = s.tide, now = Date.now();
     var ev = tm && tm.events && tm.events.length ? tm.events : (m && m.tidesAll) || [];
-    $('tideSub').textContent = tm ? L('Cukai · Tide Forecast (mirror GitHub)') : L('model di titik laut (anggaran ±1 jam)');
+    $('tideSub').textContent = tm ? (tm.live ? L('Cukai · Tide Forecast (terus melalui relay)') : L('Cukai · Tide Forecast (mirror GitHub)')) : L('model di titik laut (anggaran ±1 jam)');
     var next = ev.filter(function (e) { return e.t > now - 3 * 3600000; }).slice(0, 8);
     var html = next.length ? '<table class="tbl"><tbody>' + next.map(function (e) {
       return '<tr' + (e.t < now ? ' style="opacity:.5"' : '') + '><td><b>' + (e.type === 'high' ? L('⬆ Pasang') : L('⬇ Surut')) + '</b></td><td>' + esc(tipTime(e.t)) + '</td><td class="num">' + f(e.sea, 2) + ' m</td></tr>';
@@ -834,8 +834,9 @@
     if (!J || state.settings.kind === 'offshore') { $('waterFull').innerHTML = ''; return; }
     if (J.waterUrl) $('waterLink').href = J.waterUrl;
     if (J.rainUrl) $('rainLink').href = J.rainUrl;
-    $('waterSub').textContent = 'JPS Public Infobanjir · ' + L('mirror GitHub ') + (J.waterAt ? C.timeAgo(J.waterAt) : '');
-    $('rainStSub').textContent = 'JPS Public Infobanjir · ' + L('mirror GitHub ') + (J.rainAt ? C.timeAgo(J.rainAt) : '');
+    var how = J.live ? L('terus melalui relay ') : L('mirror GitHub ');
+    $('waterSub').textContent = 'JPS Public Infobanjir · ' + how + (J.waterAt ? C.timeAgo(J.waterAt) : '');
+    $('rainStSub').textContent = 'JPS Public Infobanjir · ' + how + (J.rainAt ? C.timeAgo(J.rainAt) : '');
     var mine = function (r) { return jpsOpen.all || !st.waterDistrict || String(r.district || '').toLowerCase().replace(/[^a-z]/g, '') === String(st.waterDistrict).toLowerCase().replace(/[^a-z]/g, ''); };
     var d8 = function (iso, sec) { return iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) + ' ' + iso.slice(11, sec ? 19 : 16) : '-'; };
     var n2 = function (v) { return v === null || v === undefined ? '-' : (+v).toFixed(2); }, n1 = function (v) { return v === null || v === undefined ? '-' : (+v).toFixed(1); };
@@ -1126,10 +1127,36 @@
       });
       /* JPS water level & rainfall and the Cukai tide table: GitHub mirror (those sites do not let other pages read them) */
       var mu = C.mirrorUrls(s, MIRROR), minute = Math.floor(Date.now() / 60000);
-      Object.keys(mu).forEach(function (k) {
+      function getMirror(k) {
         var t0 = Date.now();
-        jobs.push(fetchT(mu[k] + '?m=' + minute, 20000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(function (d) { raw[k] = { ok: true, data: d, at: Date.now(), ms: Date.now() - t0 }; }, function (e) { raw[k] = { ok: false, error: why(e), ms: Date.now() - t0 }; }));
+        return fetchT(mu[k] + '?m=' + minute, 20000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (d) { raw[k] = { ok: true, data: d, at: Date.now(), ms: Date.now() - t0 }; }, function (e) { raw[k] = { ok: false, error: why(e), ms: Date.now() - t0 }; });
+      }
+      /* with the relay: the JPS and Tide Forecast pages are read live, now; the GitHub copy is the fallback */
+      function viaRelay(url) {
+        return fetchT(C.relayUrlFor(url, s), 30000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+      }
+      var live = C.relayReady(s) && window.MCParse;
+      Object.keys(mu).forEach(function (k) {
+        if (!live) { jobs.push(getMirror(k)); return; }
+        var t0 = Date.now(), iso = new Date().toISOString(), P = window.MCParse;
+        if (k === 'jpsMirror') {
+          var wu = 'https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/aras-air-data/?state=' + s.jpsState + '&district=ALL&station=ALL&lang=en';
+          var ru = 'https://publicinfobanjir.water.gov.my/wp-content/themes/shapely/agency/searchresultrainfall.php?state=' + s.jpsState + '&district=ALL&station=ALL&language=1&loginStatus=0';
+          jobs.push(Promise.all([viaRelay(wu), viaRelay(ru)]).then(function (h) {
+            var w = P.jpsWater(h[0]), r = P.jpsRain(h[1]);
+            if (!w.length) throw new Error(L('Jadual tiada dalam jawapan'));
+            raw[k] = { ok: true, live: true, at: Date.now(), ms: Date.now() - t0,
+              data: { state: s.jpsState, at: iso, water: w, rain: r, waterAt: iso, rainAt: r.stations.length ? iso : null, waterUrl: wu, rainUrl: ru, errors: {} } };
+          }).catch(function () { return getMirror(k); }));
+        } else if (k === 'tideMirror') {
+          var tu = 'https://www.tide-forecast.com/locations/Cukai/tides/latest';
+          jobs.push(viaRelay(tu).then(function (h) {
+            var ev = P.tides(h);
+            if (ev.length < 4) throw new Error(L('Tiada waktu pasang surut'));
+            raw[k] = { ok: true, live: true, at: Date.now(), ms: Date.now() - t0, data: { place: 'cukai', at: iso, url: tu, events: ev, eventsAt: iso, error: null } };
+          }).catch(function () { return getMirror(k); }));
+        } else jobs.push(getMirror(k));
       });
       return Promise.all(jobs).then(function () {
         var now = Date.now(), prev = state.snap || {};

@@ -73,7 +73,8 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
 test('relay again: a refused site (Flood Hub) shows inside the app through the relay; relay test lists it', async ({ page, baseURL }) => {
   const harness = require('./relay-harness');
   const core = require('../www/assets/js/core');
-  const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page' : null });
+  const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page'
+    : /aras-air/.test(u) ? 'http://127.0.0.1:' + port + '/jps-water' : /rainfall/.test(u) ? 'http://127.0.0.1:' + port + '/jps-rain' : /tide-forecast/.test(u) ? 'http://127.0.0.1:' + port + '/tides' : null });
   try {
     await open(page, baseURL);
     await page.click('[data-view="settings"]');
@@ -87,5 +88,12 @@ test('relay again: a refused site (Flood Hub) shows inside the app through the r
     await page.reload();
     await page.waitForFunction(() => window.MC && MC.state.snap);
     expect(await page.evaluate(() => MC.state.settings.relayKey)).toBe('k3y-web-411');     /* kept */
+    /* JPS read live through the relay (no waiting for GitHub); tides fall back to the GitHub copy when the page has no table */
+    await page.evaluate(() => MC.Data.refresh());
+    await page.waitForFunction(() => MC.state.snap.jps && MC.state.snap.jps.live, null, { timeout: 20000 });
+    expect(await page.evaluate(() => MC.state.snap.stations.find(x => /Sg\. Mas/.test(x.name)).level)).toBe(31.7);
+    await page.click('[data-view="dashboard"]');
+    await expect(page.locator('#waterSub')).toContainText('live through the relay');
+    await expect(page.locator('#tideSub')).toContainText('GitHub mirror');
   } finally { R.stop(); }
 });

@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.4';
+  var VERSION = '4.1.5';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -958,7 +958,7 @@
     snap.river = off.river ? null : src('river', L('Open-Meteo Flood (GloFAS, aliran sungai)'), function (r) { return parseRiver(r.data, now); }, prev.river || null);
     snap.outlook = src('outlook', L('Open-Meteo Ensemble (28 hari)'), function (r) { return parseOutlook(r.data); }, prev.outlook || null);
     off.tideMirror = s.tidePlace !== 'cukai';
-    snap.tide = off.tideMirror ? null : src('tideMirror', L('Tide Forecast - Cukai (mirror GitHub)'), function (r) { return parseTideMirror(r.data); }, prev.tide || null);
+    snap.tide = off.tideMirror ? null : src('tideMirror', L('Tide Forecast - Cukai (mirror GitHub)'), function (r) { var t = parseTideMirror(r.data); t.live = !!r.live; return t; }, prev.tide || null);
     var fc = src('metForecast', L('MET Malaysia - ramalan'), function (r) { return parseMetForecast(r.data, s.metLocationId, now); }, (prev.met || {}).forecast || []);
     var wr = src('metWarning', L('MET Malaysia - amaran'), function (r) { return parseMetWarnings(r.data, s.warningKeywords, now); }, null);
     if (!wr) wr = prev.met ? { relevant: (prev.met.warnings || []).filter(function (w) { return w.to ? w.to > now : true; }), otherCount: prev.met.warningsOther || 0 } : { relevant: [], otherCount: 0 };
@@ -967,11 +967,11 @@
     /* the web app reads the same stations from JPS Public Infobanjir (through the relay) instead */
     off.jpsWater = off.ibWater; off.jpsRain = off.ibRain; off.jpsMirror = off.ibWater;
     /* GitHub mirror of JPS (web app): water level + rainfall in one file; the whole state is kept for the full JPS tables */
-    var mir = raw.jpsMirror ? src('jpsMirror', L('JPS Public Infobanjir (mirror GitHub ~15 min)'), function (r) {
+    var mir = raw.jpsMirror ? src('jpsMirror', raw.jpsMirror.live ? L('JPS Public Infobanjir (terus melalui relay)') : L('JPS Public Infobanjir (mirror GitHub ~15 min)'), function (r) {
       if (!r.data || !r.data.water) throw new Error(L('Fail mirror kosong'));
       return r.data;
     }, null) : null;
-    if (mir) snap.jps = { state: mir.state, water: mir.water || [], rain: mir.rain || { days: [], stations: [] }, waterAt: mir.waterAt ? Date.parse(mir.waterAt) : null,
+    if (mir) snap.jps = { live: !!raw.jpsMirror.live, state: mir.state, water: mir.water || [], rain: mir.rain || { days: [], stations: [] }, waterAt: mir.waterAt ? Date.parse(mir.waterAt) : null,
       rainAt: mir.rainAt ? Date.parse(mir.rainAt) : null, waterUrl: mir.waterUrl, rainUrl: mir.rainUrl, errors: mir.errors || {} };
     else if (!off.jpsMirror && prev.jps) snap.jps = prev.jps;
     var ib = mir ? fromMirror(mir, 'water', s.waterDistrict, now) : raw.jpsWater ? src('jpsWater', L('JPS Public Infobanjir - paras air'), function (r) { return parseJps(r.html, 'water', s.waterDistrict, now); }, null)
