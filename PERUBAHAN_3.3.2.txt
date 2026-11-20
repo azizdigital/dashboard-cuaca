@@ -1,0 +1,30 @@
+Dashboard Cuaca Aziz 3.3.2 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.3.1 + laporan 19 Nov 2026: "npm start masih tunjuk ikon Electron selepas npm run fix-icon".
+
+PUNCA
+   Ini cache ikon WINDOWS (Explorer), bukan cache Electron. Kali pertama "npm start" dijalankan (sebelum pembetulan ikon),
+   Windows menyimpan ikon electron.exe untuk ID app ini (local.dashboardcuaca.aziz) dan terus memakainya.
+   "ie4uinit -show" (3.3.1) tidak cukup untuk cache taskbar.
+
+PEMBETULAN
+   1. "npm start" kini guna ID Windows sendiri (local.dashboardcuaca.aziz.npmstart). ID baru = tiada ikon lama dalam cache,
+      jadi Windows terpaksa ambil logo app. Versi .exe kekal dengan ID asal (sudah betul).
+   2. "npm run fix-icon" kini buang cache ikon sepenuhnya: hentikan Explorer -> padam IconCache.db dan iconcache_*.db ->
+      mulakan Explorer semula. Taskbar & desktop hilang beberapa saat - itu normal. Tiada fail peribadi disentuh.
+
+CARA BUANG CACHE IKON SECARA MANUAL (jika mahu buat sendiri)
+   1. Tutup Dashboard Cuaca Aziz.
+   2. Buka Command Prompt (cari "cmd" dalam Start).
+   3. Taip satu demi satu, tekan Enter selepas setiap baris:
+        taskkill /f /im explorer.exe
+        del /a /q "%localappdata%\IconCache.db"
+        del /a /f /q "%localappdata%\Microsoft\Windows\Explorer\iconcache*"
+        start explorer.exe
+   4. Jika masih sama: restart Windows sekali.
+
+DIUJI: App Electron 43/43, unit 32/32, pelayar 17/17. BELUM DIUJI: taskbar Windows sebenar.
+
+EN: The Electron icon came from the Windows icon cache for the app's ID. "npm start" now uses its own fresh ID
+(local.dashboardcuaca.aziz.npmstart), so there is no stale icon to reuse; the built .exe keeps the original ID.
+"npm run fix-icon" now fully clears the Windows icon cache (stops Explorer, deletes IconCache.db / iconcache_*.db, restarts it).

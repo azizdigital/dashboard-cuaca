@@ -1,0 +1,29 @@
+Dashboard Cuaca Aziz 3.4.2 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.4.1 + laporan 20 Nov 2026: "Uji relay" -> "✗ Relay failed: the test site answered HTTP 530".
+
+MAKSUD 530
+   Relay anda BERFUNGSI (alamat & kunci betul). 530 = Cloudflare tidak dapat mencari alamat laman tujuan (DNS, ralat 1016).
+   Laman ujian lama (Info Banjir Terengganu) tidak dapat dicapai dari Cloudflare, jadi seluruh ujian nampak gagal.
+
+PEMBETULAN
+   - "Uji relay" kini menyemak SETIAP laman titik biru melalui relay dan menyenaraikan keputusan:
+       ✓ Zoom Earth Chukai
+       ✗ Info Banjir Terengganu - Cloudflare tidak dapat mencari alamat laman ini (DNS) (HTTP 530) → dibuka di pelayar
+   - Laman yang gagal diingat (tetapan relayBad) dan dibuka terus di pelayar di iPad; yang lain keluar dalam app melalui relay.
+     "Tetapan › Relay laman" menunjukkan laman mana yang dibuka di pelayar.
+   - Ujian yang berjaya menghubungi relay menyimpan tetapan sendiri (tidak perlu tekan Simpan lagi).
+   - Skrip relay (pilihan, salin & tampal semula): laman yang gagal dicapai Cloudflare kini menunjukkan halaman jelas dengan
+     butang "Buka di pelayar", bukan halaman ralat Cloudflare. Skrip lama tetap berfungsi dengan app 3.4.2.
+
+DIUJI
+   - App Electron 49/49: Uji relay dari PC dengan alamat laman sebenar (relay ujian menghalakan laman ke laman ujian tempatan;
+     laman JPS dibuat membalas 530) -> "5 daripada 7", JPS x2 "DNS (HTTP 530) → dibuka di pelayar", tetapan disimpan,
+     publicinfobanjir.water.gov.my diingat.
+   - Pelayar (Chrome) 20/20: termasuk aliran yang sama dari iPad / telefon; laman diingat = buka di pelayar; laman lain dalam app.
+   - Unit 33/33 (termasuk halaman 530 relay dan cara app membaca jawapan relay).
+BELUM DIUJI
+   - Laman mana yang sebenarnya boleh / tidak boleh melalui Cloudflare - bergantung pada laman itu. Tekan "Uji relay" untuk tahu.
+
+EN: HTTP 530 means the relay works but Cloudflare cannot resolve that site's address (DNS). "Test relay" now checks every
+blue-dot site, lists the result per site, remembers the ones that fail (they open in the browser) and saves by itself.

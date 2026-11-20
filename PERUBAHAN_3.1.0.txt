@@ -1,0 +1,66 @@
+Dashboard Cuaca Aziz 3.1.0 - Senarai perubahan
+================================================
+Asas: 3.0.0 (dahulu "Monitor Cuaca Kemaman") + permintaan 18 Nov 2026.
+Build: npm install -> npm run dist  (dist\Dashboard Cuaca Aziz 3.1.0.exe)
+
+1. LOGO BARU
+   - Logo anda digunakan di semua tempat: ikon .exe, tetingkap, taskbar, tray, favicon, ikon telefon (Android & iPhone/iPad), splash.
+   - Saiz kecil (16-64 px: tray, taskbar, favicon, menu kiri) guna simbol sahaja (awan + matahari + ombak) kerana tulisan
+     tidak terbaca pada saiz itu. Saiz 128 px ke atas guna logo penuh.
+
+2. SPLASH SCREEN (sama seperti OIM Wazira)
+   - Desktop: tetingkap kecil 500x300 tanpa bingkai selama 5 saat semasa app dimuatkan di belakang.
+   - Telefon / tablet: skrin penuh 5 saat setiap kali app dibuka. Ketik untuk langkau.
+   - Tidak dipaparkan bila app dimulakan terus ke tray (Mula bersama Windows).
+
+3. KAMERA / DATA LAMA
+   - Pengesan tarikh: selepas sesuatu laman dimuatkan, app baca tarikh penuh yang tertulis di laman dan tunjuk tarikh paling baru
+     di bar laman. Jika lebih 2 hari: label oren "⚠ Tarikh terkini di laman: ... (x hari lalu)". Dalam Mod Dinding, panel yang
+     lama juga ditanda. (App desktop sahaja.)
+   - Laman kategori Kamera sentiasa dimuat semula tanpa cache, supaya gambar sentiasa baru.
+   - Nota: jika kamera itu sendiri berhenti dikemas kini oleh pemiliknya, app hanya boleh menandakannya - tidak boleh membetulkannya.
+
+4. LAMAN TAMBAHAN (10, semua percuma tanpa daftar; diuji sebelum dimasukkan)
+   Banjir:   JPS Aras Air Terengganu, JPS Peta Infobanjir (Public Infobanjir JPS)
+   Cuaca:    Radar MET Semenanjung, Satelit Himawari (CIRA SLIDER)
+   Offshore: Windy Ombak, Windy Angin, Earth Nullschool Ombak, Peta Kilat Blitzortung (4 ini ikut lokasi profil), VesselFinder
+   Kecemasan: Ribut Tropika (Zoom Earth Storms)
+   Tidak dimasukkan (tidak dapat diuji / mungkin perlu daftar): MarineTraffic, JTWC, Info Bencana JKM.
+   Blitzortung: laman itu sendiri menyatakan datanya untuk rujukan sahaja, bukan untuk melindungi orang/peralatan - nota ini
+   dipaparkan di app.
+
+5. BUTANG "TUTUP SEMUA" (seperti OIM Wazira)
+   - Di bar tab laman: "Tutup semua (n)". Juga Ctrl+Shift+W dan dalam Ctrl+K.
+
+6. PROFIL LOKASI
+   - Butang 📍 di bar atas untuk tukar profil. Hanya profil aktif dipantau.
+   - Profil asal: Kemaman (darat) dan Irong Barat (offshore, 5.5501 N 104.7745 E).
+   - Setiap profil ada lokasi, sumber data dan ambang alert sendiri. Tetapan umum (kekerapan, bunyi, tray) dikongsi.
+   - Tambah / padam profil di Tetapan > Profil lokasi (maks 20).
+   - Profil OFFSHORE: tiada kad sungai / MET daerah. Ganti dengan:
+       kad ringkas angin (knot), tiupan maks 6 jam, ombak, alun (swell), penglihatan, risiko ribut petir;
+       kad "Keadaan offshore": graf ombak & tiupan + jadual 24 jam (setiap baris = nilai paling teruk dalam 3 jam);
+       alert baru: penglihatan rendah, ribut petir dijangka; amaran laut MET (kata kunci Terengganu, Condore, Reef North).
+   - Sejarah disimpan berasingan bagi setiap profil. Sejarah offshore: ombak, alun, tiupan, angin.
+   - Laman yang "ikut lokasi profil" terus bertukar ke koordinat profil baru.
+
+7. NAMA BARU: "Dashboard Cuaca Aziz" di semua tempat
+   - Tetingkap, menu, tray, notifikasi, .exe, ikon telefon, splash, QR, CSV, dokumen.
+   - Folder data baru: %APPDATA%\Dashboard Cuaca Aziz. Tetapan, sejarah & log alert dari 3.0 disalin automatik pada kali pertama.
+   - Sijil telefon baru: "Dashboard Cuaca Local CA" (fail dashboard-cuaca-ca.crt). Telefon yang sudah pasang 3.0 perlu percaya
+     sijil baru sekali (QR 1), kemudian pasang semula app (QR 2).
+
+LAIN-LAIN
+   - Ikon iPad/iPhone: kandungan tidak lagi bertindih dengan jam & bateri (safe area, seperti OIM).
+   - Ambang angin dipaparkan dalam km/j dan knot.
+
+DIUJI
+   - tests/unit.js 27/27 lulus (termasuk profil, migrasi data 3.0, offshore, URL ikut profil, pengesan tarikh).
+   - tests/app.spec.js 14/14 lulus (termasuk tukar profil, tambah/padam profil, Tutup semua, 26 laman, splash).
+   - Electron sebenar: splash 5 s, tukar profil, tarikh lama pada kamera ujian, Tutup semua, webview, QR, tetapan.
+   - Data ujian ialah data rekaan; tiada internet di tempat pembinaan.
+BELUM DIUJI (perlu disemak di PC anda)
+   - Data sebenar Open-Meteo untuk Irong Barat (nama pemboleh ubah sudah disemak dengan dokumentasi Open-Meteo).
+   - Laman sebenar dalam app (tiada internet semasa pembinaan); status setiap laman ditunjuk oleh titik hijau/merah di senarai.
+   - Pengesan tarikh pada laman kamera sebenar - bergantung pada sama ada laman itu menulis tarikh sebagai teks
+     (tarikh yang dicetak di dalam gambar tidak dapat dibaca).

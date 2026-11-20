@@ -1,0 +1,38 @@
+Dashboard Cuaca Aziz 3.2.1 - Senarai perubahan
+================================================
+Asas: 3.2.0 + permintaan 18 Nov 2026 ("kad amaran MET tk cantik, susun bg cantik skit").
+English: CHANGES_3.2.1.txt
+
+KAD AMARAN MET DISUSUN SEMULA
+   MET hantar satu blok teks panjang (Seksyen A/B, item 1) 2), kawasan "•", tempoh, angka). App kini memecahkannya:
+   - Jubin 2x2 di atas: Angin (km/j + knot + arah), Ombak, Ribut petir (hingga bila), Sah (tempoh).
+   - Jadual "kawasan saya": setiap kata kunci profil (cth Terengganu, Condore, Reef North) - bahaya apa, angka, bila.
+     Nota seperti "bahagian barat" ditunjuk. Kawasan lain dipendekkan "+n".
+   - "Tunjuk teks penuh" (tertutup secara lalai): SEMUA perkataan MET kekal, cuma dikemaskan:
+     tiada HURUF BESAR, dipecah ikut seksyen dan item, kawasan anda berwarna oren, tempoh & angka ditebalkan.
+     Kekal terbuka bila data dikemas kini.
+   - Mod BM guna teks BM yang MET terbitkan sendiri (SEKSYEN, AMARAN RIBUT PETIR, kmsj, 2:00 Petang).
+   - Amaran ringkas tanpa struktur (cth Hujan Berterusan) dipaparkan terus, tanpa jubin.
+   - Jika MET ubah format dan teks tidak dapat dipecahkan: teks asal dipaparkan seperti biasa - tiada yang hilang.
+
+FORMAT SAMA DI TEMPAT LAIN
+   - Notifikasi Windows / telefon dan halaman Alert: satu ayat pendek, cth
+     "Ribut petir sehingga 14:00 hari ini · angin 40–50 km/j (22–27 knot), ombak 3.5 m Kha 19 – Isn 23 Nov · Terengganu, Condore, Reef North".
+   - Kad ringkas "Amaran MET" di atas dashboard: "Angin & laut hingga Isn 23 Nov · ribut petir hingga 14:00".
+
+PEMBETULAN
+   - Ayat penutup MET kini dalam English bila English aktif (dulu tertinggal BM kerana app tidak menyimpan versi English).
+   - MET menghantar amaran yang sama beberapa kali dengan tempoh berbeza: kini digabung jadi satu kad (tempoh paling luas),
+     dan alert tidak berbunyi berulang untuk salinan yang sama.
+
+DIUJI
+   - tests/unit.js 30/30 (baru: pemecah teks MET EN & BM - seksyen, item, kawasan, masa Pagi/Petang/Malam, angin, ombak;
+     gabung salinan; ayat notifikasi dalam dua bahasa; teks format lain tidak rosak).
+   - tests/app.spec.js 17/17 (baru: kad MET - 4 jubin, 3 kawasan saya, teks penuh tertutup, semua perkataan MET ada,
+     kekal terbuka selepas kemas kini, versi BM).
+   - App Electron sebenar: 29/29 semakan.
+   - Diuji dengan teks amaran MET sebenar 18 Nov 2026 (EN). Teks BM dibina dari penanda struktur MET sebenar.
+
+BELUM DIUJI
+   - Format amaran MET lain yang jarang (cth ribut tropika, amaran kategori ketiga) - tiada contoh hari ini.
+     Jika ada yang nampak pelik, hantar gambar; teks penuh sentiasa ada sebagai sandaran.

@@ -1,0 +1,50 @@
+Monitor Cuaca Kemaman 3.0.0 - Senarai perubahan
+================================================
+Asas: Weather Monitor Kemaman 2.0.0 + jawapan anda (17 Nov 2026): desktop Electron + PWA telefon melalui QR,
+auto-refresh, alert ambang, dashboard ringkasan, cache data terakhir, semua 16 laman dikekalkan.
+Seni bina ikut OIM Wazira 3.3.3 (pelayan tempatan, tetingkap dikunci, QR + CA sendiri, precache, ujian).
+Build: npm install -> npm run dist  (dist\Monitor Cuaca Kemaman 3.0.0.exe)
+
+BARU
+  B1  Dashboard data: cuaca semasa, hujan 3/24 jam, angin, paras air sungai dengan ambang rasmi, hujan stesen,
+      ramalan MET 7 hari (Ds065), amaran MET Terengganu/Kemaman, ombak & pasang surut (model), status sumber.
+  B2  Pengumpul data di PC setiap 5/10/15/30/60 minit (asal 10). Data terakhir disimpan dan dipapar bila app dibuka
+      atau bila internet putus.
+  B3  Alert ambang: paras air (Waspada/Amaran/Bahaya), paras naik cepat, hujan 3 jam / 24 jam, angin, ombak, amaran MET.
+      Bunyi + notifikasi Windows + banner. Akui / senyap 1 jam. Bahaya yang belum diakui berbunyi setiap minit. Log alert.
+  B4  Sejarah 45 hari: graf paras air dengan garis ambang, hujan 7 hari, suhu. Muat turun CSV.
+  B5  Laman web dalam tab (6 kekal terbuka), undur/maju/zum, auto muat semula setiap laman, mesej ralat dengan "Cuba lagi".
+  B6  Mod dinding: 2/3/4/6 laman serentak.
+  B7  Ctrl+K cari laman / arahan, tema gelap & cerah, tray, mula bersama Windows.
+  B8  Telefon: QR (port 30041/30042, sijil "Monitor Cuaca Local CA"). Telefon guna data PC bila dapat capai PC,
+      atau ambil terus dari internet ("mod terus"). Laman yang tidak benarkan paparan terbenam -> butang buka di pelayar.
+  B9  Semakan status 16 laman setiap 30 minit (titik hijau/merah di senarai).
+
+DIBETULKAN (dari semakan v2.0)
+  D1  Bilangan sumber: skrin utama 14, log "17", README 14 -> sebenarnya 16. Kini dikira dari senarai.
+  D2  Overlay "Memuatkan..." menutup seluruh laman dan menyekat klik -> diganti bar kemajuan nipis.
+  D3  Laman gagal dimuat = skrin putih -> kini mesej ralat + Cuba lagi + Buka dalam pelayar.
+  D4  Bypass sijil: setCertificateVerifyProc dipasang pada session lain dari webview (tidak berkesan) dan callback(-2)
+      sebenarnya MENOLAK sijil; switch "ignore-certificate-errors" pula matikan semakan untuk SEMUA laman.
+      Kini: sijil diterima tanpa semakan HANYA untuk *.terengganu.gov.my, *.met.gov.my, *.nadma.gov.my, *.water.gov.my.
+      Semua laman lain disemak seperti biasa. "disablewebsecurity" dibuang.
+  D5  Webview kini sandbox, tiada Node, tiada preload, session sendiri (persist:sites). Tetingkap app hanya boleh
+      capai pelayan tempatan.
+  D6  Ctrl+H tidak menghentikan laman -> kini tab kekal (sengaja, supaya cepat), tutup dengan × atau Ctrl+W.
+  D7  Ctrl+R / Ctrl+K kini berfungsi walaupun fokus di dalam laman (webview).
+  D8  preload.js dan event "certificate-error" yang tidak digunakan dibuang / diganti.
+  D9  Electron 28 -> 45.3.3, electron-builder 26.18.0. Ikon app baru (.ico + PNG).
+  D10 Ejaan "Anylisis" -> "Analysis"; tahun -> 2026.
+
+DIUJI
+  - tests/unit.js: 22/22 lulus.  tests/app.spec.js (Playwright): 11/11 lulus.
+  - Electron sebenar (Linux, paparan maya): 19/19 semakan lulus - preload, webview papar laman yang guna
+    X-Frame-Options: DENY, webview tiada akses Node, tetingkap app tidak boleh capai internet, mesej ralat laman,
+    dinding, tetingkap QR hidup/matikan perkongsian, tetapan disimpan.
+BELUM DIUJI (perlu disemak di PC anda)
+  - Bacaan jadual infobanjir Terengganu pada laman sebenar (laman tidak dapat dicapai semasa pembinaan).
+    Jika kad Paras Air kosong: Tetapan > Diagnostik, hantar teksnya.
+  - Ciri khas Windows: ikon tray, notifikasi Windows, mula bersama Windows, build .exe.
+  - Pasang PWA pada telefon sebenar.
+
+Fail: semua fail baru kecuali www/assets/js/qr.js dan lib/vendor/node-forge (disalin dari OIM Wazira).

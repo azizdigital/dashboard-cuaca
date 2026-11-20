@@ -1,0 +1,31 @@
+Dashboard Cuaca Aziz 3.3.0 - Changes
+=====================================
+Base: 3.2.2 + request of 19 Nov 2026 (ads are annoying - can they be blocked?).
+Bahasa Melayu: PERUBAHAN_3.3.0.txt
+
+AD BLOCKER (desktop app, every site inside the app)
+   - Ghostery adblocker engine (free, open source) with the lists uBlock Origin uses: EasyList, uBlock filters (incl. 2020-2026,
+     badware, quick fixes), Peter Lowe, EasyList Cookie, uBlock Cookie notices.
+   - Blocked: ads (before they load - sites get faster too), ad pop-ups, cookie notices / banners.
+   - Empty space: ad boxes are hidden, and blocked ad pictures / frames are removed (no broken boxes).
+   - Normal (non-ad) pop-ups still open as before.
+   - 🛡️ button in the site bar: how many ads were blocked on that page. Click = turn the blocker off for that site only
+     (if a site breaks or asks you to turn off your ad blocker). Click again = back on.
+   - Settings › Ad blocker: on/off, sites left alone, list status, "Update now".
+   - Lists: a ready copy is built into the app (works at once, also offline). Once a day the app downloads fresh lists in the
+     background (from the list authors on GitHub) into %APPDATA%\Dashboard Cuaca Aziz\adblock\. If that fails it keeps the
+     last lists and tries again 3 hours later.
+   - Only the sites inside the app are filtered. The data collector (infobanjir, MET, Open-Meteo) is not touched.
+   - Phone / tablet (PWA): not possible - phone browsers do not let an app block ads on other sites.
+
+TESTED
+   - Real Electron app: 40/40 checks, with a local page full of ads (blocked banner removed, normal image loads, ad box hidden,
+     cookie banner hidden, ad pop-up refused, normal pop-up opens, 🛡️ counts 2, click = ads back, click again = blocked).
+   - tests/unit.js 32/32 (incl. daily update in a worker; a failed download keeps the old lists), tests/app.spec.js 17/17.
+   - Packaged app (electron-builder, Linux) also 40/40 - the ad blocker preload is found outside app.asar. Engine loads in 26 ms; ~0.05 ms per request.
+
+NOT TESTED
+   - Live sites (Tide Forecast, VesselFinder, Zoom Earth, webcams) - no internet in the test environment.
+   - The daily update from GitHub on your PC (the update flow itself is unit-tested with local lists).
+
+Third-party licences: THIRD_PARTY_NOTICES.txt. Rebuild the shipped lists: npm run adblock:build

@@ -1,0 +1,33 @@
+Dashboard Cuaca Aziz 3.3.1 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.3.0 + laporan 19 Nov 2026.
+
+1. IKON TASKBAR (npm start)
+   Punca: semasa "npm start", app memberitahu Windows fail ikonnya (build\icon.ico) tetapi tanpa "arahan buka semula".
+   Windows mengabaikan ikon itu tanpa arahan tersebut, lalu guna ikon electron.exe (atom biru). Versi .exe tidak terjejas.
+   Pembetulan: arahan buka semula kini sentiasa ditetapkan (electron.exe + folder projek semasa npm start).
+   Baru: "npm run fix-icon" - segar semula cache ikon Windows (tutup app dulu).
+
+2. TUTUP = KELUAR (tiada lagi ikon tray secara lalai)
+   - Tutup tetingkap = app tutup terus, termasuk tetingkap tersembunyi yang membaca jadual infobanjir.
+   - Ikon tray tidak lagi dipaparkan.
+   - Masih boleh pilih: Tetapan › "Kekal di tray bila ditutup" (mati secara lalai). Bila hidup: app kekal di tray dan terus
+     memantau & berbunyi, seperti dulu.
+   - "Mula bersama Windows" kini membuka tetingkap app (terus ke tray hanya jika "Kekal di tray" hidup).
+   - Tetapan lama "trayOnClose" diabaikan, jadi semua PC bermula dengan tutup = keluar.
+
+DIUJI
+   - App Electron sebenar: 43/43 semakan (baru: "Kekal di tray" mati secara lalai; bila hidup, tutup = sorok dan app terus
+     berjalan; bila mati, tutup = seluruh app keluar dalam masa singkat).
+   - tests/unit.js 32/32, tests/app.spec.js 17/17.
+BELUM DIUJI
+   - Ikon taskbar di Windows sebenar dengan npm start (kod Windows tidak berjalan di Linux). Sila cuba (langkah di bawah).
+
+LANGKAH DI PC ANDA (sekali sahaja)
+   1. Tutup app.
+   2. Command Prompt dalam folder projek:  npm run fix-icon
+   3. npm start
+
+EN: (1) Taskbar icon under "npm start": Windows ignores the icon path unless a relaunch command is also set; it now always is.
+    New "npm run fix-icon" refreshes the Windows icon cache. (2) Closing the window now quits the app; no tray icon by default.
+    Settings › "Stay in tray when closed" (off by default) brings back the old behaviour. Electron 43/43, unit 32/32, browser 17/17.

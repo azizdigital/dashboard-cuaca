@@ -1,0 +1,25 @@
+Dashboard Cuaca Aziz 3.5.1 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.5.0 + laporan 20 Nov 2026: (1) "laman asal ada data, iPad no data"; (2) ikon taskbar jadi Electron balik.
+
+1. "NO DATA" PADA LAMAN JPS DI iPad
+   Punca: app membuka jadual paras air JPS dengan district=ANY&station=ANY - laman JPS memulangkan jadual kosong ("No Data")
+   untuk alamat itu. Alamat yang betul (seperti projek pengikis publicinfobanjir di GitHub): district=ALL&station=ALL.
+   - JPS Water Level Terengganu (dan laman ganti Water Level Kemaman): ...aras-air-data/?state=TRG&district=ALL&station=ALL&lang=en
+   - Laman ganti Rainfall Kemaman kini terus ke jadual hujan JPS:
+     .../wp-content/themes/shapely/agency/searchresultrainfall.php?state=TRG&district=ALL&station=ALL&language=1&loginStatus=0
+   Laman JPS di PC juga terjejas oleh pepijat yang sama - kini dibetulkan.
+
+2. IKON TASKBAR (npm start)
+   Kod ikon tidak berubah antara 3.4.2 dan 3.5.0 - cache ikon Windows untuk ID app tercemar semula.
+   - "npm start" kini mencipta pintasan Start Menu "Dashboard Cuaca Aziz (npm start)" yang membawa ID app dan ikon logo.
+     Windows mengambil ikon taskbar dari pintasan dengan ID yang sama - cara rasmi, tidak bergantung pada cache.
+   - ID Windows untuk npm start kini berubah setiap versi, jadi ikon lama dalam cache tidak terbawa.
+   - Pintasan itu juga boleh digunakan untuk membuka app dari Start Menu.
+
+DIUJI: Electron 49/49, pelayar 21/21, unit 33/33.
+BELUM DIUJI: pintasan Start Menu & ikon taskbar di Windows sebenar; jadual JPS sebenar melalui relay.
+
+EN: (1) JPS tables showed "No Data" on the iPad: the app used district=ANY; JPS needs district=ALL. Rainfall stand-in now opens
+JPS's rainfall table directly. (2) npm start now creates a Start-menu shortcut carrying the app ID and logo (Windows takes the
+taskbar icon from it), and uses a fresh Windows ID per version.

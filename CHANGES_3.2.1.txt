@@ -1,0 +1,33 @@
+Dashboard Cuaca Aziz 3.2.1 - Changes
+=====================================
+Base: 3.2.0 + request of 18 Nov 2026 (the MET warning card looked messy).
+Bahasa Melayu: PERUBAHAN_3.2.1.txt
+
+MET WARNING CARD REORGANISED
+   MET sends one long block of text (sections A/B, items 1) 2), "•" area lists, times, numbers). The app now splits it:
+   - 2x2 tiles at the top: Wind (km/h + knots + direction), Waves, Thunderstorms (until when), Valid (period).
+   - "Your areas" table: each profile keyword (e.g. Terengganu, Condore, Reef North) - which hazard, numbers, when.
+     Notes such as "western part" are shown. Other areas are shortened to "+n".
+   - "Show full text" (folded by default): EVERY word MET wrote is kept, only tidied: no ALL CAPS, split by section and
+     item, your areas in orange, times & numbers in bold. Stays open when data refreshes.
+   - BM mode uses MET's own BM text (SEKSYEN, AMARAN RIBUT PETIR, kmsj, 2:00 Petang).
+   - Simple warnings with no structure (e.g. Continuous Rain) are shown as they are, without tiles.
+   - If MET changes its format and the text cannot be split: the original text is shown as before - nothing is lost.
+
+SAME FORMAT ELSEWHERE
+   - Windows / phone notifications and the Alerts page: one short line, e.g.
+     "Thunderstorms until 14:00 today · wind 40–50 km/h (22–27 knot), waves 3.5 m Thu 19 – Mon 23 Nov · Terengganu, Condore, Reef North".
+   - "MET warnings" summary tile on the dashboard: "Wind & seas to Mon 23 Nov · thunder to 14:00".
+
+FIXES
+   - MET's closing sentence is now in English when English is on (it stayed BM because the English version was not kept).
+   - MET sends the same warning several times with different validity windows: now merged into one card (widest window),
+     and the alert does not ring again for a copy.
+
+TESTED
+   - tests/unit.js 30/30, tests/app.spec.js 17/17, real Electron app 29/29.
+   - Checked with the real MET warning text of 18 Nov 2026 (English). The BM text was built from MET's real BM markers.
+
+NOT TESTED
+   - Rare MET formats (e.g. tropical cyclone, third category) - none issued today. If one looks odd, send a picture;
+     the full text is always there as a fallback.

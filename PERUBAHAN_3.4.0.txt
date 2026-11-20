@@ -1,0 +1,45 @@
+Dashboard Cuaca Aziz 3.4.0 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.3.2 + permintaan 19 Nov 2026: "di iPad laman tk kuar (Zoom Earth dll). Nak die keluar dalam app, tanpa PC."
+
+KENAPA
+   Sesetengah laman menghantar label "jangan paparkan saya dalam app lain" (X-Frame-Options / CSP frame-ancestors).
+   App desktop tetap memaparkannya dalam pelayar sendiri; Safari di iPad (PWA) wajib mematuhi label itu.
+   Tiada kod dalam app web yang boleh membuangnya - hanya pelayan perantara (relay).
+
+1. RELAY LAMAN SENDIRI (Cloudflare Worker, percuma, perlu daftar akaun Cloudflare)
+   - Skrip relay (www/relay-worker.js) mengambil laman dan membuang label itu SAHAJA. Laman keluar dalam app, tanpa PC.
+   - Gambar, CSS, pautan, borang dan permintaan data laman itu sendiri dihalakan melalui relay; skrip "pemecah bingkai"
+     laman tidak boleh mengambil alih app (iframe sandbox).
+   - Selamat: hanya laman Dashboard Cuaca Aziz (17 domain) boleh diambil, perlu kunci rahsia, tiada cookie/log masuk dihantar.
+   - Tetapan › Relay laman (iPad / telefon): panduan 4 langkah, Buat kunci baru, Salin skrip relay, Muat turun skrip, Uji relay.
+     Buat sekali di PC; iPad/telefon menerima & menyimpan tetapan bila bersambung ke PC.
+   - Titik laman bertukar hijau ("Dipaparkan melalui relay"). Butang ↗ masih membuka laman asal.
+   - Pelan percuma Cloudflare: 100,000 permintaan sehari, 10 ms CPU setiap permintaan (masa menunggu laman tidak dikira).
+
+2. TANPA RELAY: SATU TEKAN
+   - Tekan laman titik biru = terus dibuka dalam lembaran pelayar di atas app (iOS: butang "Done" untuk kembali).
+     Tab app kekal dengan kad + butang "Buka dalam pelayar".
+   - Laman yang diketahui menyekat (Rainfall Kemaman, Flood Hub, Info Banjir, JPS x2, Zoom Earth, Ribut Tropika) ditanda
+     dalam app, supaya iPad tahu walaupun tanpa PC. Bila bersambung ke PC, semakan langsung PC yang diguna.
+
+DIUJI
+   - tests/unit.js 33/33 (baru: relay - label dibuang, pautan/gambar mutlak dihalakan, redirect kekal dalam relay,
+     alamat "/" dibina semula dari Referer, tiada cookie, laman lain ditolak (403), kunci salah ditolak (404)).
+   - tests/relay.spec.js (Chrome sebenar): laman bersekatan TIDAK keluar dalam iframe biasa, TETAPI keluar melalui relay;
+     gambar relatif / "/" / mutlak, latar CSS, permintaan data, pautan dalam laman semua berfungsi; pemecah bingkai gagal.
+     App: tanpa relay tekan = buka terus; butang Uji relay (alamat salah / kunci salah / laman tidak dibenarkan);
+     skrip yang disalin mengandungi kunci & 17 domain; dengan relay laman dipaparkan dalam iframe relay.
+   - tests/app.spec.js 17/17 + relay.spec.js 2/2 = 19/19 (termasuk tiada perkataan Melayu dalam mod English, kad relay juga). App Electron 43/43.
+
+BELUM DIUJI
+   - Safari / iPad sebenar (enjin WebKit tidak dapat dipasang dalam persekitaran ujian; diuji dengan Chrome).
+   - Cloudflare sebenar dan laman sebenar (tiada internet ke laman-laman itu di sini). Skrip relay diuji dalam Node dengan
+     API web yang sama seperti Cloudflare Workers.
+   - Laman yang sangat berat (Zoom Earth, Flood Hub) mungkin rosak melalui relay atau melebihi had CPU 10 ms pelan percuma
+     untuk halaman HTML yang sangat besar. Gunakan butang ↗ untuk laman itu.
+
+EN: Sites that refuse framing (blue dot on iPad/phone) can now show inside the app WITHOUT the PC through your own free
+Cloudflare Worker relay (Settings › Site relay: copy script, paste in Cloudflare, enter address, test). Without a relay, one
+tap opens the site in the browser sheet over the app. Relay: only the app's 17 site domains, secret key, no cookies.
+Tested in Node + real Chrome; not yet on a real iPad / Cloudflare / live sites.

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Cuaca Aziz - Sediakan peranti ini</title>
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 18px 16px 34px; }
+  .logo { width: 64px; height: 64px; margin: 6px auto 12px; border-radius: 16px; background: url('/assets/icons/icon-128.png') center / cover; }
+  h1 { font-size: 19px; text-align: center; margin-bottom: 4px; }
+  .lede { text-align: center; color: var(--ink-3); font-size: 13px; margin-bottom: 16px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs button { flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--fill); font-weight: 600; }
+  .tabs button[aria-pressed="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .c2 { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .c2 h2 { font-size: 15px; margin-bottom: 8px; }
+  ol { padding-left: 20px; font-size: 14px; line-height: 1.7; }
+  li + li { margin-top: 4px; }
+  .big { display: flex; justify-content: center; align-items: center; width: 100%; padding: 13px; border-radius: 12px; background: var(--brand); color: #fff; font-weight: 700; font-size: 15px; text-decoration: none; margin: 6px 0 12px; }
+  .imp { color: var(--st-warning); font-weight: 600; }
+  html[lang="en"] [data-l="ms"], html[lang="ms"] [data-l="en"] { display: none !important; }
+  .foot { text-align: center; font-size: 11px; color: var(--ink-3); margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo" role="img" aria-label="Dashboard Cuaca Aziz"></div>
+  <h1><span data-l="en">Set up this phone / tablet</span><span data-l="ms">Sediakan telefon / tablet ini</span></h1>
+  <p class="lede"><span data-l="en">Two steps. Only once.</span><span data-l="ms">Dua langkah. Buat sekali sahaja.</span></p>
+
+  <div class="c2">
+    <h2><span data-l="en">Step 1 · Trust the certificate</span><span data-l="ms">Langkah 1 · Percaya sijil</span></h2>
+    <p class="muted" style="margin-bottom:10px;font-size:13px;line-height:1.5"><span data-l="en">Dashboard Cuaca Aziz has its own certificate, <b>"Dashboard Cuaca Local CA"</b>. It is only for the connection between your phone and your PC.</span><span data-l="ms">Dashboard Cuaca Aziz ada sijil sendiri, <b>"Dashboard Cuaca Local CA"</b>. Ia hanya untuk sambungan antara telefon dan PC anda.</span></p>
+    <a class="big" href="/dashboard-cuaca-ca.crt" download="dashboard-cuaca-ca.crt"><span data-l="en">Download certificate</span><span data-l="ms">Muat turun sijil</span></a>
+    <div class="tabs" role="group">
+      <button data-os="ios" aria-pressed="true">iPhone / iPad</button>
+      <button data-os="android" aria-pressed="false">Android</button>
+    </div>
+    <ol data-for="ios" data-l="en">
+      <li>Tap <b>Download certificate</b> above, then <b>Allow</b>.</li>
+      <li>Open <b>Settings</b> → <b>Profile Downloaded</b> (at the top) → <b>Install</b> → passcode → <b>Install</b>.</li>
+      <li class="imp">Do not skip: Settings → General → About → Certificate Trust Settings → turn ON <b>Dashboard Cuaca Local CA</b> → Continue.</li>
+    </ol>
+    <ol data-for="ios" data-l="ms">
+      <li>Tekan <b>Muat turun sijil</b> di atas, kemudian <b>Allow</b>.</li>
+      <li>Buka <b>Settings</b> → <b>Profile Downloaded</b> (di atas) → <b>Install</b> → kod laluan → <b>Install</b>.</li>
+      <li class="imp">Jangan langkau: Settings → General → About → Certificate Trust Settings → HIDUPKAN <b>Dashboard Cuaca Local CA</b> → Continue.</li>
+    </ol>
+    <ol data-for="android" data-l="en" hidden>
+      <li>Tap <b>Download certificate</b> above.</li>
+      <li>Settings → Security &amp; privacy → Encryption &amp; credentials → <b>Install a certificate</b> → <b>CA certificate</b> → Install anyway → choose <b>dashboard-cuaca-ca.crt</b>.</li>
+      <li>Menus differ by brand: search Settings for <b>"certificate"</b>. If it asks for a <i>private key</i>, you picked the wrong slot - choose <b>CA certificate</b>.</li>
+    </ol>
+    <ol data-for="android" data-l="ms" hidden>
+      <li>Tekan <b>Muat turun sijil</b> di atas.</li>
+      <li>Settings → Security &amp; privacy → Encryption &amp; credentials → <b>Install a certificate</b> → <b>CA certificate</b> → Install anyway → pilih <b>dashboard-cuaca-ca.crt</b>.</li>
+      <li>Menu berbeza ikut jenama: cari <b>"certificate"</b> dalam Settings. Jika ia minta <i>private key</i>, anda pilih slot yang salah - pilih <b>CA certificate</b>.</li>
+    </ol>
+  </div>
+
+  <div class="c2">
+    <h2><span data-l="en">Step 2 · Open Dashboard Cuaca Aziz</span><span data-l="ms">Langkah 2 · Buka Dashboard Cuaca Aziz</span></h2>
+    <a class="big" id="openApp" href="#"><span data-l="en">Open Dashboard Cuaca Aziz</span><span data-l="ms">Buka Dashboard Cuaca Aziz</span></a>
+    <ol data-l="en">
+      <li>The address must open <b>with no warning</b>. A red "Not secure" warning means step 1 is not finished.</li>
+      <li>Install: iPhone / iPad → <b>Share</b> → <b>Add to Home Screen</b>. Android → <b>Install app</b>.</li>
+      <li>For notifications: open the app → Settings → <b>Notifications on this phone</b> → Allow.</li>
+    </ol>
+    <ol data-l="ms">
+      <li>Alamat mesti dibuka <b>tanpa amaran</b>. Amaran merah "Not secure" bermaksud langkah 1 belum lengkap.</li>
+      <li>Pasang: iPhone / iPad → <b>Share</b> → <b>Add to Home Screen</b>. Android → <b>Install app</b>.</li>
+      <li>Untuk notifikasi: buka app → Tetapan → <b>Notifikasi di telefon ini</b> → Benarkan.</li>
+    </ol>
+  </div>
+  <div class="foot">
+    <button id="langSw" style="background:none;border:1px solid var(--line-2);border-radius:12px;padding:4px 10px;color:var(--ink-2);margin-bottom:8px"><span data-l="en">Bahasa Melayu</span><span data-l="ms">English</span></button><br>
+    © 2026 Aziz Mohamad</div>
+</div>
+<script>
+(function () {
+  var host = location.hostname;
+  function setL(l) { document.documentElement.lang = l === 'ms' ? 'ms' : 'en'; }
+  document.getElementById('langSw').onclick = function () { setL(document.documentElement.lang === 'en' ? 'ms' : 'en'); };
+  fetch('/api/info', { cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { ports: { https: 30042 } }; }).then(function (d) {
+    if (d.lang) setL(d.lang);
+    document.getElementById('openApp').href = 'https://' + host + ':' + ((d.ports && d.ports.https) || 30042) + '/';
+  });
+  function showOs(os) {
+    [].forEach.call(document.querySelectorAll('[data-os]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-os') === os)); });
+    [].forEach.call(document.querySelectorAll('[data-for]'), function (o) { o.hidden = o.getAttribute('data-for') !== os; });
+  }
+  [].forEach.call(document.querySelectorAll('[data-os]'), function (b) { b.onclick = function () { showOs(b.getAttribute('data-os')); }; });
+  showOs(/Android/i.test(navigator.userAgent) ? 'android' : 'ios');
+})();
+</script>
+</body>
+</html>

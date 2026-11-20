@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Cuaca Aziz - Telefon / tablet</title>
+<script>try{var t=localStorage.getItem('mc_theme');if(t)document.documentElement.setAttribute('data-theme',t);var l=localStorage.getItem('mc_lang');if(l==='ms'||l==='en')document.documentElement.lang=l;}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  body { overflow: auto; }
+  .wrap { max-width: 440px; margin: 0 auto; padding: 18px 16px 28px; }
+  .logo { width: 64px; height: 64px; margin: 4px auto 10px; border-radius: 16px; background: url('assets/icons/icon-128.png') center / cover; }
+  h1 { font-size: 18px; text-align: center; }
+  .lede { text-align: center; color: var(--ink-3); font-size: 12.5px; margin: 4px 0 14px; line-height: 1.5; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .step h2 { font-size: 14px; display: flex; gap: 10px; align-items: center; }
+  .num { width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .qr { display: grid; place-items: center; margin: 12px 0 8px; }
+  .qr svg { border-radius: 10px; background: #fff; padding: 6px; }
+  .url { font-family: var(--mono); font-size: 12.5px; text-align: center; word-break: break-all; color: var(--brand-text); }
+  .note { font-size: 12px; color: var(--ink-3); margin-top: 6px; line-height: 1.5; }
+  .warnbox { border: 1px solid var(--st-warning); background: var(--soft-warning); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; margin-bottom: 12px; line-height: 1.5; }
+  .live { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 12px; color: var(--st-normal); margin-bottom: 12px; }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--st-normal); animation: pl 1.6s infinite; }
+  @keyframes pl { 50% { opacity: .3; } }
+  html[lang="en"] [data-l="ms"], html[lang="ms"] [data-l="en"] { display: none !important; }
+  .foot { text-align: center; font-size: 11px; color: var(--ink-3); margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo" role="img" aria-label="Dashboard Cuaca Aziz"></div>
+  <h1><span data-l="en">Install on a phone / tablet</span><span data-l="ms">Pasang di telefon / tablet</span></h1>
+  <p class="lede"><span data-l="en">Connect the phone to the same Wi-Fi or to this PC's Mobile Hotspot, then scan the codes in order.</span><span data-l="ms">Sambung telefon ke Wi-Fi yang sama atau ke Mobile Hotspot PC ini, kemudian imbas kod mengikut turutan.</span></p>
+  <div class="live"><i></i><span data-l="en">Sharing is ON while this window is open</span><span data-l="ms">Perkongsian HIDUP selagi tetingkap ini dibuka</span></div>
+  <div id="noNet" class="warnbox" hidden><span data-l="en">No network found. Turn on <b>Mobile Hotspot</b> (Windows Settings → Network → Mobile hotspot) or connect to Wi-Fi, then close and reopen this window.</span><span data-l="ms">Tiada rangkaian dijumpai. Hidupkan <b>Mobile Hotspot</b> (Windows Settings → Network → Mobile hotspot) atau sambung ke Wi-Fi, kemudian tutup dan buka semula tetingkap ini.</span></div>
+  <div id="pick" hidden style="margin-bottom:12px"><label class="muted" for="ip" style="font-size:12px"><span data-l="en">Network</span><span data-l="ms">Rangkaian</span></label><select class="sel" id="ip" style="width:100%"></select></div>
+
+  <div class="step">
+    <h2><span class="num">1</span><span data-l="en">Trust the certificate (once per device)</span><span data-l="ms">Percaya sijil (sekali setiap peranti)</span></h2>
+    <div class="qr" id="qr1"></div>
+    <div class="url" id="u1"></div>
+    <div class="note"><span data-l="en">Opens a short guide on the phone. This app has its own certificate, <b class="caName">"Dashboard Cuaca Local CA"</b>, separate from OIM Wazira. Devices that already trust it can go straight to step 2.</span><span data-l="ms">Membuka panduan ringkas di telefon. App ini ada sijil sendiri, <b class="caName">"Dashboard Cuaca Local CA"</b>, berasingan daripada OIM Wazira. Peranti yang sudah percaya boleh terus ke langkah 2.</span></div>
+  </div>
+  <div class="step">
+    <h2><span class="num">2</span><span data-l="en">Open & install Dashboard Cuaca Aziz</span><span data-l="ms">Buka & pasang Dashboard Cuaca Aziz</span></h2>
+    <div class="qr" id="qr2"></div>
+    <div class="url" id="u2"></div>
+    <div class="note"><span data-l="en">Install: iPhone / iPad → Share → <b>Add to Home Screen</b>. Android → <b>Install app</b>. When this PC is reachable (same network), the phone gets all data including infobanjir water levels. When it is not, the phone fetches weather & MET data straight from the internet.</span><span data-l="ms">Pasang: iPhone / iPad → Share → <b>Add to Home Screen</b>. Android → <b>Install app</b>. Bila PC ini ada (rangkaian sama), telefon dapat data penuh termasuk paras air infobanjir. Bila tiada, telefon ambil data cuaca & MET terus dari internet.</span></div>
+  </div>
+  <div class="foot"><span data-l="en">Close this window to stop sharing.</span><span data-l="ms">Tutup tetingkap ini untuk hentikan perkongsian.</span> · © 2026 Aziz Mohamad</div>
+</div>
+<script src="assets/js/qr.js"></script>
+<script>
+(function () {
+  var info = null;
+  function draw() {
+    var ip = document.getElementById('ip').value;
+    var u1 = 'http://' + ip + ':' + info.ports.setup + '/', u2 = 'https://' + ip + ':' + info.ports.https + '/';
+    document.getElementById('qr1').innerHTML = OIMQR.svg(u1, { size: 200 });
+    document.getElementById('qr2').innerHTML = OIMQR.svg(u2, { size: 200 });
+    document.getElementById('u1').textContent = u1;
+    document.getElementById('u2').textContent = u2;
+  }
+  fetch('/api/info', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    info = d;
+    if (d.ca) [].forEach.call(document.querySelectorAll('.caName'), function (b) { b.textContent = '"' + d.ca + '"'; });
+    if (d.lang === 'ms' || d.lang === 'en') document.documentElement.lang = d.lang;
+    var ips = (window.mcDesktop && window.mcDesktop.lan()) || d.ips || [];
+    if (!ips.length) { document.getElementById('noNet').hidden = false; return; }
+    var sel = document.getElementById('ip');
+    sel.innerHTML = ips.map(function (ip) { return '<option value="' + ip + '">' + ip + (ip.indexOf('192.168.137.') === 0 ? '  (Mobile Hotspot)' : '') + '</option>'; }).join('');
+    document.getElementById('pick').hidden = ips.length < 2;
+    sel.onchange = draw;
+    draw();
+  }).catch(function () { document.getElementById('noNet').hidden = false; });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+Dashboard Cuaca Aziz 3.2.2 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.2.1 + laporan 18 Nov 2026: "taskbar Windows tunjuk ikon Electron (biru), tempat lain logo betul".
+
+PUNCA
+   App mendaftar ID sendiri dengan Windows (local.dashboardcuaca.aziz). Bila tiada pintasan (shortcut) Windows untuk ID itu,
+   taskbar boleh mengambil ikon program yang menjalankannya - electron.exe semasa "npm start" - dan Windows menyimpannya
+   dalam cache ikon. Selepas itu ikon Electron terus muncul, termasuk untuk .exe yang dibina.
+
+PEMBETULAN
+   - Setiap tetingkap kini memberitahu taskbar secara terus fail mana yang memegang ikonnya (setAppDetails):
+     .exe itu sendiri bila dibina, build\icon.ico semasa "npm start". Sama untuk "Pin to taskbar".
+   - Di Windows, tetingkap guna fail .ico (simbol jelas pada saiz kecil 16-48 px) dan bukan PNG logo penuh.
+   - Berlaku pada semua tetingkap: utama, QR telefon, pop-up laman.
+
+SELEPAS PASANG (sekali sahaja, untuk buang ikon lama dari cache Windows)
+   1. Tutup app (klik kanan ikon tray -> Keluar).
+   2. Jika ada ikon app lama di-pin pada taskbar: klik kanan -> Unpin from taskbar.
+   3. Buka Command Prompt dan taip:  ie4uinit.exe -show    (segar semula cache ikon Windows)
+   4. Buka "Dashboard Cuaca Aziz 3.2.2.exe" yang baru. Jika mahu, pin semula dari taskbar.
+   Jika ikon Electron masih muncul: log keluar Windows dan masuk semula (cache ikon dibina semula).
+
+DIUJI
+   - App Electron (Linux): 29/29 semakan, tiada ralat. Kod Windows tidak berjalan di Linux; jika gagal, tetingkap kekal
+     dengan ikon biasa (tiada kesan buruk).
+BELUM DIUJI
+   - Taskbar Windows sebenar - perlu disahkan di PC anda.
+
+EN: The Windows taskbar showed the Electron icon. Each window now tells the taskbar which file holds its icon
+(setAppDetails) and uses the .ico on Windows. After installing: quit the app, unpin any old taskbar pin, run
+"ie4uinit.exe -show", then start the new .exe.

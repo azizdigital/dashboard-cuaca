@@ -1,0 +1,40 @@
+Dashboard Cuaca Aziz 3.2.0 - Senarai perubahan
+================================================
+Asas: 3.1.0 + permintaan 18 Nov 2026 ("tk buat english ek? BM shj ek?").
+Build: npm install -> npm run dist  (dist\Dashboard Cuaca Aziz 3.2.0.exe)
+English: CHANGES_3.2.0.txt
+
+1. ENGLISH (LALAI) + BAHASA MELAYU
+   - App kini bermula dalam English. Butang BM / EN di bar atas tukar bahasa; halaman dimuat semula sekali.
+     Juga di Tetapan > Bahasa / Language, dan Ctrl+K.
+   - Diterjemah di semua tempat: menu, dashboard, kad, jadual, graf, tooltip, alert, notifikasi Windows,
+     ikon tray dan menunya, bar menu desktop, splash, halaman pemasangan telefon (QR), nama fail CSV, mesej ralat.
+   - Nama laman dan kategori diterjemah (contoh "Radar MET Semenanjung" -> "MET Peninsular Radar").
+     Nama tempat, sungai dan stesen kekal.
+   - MET Malaysia: amaran guna teks English yang MET sendiri terbitkan. Frasa ramalan 7 hari diterjemah
+     (contoh "Ribut petir di beberapa tempat" -> "Thunderstorms in scattered places").
+   - Tarikh dan arah ikut bahasa (Tue / Sel, NE / TL).
+   - Pilihan disimpan di PC (config.json) dan telefon yang bersambung ikut sama.
+     Halaman pemasangan telefon juga ada butang English / Bahasa Melayu sendiri.
+
+2. DOKUMEN
+   - README.md dalam English (ada bahagian BM ringkas). GUIDE.md baru (English); PANDUAN.md (BM) dikemas kini.
+
+3. PEMBETULAN KECIL YANG DIJUMPA SEMASA MENTERJEMAH
+   - Graf: satu fungsi teks tertinggal, menyebabkan "Simpan" di Tetapan gagal bila English aktif. Dibetulkan dan diuji.
+   - Bar atas telefon: tajuk tidak lagi terpotong dengan butang bahasa baru.
+   - Teks Diagnostik (jadual mentah infobanjir) sengaja tidak diterjemah.
+
+DIUJI
+   - tests/unit.js 29/29 lulus. Baru: setiap teks L('...') dalam kod ada versi English; English ialah lalai;
+     alert dan amaran MET betul dalam kedua-dua bahasa.
+   - tests/app.spec.js 16/16 lulus. Baru: dalam mod English tiada perkataan Melayu tertinggal di mana-mana paparan
+     (dashboard, sejarah, dinding, tetapan, alert, menu profil, Ctrl+K, offshore); tukar ke BM dan kembali;
+     halaman telefon ikut bahasa.
+   - App Electron sebenar (29 semakan): bar menu English secara lalai, bertukar ke BM bila tetapan diubah,
+     halaman dimuat semula dalam BM, bahasa disimpan dalam config.json, tiada ralat skrip.
+
+BELUM DIUJI
+   - Notifikasi Windows dan menu tray sebenar di Windows (diuji di Linux sahaja; kod yang sama membinanya).
+   - Data MET / Open-Meteo sebenar (tiada internet dalam persekitaran ujian; data rekaan format sama digunakan).
+     Frasa ramalan MET yang tiada dalam senarai akan kekal BM - beritahu saya dan saya tambah.

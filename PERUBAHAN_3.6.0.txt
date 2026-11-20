@@ -1,0 +1,29 @@
+Dashboard Cuaca Aziz 3.6.0 - App web di GitHub
+==============================================
+
+Utama
+- App kini dihoskan di GitHub Pages: https://azizdigital.github.io/dashboard-cuaca/
+  Pasang terus dari Chrome / Edge (PC) dan Safari (iPad). Tiada PC pelayan, tiada QR, tiada zip.
+- Setiap push ke cabang main menerbitkan folder www/ semula (.github/workflows/pages.yml); app mengemas kini dirinya.
+
+Paras air & hujan dalam app web
+- Stesen Kemaman dibaca dari JPS Public Infobanjir melalui relay Cloudflare anda (laman itu tidak
+  membenarkan halaman lain membacanya terus). Paras, ambang Waspada / Amaran / Bahaya, hujan sejak
+  tengah malam dan hujan 1 jam masuk ke kad dashboard dan alert, seperti app desktop.
+- Uji relay kini juga menyemak data JPS untuk dashboard.
+
+Relay buang iklan (relay v2)
+- Skrip relay membuang skrip, frame dan kotak iklan dari laman yang melaluinya, dan menyekat iklan
+  serta pop-up yang dimuat kemudian.
+- Laman pasang surut (Tide Forecast, Tides Chart, Tides 4 Fishing) dan JalaNow dibuka melalui relay,
+  tanpa iklan (suis "Buang iklan melalui relay" dalam Tetapan › Relay laman).
+- Relay sedia ada: Salin skrip relay → tampal di Cloudflare → Deploy sekali lagi.
+
+Peranti lain tanpa QR
+- Tetapan › Peranti lain › Salin pautan tetapan: relay, profil dan ambang alert dibawa dalam satu
+  pautan. iPad: Tampal pautan dari peranti lain.
+
+Lain-lain
+- Profil boleh ditambah / diubah / dipadam terus dalam app web.
+- App web tidak lagi mencari PC.
+- App desktop (Electron) kekal dalam repo dan masih berfungsi seperti 3.5.1.

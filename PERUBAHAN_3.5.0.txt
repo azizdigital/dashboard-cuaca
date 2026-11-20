@@ -1,0 +1,30 @@
+Dashboard Cuaca Aziz 3.5.0 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.4.2 + keputusan Uji relay 20 Nov 2026: 6 daripada 12 laman OK melalui Cloudflare; infobanjir.terengganu.gov.my (x3)
+dan met.gov.my (x2) memberi HTTP 522 (pelayan tidak menjawab Cloudflare), VesselFinder tiada jawapan.
+
+LAMAN GANTI DI iPad / TELEFON (bila laman asal tidak boleh dipaparkan dan relay tidak dapat mengambilnya)
+   Laman ganti dari sumber data yang sama, dipaparkan DI DALAM app, dengan bar "Laman ganti: …" dan pautan "Laman asal ↗":
+     Water Level Kemaman     -> JPS Public Infobanjir, paras air Terengganu (termasuk stesen Kemaman)   [melalui relay]
+     Rainfall Kemaman        -> JPS Public Infobanjir, hujan Terengganu (termasuk Kemaman)              [melalui relay]
+     Info Banjir Terengganu  -> JPS Infobanjir Map                                                      [melalui relay]
+     MET Peninsular Radar    -> Windy, lapisan radar hujan (Windy guna data radar MET Malaysia)          [tanpa relay]
+     Met Malaysia            -> kad ramalan & amaran MET di Dashboard (data rasmi MET, data.gov.my)
+     VesselFinder            -> peta embed rasmi VesselFinder, berpusat pada profil aktif                [tanpa relay]
+   - Titik laman: hijau pudar = "Laman ganti dalam app". Tetapan › Relay laman menyenaraikan laman ganti yang digunakan.
+   - "Uji relay" juga menguji laman ganti yang perlukan relay (cth JPS hujan); yang gagal tidak digunakan (laman asal
+     dibuka di pelayar seperti dulu).
+   - PC: tiada perubahan - semua laman asal dipaparkan seperti biasa.
+
+DIUJI
+   - Pelayar (Chrome) 21/21: termasuk ujian baru laman ganti - setiap laman ganti dibuka dengan alamat yang betul, bar
+     "Laman ganti" + pautan laman asal, Met Malaysia -> Dashboard, tiada tetingkap pelayar dibuka; tanpa relay: Water Level
+     dibuka di pelayar, Windy radar & VesselFinder masih dalam app; ujian relay menandakan laman ganti yang gagal.
+   - App Electron 49/49, unit 33/33.
+BELUM DIUJI
+   - Laman ganti sebenar di iPad: JPS hujan (alamat dari projek pengikis publicinfobanjir di GitHub), lapisan radar
+     Windy embed, dan peta embed VesselFinder - tekan "Uji relay", kemudian buka laman-laman itu di iPad.
+
+EN: Stand-ins for the iPad / phone: sites that cannot be shown and that the relay cannot fetch now show a stand-in from the
+same source inside the app (JPS Public Infobanjir for the infobanjir Terengganu pages, Windy radar for MET radar, the MET card
+for Met Malaysia, VesselFinder's official embed), with an "Original site ↗" link. Browser 21/21, Electron 49/49, unit 33/33.

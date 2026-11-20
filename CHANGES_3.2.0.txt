@@ -1,0 +1,39 @@
+Dashboard Cuaca Aziz 3.2.0 - Changes
+=====================================
+Base: 3.1.0 + request of 18 Nov 2026 ("English too, not only BM?").
+Build: npm install -> npm run dist  (dist\Dashboard Cuaca Aziz 3.2.0.exe)
+Bahasa Melayu: PERUBAHAN_3.2.0.txt
+
+1. ENGLISH (DEFAULT) + BAHASA MELAYU
+   - The app now starts in English. The BM / EN button in the top bar switches language; the page reloads once.
+     Also in Settings > Bahasa / Language, and Ctrl+K.
+   - Translated everywhere: menus, dashboard, tiles, tables, charts, tooltips, alerts, Windows notifications,
+     tray icon and its menu, desktop menu bar, splash, phone setup pages (QR), CSV file name, error messages.
+   - Site and category names are translated (e.g. "Radar MET Semenanjung" -> "MET Peninsular Radar").
+     Place, river and station names stay as they are.
+   - MET Malaysia: warnings use the English text MET itself publishes. 7-day forecast phrases are translated
+     (e.g. "Ribut petir di beberapa tempat" -> "Thunderstorms in scattered places").
+   - Dates and directions follow the language (Tue / Sel, NE / TL).
+   - The choice is saved on the PC (config.json) and connected phones follow it.
+     The phone setup page also has its own English / Bahasa Melayu button.
+
+2. DOCUMENTS
+   - README.md in English (short BM section). New GUIDE.md (English); PANDUAN.md (BM) updated.
+
+3. SMALL FIXES FOUND WHILE TRANSLATING
+   - Charts: one text helper was missing, which broke "Save" in Settings when English was on. Fixed and covered by a test.
+   - Phone top bar: the title no longer gets cut off with the new language button.
+   - Diagnostics text (raw infobanjir tables) is left untranslated on purpose.
+
+TESTED
+   - tests/unit.js 29/29 pass. New: every L('...') text in the code has an English version; English is the default;
+     alerts and MET warnings correct in both languages.
+   - tests/app.spec.js 16/16 pass. New: in English mode no Malay words are left in any view (dashboard, history, wall,
+     settings, alerts, profile menu, Ctrl+K, offshore); switch to BM and back; phone setup pages follow the language.
+   - Real Electron app (29 checks): menu bar in English by default, switches to BM when the setting changes,
+     page reloads in BM, language kept in config.json, no script errors.
+
+NOT TESTED
+   - Real Windows notifications and the tray menu on Windows (tested on Linux only; the same code builds them).
+   - Live MET / Open-Meteo data (no internet in the test environment; made-up data in the same format was used).
+     A MET forecast phrase that is not in the list stays in BM - tell me and I will add it.

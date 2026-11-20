@@ -1,0 +1,19 @@
+Dashboard Cuaca Aziz 3.4.1 - Senarai perubahan / Changes
+=========================================================
+Asas: 3.4.0 + laporan 19 Nov 2026: "Uji relay" di PC -> "✗ Relay failed: cannot be reached".
+
+PUNCA (pepijat app, bukan persediaan Cloudflare)
+   Atas sebab keselamatan, halaman app desktop hanya dibenarkan bercakap dengan PC sendiri. Butang "Uji relay" di PC cuba
+   menghubungi workers.dev terus dari halaman itu, jadi permintaan disekat sebelum keluar. (Di iPad / telefon tiada sekatan ini.)
+   Ujian 3.4.0 terlepas kerana ia dijalankan dalam pelayar biasa, bukan dalam app desktop.
+
+PEMBETULAN
+   Di PC, "Uji relay" kini dijalankan oleh bahagian utama app (seperti pengumpul data). Sekatan keselamatan halaman kekal.
+
+DIUJI
+   - App Electron sebenar: 46/46 (baru: Uji relay dari app desktop - alamat salah = "cannot be reached", kunci salah dikesan,
+     relay dengan kunci betul dapat dicapai).
+   - tests/unit.js 33/33, Playwright 19/19.
+
+EN: "Test relay" on the PC always said "cannot be reached": the app page may only talk to the PC itself, so the request to
+workers.dev was blocked. The desktop app now runs the test in its main process. Electron 46/46, unit 33/33, browser 19/19.

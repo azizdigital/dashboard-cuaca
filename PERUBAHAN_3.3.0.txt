@@ -1,0 +1,35 @@
+Dashboard Cuaca Aziz 3.3.0 - Senarai perubahan
+================================================
+Asas: 3.2.2 + permintaan 19 Nov 2026 ("iklan2 ganggu, boleh block atau buang?").
+English: CHANGES_3.3.0.txt
+
+PENYEKAT IKLAN (app desktop, semua laman dalam app)
+   - Enjin Ghostery adblocker (percuma, sumber terbuka) dengan senarai yang dipakai uBlock Origin:
+     EasyList, uBlock filters (termasuk 2020-2026, badware, quick fixes), Peter Lowe, EasyList Cookie, uBlock Cookie notices.
+   - Disekat: iklan (sebelum dimuat - laman juga lebih laju), pop-up iklan, notis / sepanduk cookie.
+   - Ruang kosong: kotak iklan disorok, dan gambar / bingkai iklan yang disekat dibuang terus (tiada kotak pecah).
+   - Pop-up biasa (bukan iklan) masih dibuka seperti dulu.
+   - Butang 🛡️ dalam bar laman: tunjuk berapa iklan disekat di laman itu.
+     Klik = matikan penyekat untuk laman itu sahaja (jika laman rosak atau minta matikan adblock). Klik lagi = hidupkan semula.
+   - Tetapan › Penyekat iklan: suis hidup/mati, senarai laman yang tidak disekat, status senarai, butang "Kemas kini sekarang".
+   - Senarai: salinan siap terbina dalam app (berfungsi serta-merta, juga tanpa internet). App ambil senarai terbaru sekali
+     sehari di latar belakang (dari GitHub pengarang senarai) dan simpan dalam %APPDATA%\Dashboard Cuaca Aziz\adblock\.
+     Gagal muat turun? App terus guna senarai terakhir dan cuba lagi 3 jam kemudian.
+   - Hanya laman dalam app disekat. Pengumpul data (infobanjir, MET, Open-Meteo) tidak disentuh.
+   - Telefon / tablet (PWA): tidak boleh - pelayar telefon tidak benarkan app menyekat iklan laman lain.
+
+DIUJI
+   - App Electron sebenar: 40/40 semakan. Laman ujian penuh iklan: banner disekat & dibuang, gambar biasa dimuat, kotak iklan
+     disorok, sepanduk cookie disorok, pop-up iklan ditolak, pop-up biasa dibuka, butang 🛡️ kira 2, klik = iklan kembali,
+     klik lagi = disekat semula, status senarai dalam Tetapan.
+   - tests/unit.js 32/32 (baru: tetapan, enjin terbina, pop-up iklan, pengecualian, suis mati, kemas kini harian dalam thread berasingan + gagal muat turun kekal senarai lama).
+   - tests/app.spec.js 17/17.
+   - App terbungkus (electron-builder, Linux) juga lulus 40/40 - preload penyekat iklan dijumpai di luar app.asar.
+   - Enjin dimuat dalam 26 ms; setiap permintaan disemak dalam ~0.05 ms.
+
+BELUM DIUJI
+   - Laman sebenar (Tide Forecast, VesselFinder, Zoom Earth, webcam) - tiada internet dalam persekitaran ujian.
+     Jika ada iklan yang masih muncul, atau laman jadi rosak, tekan 🛡️ untuk laman itu dan beritahu saya nama laman.
+   - Kemas kini harian dari GitHub pada PC anda (di sini GitHub dicapai melalui curl, bukan dari app).
+
+Lesen pihak ketiga: THIRD_PARTY_NOTICES.txt. Bina semula senarai terbina: npm run adblock:build
