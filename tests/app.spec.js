@@ -37,14 +37,17 @@ test('all 26 sites open as tabs (6 kept, oldest closed), then "Close all"', asyn
   await ready(page);
   const ids = await page.evaluate(() => MCCore.SITES.map(s => s.id));
   expect(ids.length).toBe(26);
-  for (const id of ids) {
+  /* Met Malaysia refuses framing and its stand-in is the MET card on the dashboard */
+  await page.click('.site[data-site="metmalaysia"]');
+  await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
+  for (const id of ids.filter(x => x !== 'metmalaysia')) {
     await page.click('.site[data-site="' + id + '"]');
     await expect(page.locator('#view-site')).toHaveClass(/on/);
     await expect(page.locator('.stab[aria-current="true"]')).toHaveAttribute('data-tab', id);
     await expect(page.locator('#siteHost .frame.on')).toHaveCount(1);
   }
   await expect(page.locator('.stab')).toHaveCount(6);
-  await page.click('.stab[data-tab="' + ids[25] + '"] .x');
+  await page.click('.stab[data-tab="' + ids.filter(x => x !== 'metmalaysia').pop() + '"] .x');
   await expect(page.locator('.stab')).toHaveCount(5);
   await expect(page.locator('#closeAllBtn')).toHaveText('Close all (5)');
   await page.click('#closeAllBtn');

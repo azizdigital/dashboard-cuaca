@@ -98,7 +98,7 @@ test('app: relay test per site - one works, one fails (530), result saved and us
   await page.fill('#f_relayUrl', 'http://127.0.0.1:' + R.relay.port);
   await page.fill('#f_relayKey', 'k3y-browser');
   await page.click('#relayTest');
-  await expect(page.locator('#relayMsg')).toContainText('6 of 7 blue-dot sites', { timeout: 20000 });
+  await expect(page.locator('#relayMsg')).toContainText('10 of 11 blue-dot sites', { timeout: 20000 });
   const jpsLine = page.locator('#relayMsg .rl.n', { hasText: 'JPS Water Level Terengganu' });
   await expect(jpsLine).toContainText('cannot find this site\'s address (DNS) (HTTP 530)');
   /* the JPS rainfall stand-in is checked too (this test relay does not know that real address, so it fails here) */

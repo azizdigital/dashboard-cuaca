@@ -62,9 +62,9 @@
   ];
   var SITES = [];
   CATEGORIES.forEach(function (c) { c.items.forEach(function (s) { s.category = c.id; SITES.push(s); }); });
-  /* sites known to refuse being shown inside another app (seen 19 Nov 2026). On the phone without the PC this list is used;
-     with the PC, its live check decides (snapshot sites[id].frameable). */
-  ['rainfall', 'floodhub', 'infobanjir', 'jpsaras', 'jpspeta', 'zoomearth', 'storms'].forEach(function (id) {
+  /* sites known to refuse being shown inside another app (seen 19-20 Nov 2026). The web app and the phone without the PC use
+     this list; with the PC, its live check decides (snapshot sites[id].frameable). */
+  ['waterlevel', 'rainfall', 'floodhub', 'infobanjir', 'jpsaras', 'jpspeta', 'zoomearth', 'storms', 'metradar', 'metmalaysia', 'vesselfinder'].forEach(function (id) {
     SITES.forEach(function (s) { if (s.id === id) s.noFrame = true; });
   });
   /* iPad / phone: a stand-in for a site that refuses framing and that the relay cannot fetch (or with no relay).
