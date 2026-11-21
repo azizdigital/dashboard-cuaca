@@ -1,21 +1,139 @@
-== last7 233901
+== wl14 datafreq=60 416695 bytes
+4033 07/11/2026 18:00 21/11/2026 18:00 07/11/2026 18:05
+== wl14 datafreq=15 416695 bytes
+4033 07/11/2026 18:00 21/11/2026 18:00 07/11/2026 18:05
+== wl30 905018
+8645 22/10/2026 18:00 21/11/2026 18:00
+== rf urls
+query/getrainfalllast3dayslead.php?extra=
+query/getrainfalllast7days.php?station=
+query/searchdistrictARI.php?name=
+query/searchresultrainfalldthourlylead.php?extra=
+query/searchstationWL.php?name=
+and dateto is specified
+    if((datefrom!="")&&(dateto!="")){
 
-{"info": {
-                    "name": "Sg. Setiu di Kg. Besut (RHN)",
-                    "normal": "13.3",
-                    "alert": "16",
-                    "warning": "17",
-                    "danger": "17.5",
-                    "QueryCnt": "123","count":2225},"values":[{"dt":"14/11/2026 00:00","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:05","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:10","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:15","clean":"14.03","raw":"14.03","ecm":"14.03","final":"14.03","severity":"SL_NML"},{"dt":"14/11/2026 00:20","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:25","clean":"14","raw":"14","ecm":"14","final":"14","severity":"SL_NML"},{"dt":"14/11/2026 00:30","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:35","clean":"14","raw":"14","ecm":"14","final":"14","severity":"SL_NML"},{"dt":"14/11/2026 00:40","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:45","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:50","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:55","clean":"14","raw":"14","ecm":"14","final":"14","se
-content-type: text/html; charset=UTF-8
-x-content-type-options: nosniff
-x-content-type-options: nosniff
-== range 43370
+        var url= "/wp-content/themes/enlighten/query/searchresultrainfalldthourlylead.php?extra="+extra+"&station=" + station + "&from=" + datefrom + "&to=" + dateto+ "&datafreq=" + datafreq;
+
+        console.log(url);
+        var partsff = datefrom.split(' ');
+        var partsfrom =partsff[0].split('/');
+
+        //please put attention to the month (parts[0]), Javascript counts months from 0:
+        // January - 0, February - 1, etc
+        var mydatefrom = new Date(partsfrom[2],partsfrom[1]-1,partsfrom[0]);
+        var partstt = dateto.split(' ');
+        var partsto =partstt[0].split('/');
+        //please put attention to the month (parts[0]), Javascript counts months from 0:
+        // January - 0, February - 1, etc
+        var mydateto = new Date(partsto[2],partsto[1]-1,partsto[0]);
+        console.log(mydatefrom);
+        //console.log(mydateto);
+        //console.log(Date.daysBetween(mydatefrom, mydateto));
+        daydiff = Date.daysBetween(mydatefrom, mydateto);
+        //console.log(daydiff);
+
+        startdt = moment(datefrom, "DD/MM/YYYY HH:mm");
+        
+        var startdttimeStr = moment(startdt).format('DD/MM/YYYY HH:mm');
+        //console.log("startdttimeStr: " + startdttimeStr);
+
+        startdtonly = moment(datefrom).format('DD/MM/YYYY');
+
+    } else {
+        //var url = "/wp-content/themes/enlighten/query/getrainfalllast7days.php?station=" + station;
+        var url = "/wp-content/themes/enlighten/query/getrainfalllast3dayslead.php?extra="+extra+"&station=" + station;
+       console.log(url);
+
+    }
+
+    var tickinterval = 6;
+
+    if(daydiff>=30){
+        tickinterval = 24;
+    } else if((daydiff>=14)&&(daydiff<30)) {
+        tickinterval = 12;
+    } else if((daydiff>=6)&&(daydiff<14)) {
+        tickinterval = 6;
+    } else if((daydiff>=3)&&(daydiff<6)) {
+        tickinterval = 3;
+    } else if(daydiff<3) {
+        tickinterval = 1;
+    }
 
 
-{"info": {
-                        "name": "Sg. Setiu di Kg. Besut (RHN)",
-                        "normal": "13.3",
-                        "alert": "16",
-                        "warning": "17",
-                        "danger": "17.5","count":409},"values":[{"dt":"20/11/2026 00:00","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"SL_NML"},{"dt":"20/11/2026 00:05","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"SL_NML"},{"dt":"20/11/2026 00:10","clean":"15.31","raw":"15.31","ecm":"15.31","final":"15.31","severity":"SL_NML"},{"dt":"20/11/2026 00:15","clean":"15.29","raw":"15.29","ecm":"15.29","final":"15.29","severity":"SL_NML"},{"dt":"20/11/2026 00:20","clean":"15.3","raw":"15.3","ecm":"15.3","final":"15.3","severity":"SL_NML"},{"dt":"20/11/2026 00:25","clean":"15.32","raw":"15.32","ecm":"15.32","final":"15.32","severity":"SL_NML"},{"dt":"20/11/2026 00:30","clean":"15.3","raw":"15.3","ecm":"15.3","final":"15.3","severity":"SL_NML"},{"dt":"20/11/2026 00:35","clean":"15.29","raw":"15.29","ecm":"15.29","final":"15.29","severity":"SL_NML"},{"dt":"20/11/2026 00:40","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"
+    if(xfreq!='0'){
+        tickinterval=Number(xfreq);
+    }
+
+    document.getElementById("xaxisfreq").value = tickinterval;
+
+   //console.log(tickinterval);
+
+    var rfmax = 0;
+    var rfmin = 0;
+    var rfnum = 0;
+    var bb = 0;
+    var prev_cum_daily = 0;
+    var curr_cum_daily = 0;
+    var clean_rf = 0;
+    var total_cleanrf = 0;
+    var prevtotal = 0;
+
+    document.getElementById("rfdata").innerHTML = "";
+
+    var rfdataStr = "";
+    var rfcolor = "";
+
+    var dfreq = parseInt(datafreq);
+
+
+    //if(dfreq==60) dfreqmod=0;
+
+    $.getJSON(url, function(result) {
+
+        var nom = 0;
+
+        $.each(result, function(i, field) {
+
+            //console.log(field);
+            //console.log(i);
+            if(i=='info'){
+                //console.log(field['name']);
+                //console.log(field.count);
+                cnt=field.count;
+
+                light = field.light;
+                moderate = field.moderate;
+                heavy = field.heavy;
+                veryheavy = field.veryheavy;
+                //console.log(field[0]['dt']);
+                console.log("light: "+light);
+                console.log("moderate: "+moderate);
+                console.log("heavy: "+heavy);
+                console.log("veryheavy: "+veryheavy);
+
+            }else{
+
+                
+
+                for(ii=0;ii<cnt;ii++){
+                    //console.log(field[ii]['dt']);
+                    last2ch = field[ii]['dt'];
+                    var last2 = Number(last2ch.slice(-2));
+                    if((last2 % dfreq)==0){
+
+                        //check if dt from json match from start dt outputf
+                        /* convert dt to moment then compare while less than insert NaN to data then ++datafreq */
+
+                        datadtstr = field[ii]['dt'];
+                        var datadt = moment(datadtstr, "DD/MM/YYYY HH:mm");//.add(dfreq, 'minutes');
+                        var datadtonly = moment(datadt).format('DD/MM/YYYY');
+                        var datadttime = moment(datadt).format('DD/MM/YYYY HH:mm');
+
+                        //console.log("datadttime: " + datadttime);
+
+                        //console.log("startdt: " + startdt);
+                        //console.log("datadt: " + datadt);
+                        //if(ii==0){
+                        //console.log("beforecompare:"+mom
