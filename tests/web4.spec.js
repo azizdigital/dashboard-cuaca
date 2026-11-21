@@ -256,12 +256,12 @@ test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Fl
     return { name: x.name, id: x.id };
   });
   await page.click('#btnRefresh');
-  await expect(page.locator('#rkBody .rk-ew')).toContainText(/Early flood warning \((4|24) hours\): /, { timeout: 20000 });
+  await expect(page.locator('#rkBody .rk-ew')).toContainText(/(Notice: river rising|Early warning: close to flooding|Early flood warning) \((4|24) hours\): /, { timeout: 20000 });
   await expect(page.locator('#rkBody .rk-ew')).toContainText(st.name);
   await expect(page.locator('#rkBody .rk-ew')).toContainText(/Confidence \d+%: trend \d+\/40 · rain \d+\/25/);
   await expect(page.locator('#rkBody .rk-win')).toContainText('+0.30');
   /* in the bell list; it only rings at 85 % or more */
-  const a = await page.evaluate(n => MC.state.snap.alerts.active.find(x => x.title.indexOf(n) > 0 && /^Early flood warning/.test(x.title)), st.name);
+  const a = await page.evaluate(n => MC.state.snap.alerts.active.find(x => x.title.indexOf(n) > 0 && /^(Notice: river rising|Early warning|Early flood warning)/.test(x.title)), st.name);
   expect(a).toBeTruthy();
   const conf = +a.body.match(/Confidence (\d+)%/)[1];
   expect(a.quiet).toBe(conf < 85);
@@ -275,7 +275,7 @@ test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Fl
   await page.locator('#advRes [data-res="day"]').click();
   await page.click('#advRun');
   await expect(page.locator('#advBody .adv-c').first()).toContainText('score', { timeout: 30000 });
-  await expect(page.locator('#advBody')).toContainText('Early flood warning');
+  await expect(page.locator('#advBody')).toContainText(/Notice: river rising|Early warning|Early flood warning/);
   await page.locator('#advBody .adv-c').first().click();
   await expect(page.locator('#advDetail .rk-part')).toHaveCount(3);
   /* offshore */

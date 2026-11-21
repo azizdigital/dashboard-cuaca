@@ -785,6 +785,19 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   const tide = []; for (let t = now - 26 * 3600000; t <= now; t += 300000) tide.push({ t, v: 1 + 0.8 * Math.sin((t - now) / 3600000 / 12.4 * 2 * Math.PI) });
   const tt = R.trend(tide, { name: 'Muara Sg. Kemaman di Kg. Geliga (F2)', alert: 1.5 }, now + 60000, { stepMin: 5, tidal: true });
   assert.strictEqual(tt.rate1, null); assert.strictEqual(R.project(tt, { alert: 1.5, warning: 2, danger: 2.5 }, wet).tier !== 4, true);
+  /* gauges near the sea that nobody marked: the tide is seen in the data (Sg. Tumpat di Kg. Baru Kemasik, Paya Paman: +0.7 m in 3 hours = high tide) */
+  const kem = { id: 'KM', name: 'Sg. Tumpat di Kg. Baru Kemasik', alert: 1.6, warning: 2.0, danger: 2.4 };
+  const tideK = []; for (let t = now - 26 * 3600000; t <= now; t += 300000) tideK.push({ t, v: 0.45 + 0.4 * Math.sin((t - now) / 3600000 / 12.4 * 2 * Math.PI + 1.2) });
+  const tk = R.trend(tideK, kem, now + 60000, { stepMin: 5 });
+  assert.ok(tk.tideSeen && tk.tidal && Math.abs(tk.rate24) < 0.02, JSON.stringify(tk));
+  assert.strictEqual(R.project(tk, kem, wet).tier, 0);
+  assert.strictEqual(R.earlyFlood([kem], { [kem.name]: tk }, now, { rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6 }).length, 0);
+  /* a real flood rise is not taken for the tide */
+  assert.strictEqual(tr.tideSeen, false);
+  /* the tide on top of a real rise: still found by the 24-hour trend */
+  const both = tideK.map(p => ({ t: p.t, v: p.v + 0.06 * (26 - (now - p.t) / 3600000) }));
+  const tb = R.trend(both, kem, now + 60000, { stepMin: 5 });
+  assert.ok(tb.tidal && tb.rate24 > 0.04 && R.project(tb, kem, wet).tier === 24, JSON.stringify(tb));
   /* the warnings: ring only at >= 85 %, quiet below; key per level & tier; villages from the river layout */
   const rivers = R.parseRivers(core.DEFAULTS.ewUpstream);
   assert.strictEqual(rivers.length, 8); assert.ok(R.riverFor(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }).up.includes('ban ho'));
@@ -795,8 +808,17 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   const ew = R.earlyFlood([pp, up1, up2], trends, now, { rivers, rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6, minConf: 85, obs: () => 35 });
   assert.strictEqual(ew.length, 1);
   assert.ok(!ew[0].quiet && ew[0].key === 'ew:PP:alert:24:n' && ew[0].conf >= 85, JSON.stringify(ew[0]));
-  assert.ok(/^Amaran awal banjir \(24 jam\): Sg. Kemaman di Rumah Pam Paya Paman/.test(ew[0].title));
-  assert.ok(/Waspada \(16.00 m\) dalam ~4.8 jam/.test(ew[0].body) && /Kampung berisiko: Kg. Sungai Pinang, Kg. Pasir Minal/.test(ew[0].body), ew[0].body);
+  /* Normal -> Waspada is not a flood: calm words, 'info', no villages */
+  assert.ok(/^Makluman: paras sungai naik \(24 jam\): Sg. Kemaman di Rumah Pam Paya Paman/.test(ew[0].title), ew[0].title);
+  assert.strictEqual(ew[0].level, 'info');
+  assert.ok(/Waspada \(16.00 m\) dalam ~4.8 jam: paras naik ketara atas normal, belum banjir/.test(ew[0].body) && !/Kampung berisiko/.test(ew[0].body), ew[0].body);
+  /* Waspada -> Amaran within 4 hours: 'warning' with the villages; Amaran -> Bahaya: 'critical' */
+  const ppA = Object.assign({}, pp), trA = R.trend(rise.map(p => ({ t: p.t, v: p.v + 1.6 })), ppA, now + 60000, { stepMin: 5 });
+  const ewA = R.earlyFlood([ppA], { [ppA.name]: trA }, now, { rivers, rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6, obs: () => 35 });
+  assert.ok(/^Amaran awal: hampir paras banjir \(4 jam\)/.test(ewA[0].title) && ewA[0].level === 'warning' && /bersedia untuk berpindah/.test(ewA[0].body) && /Kampung berisiko/.test(ewA[0].body), JSON.stringify(ewA[0]));
+  const trB = R.trend(rise.map(p => ({ t: p.t, v: p.v + 2.4 })), ppA, now + 60000, { stepMin: 5 });
+  const ewB = R.earlyFlood([ppA], { [ppA.name]: trB }, now, { rivers, rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6, obs: () => 35 });
+  assert.ok(/^Amaran awal banjir \(4 jam\)/.test(ewB[0].title) && ewB[0].level === 'critical' && /pemindahan dimulakan/.test(ewB[0].body), JSON.stringify(ewB[0]));
   assert.strictEqual(trends[pp.name].proj.upN, 5 - 3);   /* Rantau Panjang & Ban Ho of the 5 upstream names are in the list */
   const q = R.earlyFlood([pp], { [pp.name]: tr }, now, { rivers, rain4: [0, 0, 0], rain24: [0, 0, 0], glofas: 0.9, minConf: 85, obs: () => 0 });
   assert.ok(q[0].quiet && /:q$/.test(q[0].key) && /bawah 85%: tiada notifikasi/.test(q[0].body), JSON.stringify(q[0]));

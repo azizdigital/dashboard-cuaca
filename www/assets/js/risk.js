@@ -98,11 +98,27 @@
     var r4 = slope(pts, last.t, 4), r24 = slope(pts, last.t, 24);
     var v4 = valueAt(pts, last.t - 4 * HOUR, 30), v24 = valueAt(pts, last.t - 24 * HOUR, 60);
     var step = cfg.stepMin || 5, n4 = pts.filter(function (p) { return p.t > last.t - 4 * HOUR; }).length;
-    /* at a river mouth the tide goes up and down every ~6 hours: only the 24-hour trend means anything */
-    var tidal = !!cfg.tidal;
+    /* the tide moves gauges near the sea up and down every ~6 hours. Seen in the data itself: over the last 24 hours the
+       hourly change turns from rising to falling and back again (3 times or more) with a swing of 0.25 m or more.
+       Then only the 24-hour trend means anything (a flood is a rise that does not go back down). */
+    var hv = [];
+    for (var k = 0; k <= 24; k++) hv.push(valueAt(pts, last.t - k * HOUR, 25));
+    var turns = 0, sign = 0, lo = null, hi = null;
+    for (k = 0; k < 24; k++) {
+      if (hv[k] === null || hv[k + 1] === null) continue;
+      lo = lo === null ? Math.min(hv[k], hv[k + 1]) : Math.min(lo, hv[k], hv[k + 1]);
+      hi = hi === null ? Math.max(hv[k], hv[k + 1]) : Math.max(hi, hv[k], hv[k + 1]);
+      var d = hv[k] - hv[k + 1];
+      if (Math.abs(d) < 0.03) continue;
+      var sg = d > 0 ? 1 : -1;
+      if (sign && sg !== sign) turns++;
+      sign = sg;
+    }
+    var tideSeen = turns >= 3 && hi !== null && hi - lo >= 0.25;
+    var tidal = !!cfg.tidal || tideSeen;
     var rs = tidal ? r24 : r1 !== null && r4 !== null ? (r1 + r4) / 2 : r1 !== null ? r1 : r4;
     return { at: last.t, level: last.v, rate: rs, rate1: tidal ? null : r1, rate4: tidal ? null : r4, rate24: r24, fit4: tidal ? null : fit(pts, last.t, 4),
-      rise4h: v4 === null ? null : last.v - v4, rise24h: v24 === null ? null : last.v - v24, tidal: tidal,
+      rise4h: v4 === null ? null : last.v - v4, rise24h: v24 === null ? null : last.v - v24, tidal: tidal, tideSeen: tideSeen,
       complete: Math.min(1, n4 / (4 * 60 / step)), ageMin: Math.round((now - last.t) / 60000), step: step,
       rising: rs !== null && rs > 0.01, falling: rs !== null && rs < -0.01, n: pts.length };
   }
@@ -188,9 +204,10 @@
     var r24 = tr.rate24 === null ? r : tr.rate24;
     var med = function (a) { a = clean(a || []).sort(function (x, y) { return x - y; }); return a.length ? a[Math.floor((a.length - 1) / 2)] : null; };
     var rain24 = med(ctx.rain24), k = rain24 === null ? 0.6 : rain24 >= 30 ? 1 : rain24 >= 5 ? 0.75 : 0.5;
-    var p4 = tr.level + Math.max(0, r) * 4;
-    var p24 = tr.level + Math.max(0, tr.tidal ? r24 : (r + Math.max(0, r24)) / 2) * 24 * k;
-    if (tr.tidal) p4 = tr.level + Math.max(0, r24) * 4;
+    /* 4 hours: the recent rate; 24 hours: the 24-hour trend (a short burst does not last a day). No 24-hour record yet: half the recent rate */
+    var p4 = tr.level + Math.max(0, tr.tidal ? r24 : r) * 4;
+    var long = tr.tidal ? r24 : tr.rate24 === null ? r / 2 : Math.max(tr.rate24, r / 2);
+    var p24 = tr.level + Math.max(0, long) * 24 * k;
     var gap = target - tr.level, rr = tr.tidal ? r24 : r;
     var eta = rr > 0.005 ? gap / rr : null;
     var tier = !tr.tidal && p4 >= target ? 4 : p24 >= target ? 24 : 0;
@@ -232,13 +249,20 @@
       var base = 'ew:' + (st.id || st.name) + ':' + pr.target + ':' + pr.tier;
       var loud = pr.conf >= minConf || (!!(ctx.prevLoud && ctx.prevLoud[base]) && pr.conf >= minConf - 5);
       var vil = rv && rv.villages.length ? L(' Kampung berisiko: {k}.', { k: rv.villages.join(', ') }) : '';
+      /* words and urgency follow what JPS levels mean: Waspada = well above normal (not a flood), Amaran = close to flooding,
+         get ready to move; Bahaya = flooding, evacuation */
+      var MEAN = { alert: L('paras naik ketara atas normal, belum banjir'), warning: L('hampir paras banjir, bersedia untuk berpindah'), danger: L('banjir, pemindahan dimulakan') };
+      var lvl = pr.target === 'danger' ? (pr.tier === 4 ? 'critical' : 'warning') : pr.target === 'warning' ? (pr.tier === 4 ? 'warning' : 'info') : 'info';
+      var title = pr.target === 'alert' ? L('Makluman: paras sungai naik ({h} jam): {n}', { h: pr.tier, n: st.name })
+        : pr.target === 'warning' ? L('Amaran awal: hampir paras banjir ({h} jam): {n}', { h: pr.tier, n: st.name })
+          : L('Amaran awal banjir ({h} jam): {n}', { h: pr.tier, n: st.name });
       out.push({ key: base + (loud ? ':n' : ':q'), base: base, cat: 'water', quiet: !loud,
-        level: pr.tier === 4 ? (pr.target === 'danger' ? 'critical' : 'warning') : 'info', station: st.name, tier: pr.tier, conf: pr.conf, parts: pr.parts, proj: pr,
+        level: lvl, station: st.name, tier: pr.tier, conf: pr.conf, parts: pr.parts, proj: pr,
         villages: rv ? rv.villages : [],
-        title: L('Amaran awal banjir ({h} jam): {n}', { h: pr.tier, n: st.name }),
-        body: L('Paras {v} m, dijangka capai {lv} ({t} m){e}. Anggaran 4 jam {p4} m, 24 jam {p24} m. Keyakinan {c}%{q}.', {
-          v: r2(tr.level), lv: L(pr.targetName), t: r2(pr.targetM), e: pr.eta !== null ? L(' dalam ~{h} jam', { h: pr.eta < 1 ? '<1' : r1(pr.eta) }) : '',
-          p4: r2(pr.p4), p24: r2(pr.p24), c: pr.conf, q: loud ? '' : L(' (bawah {k}%: tiada notifikasi)', { k: minConf }) }) + vil });
+        title: title,
+        body: L('Paras {v} m, dijangka capai {lv} ({t} m){e}: {m}. Anggaran 4 jam {p4} m, 24 jam {p24} m. Keyakinan {c}%{q}.', {
+          v: r2(tr.level), lv: L(pr.targetName), t: r2(pr.targetM), e: pr.eta !== null ? L(' dalam ~{h} jam', { h: pr.eta < 1 ? '<1' : r1(pr.eta) }) : '', m: MEAN[pr.target],
+          p4: r2(pr.p4), p24: r2(pr.p24), c: pr.conf, q: loud ? '' : L(' (bawah {k}%: tiada notifikasi)', { k: minConf }) }) + (pr.target === 'alert' ? '' : vil) });
     });
     return out.sort(function (a, b) { return a.tier - b.tier || b.conf - a.conf; });
   }

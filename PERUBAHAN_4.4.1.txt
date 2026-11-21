@@ -10,3 +10,12 @@ Early Flood Warning: anggaran 4 & 24 jam dengan tahap keyakinan
 - Susunan Lembangan Sungai Kemaman (hulu -> hilir) & kampung hotspot ikut peta JPS; boleh ubah di Tetapan.
   Muara Geliga & Kg. Yak Yah ditanda pasang surut (hanya trend 24 jam dipakai).
 - Peraturan lama (0.3 m/jam, 0.5 m/3 jam, Waspada 6 jam) digantikan.
+
+Pembetulan amaran palsu (air pasang)
+- App kenal pasti sendiri stesen yang dipengaruhi air pasang (naik-turun berulang dalam 24 jam),
+  contoh Sg. Tumpat di Kg. Baru Kemasik, Paya Paman, Muara Geliga: hanya trend 24 jam dipakai.
+- Anggaran 24 jam ikut trend 24 jam (kenaikan sekejap tidak dianggap berterusan sehari).
+- Perkataan & tahap ikut maksud JPS:
+  Normal -> Waspada : "Makluman: paras sungai naik" (paras naik ketara atas normal, belum banjir), tahap info.
+  Waspada -> Amaran : "Amaran awal: hampir paras banjir" (bersedia untuk berpindah) + kampung berisiko.
+  Amaran -> Bahaya  : "Amaran awal banjir" (banjir, pemindahan dimulakan) + kampung berisiko.
