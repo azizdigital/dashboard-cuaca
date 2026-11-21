@@ -1,0 +1,12 @@
+Dashboard Cuaca Aziz 4.4.1
+
+Early Flood Warning: anggaran 4 & 24 jam dengan tahap keyakinan
+- Trend setiap stesen dari 26 jam data 5 minit JPS: kadar naik 1 / 4 / 24 jam.
+- Anggaran paras 4 jam dan 24 jam ke depan; amaran bila dijangka capai tahap seterusnya
+  (Normal -> Waspada, Waspada -> Amaran, Amaran -> Bahaya). Tahap "4 jam" (segera) dan "24 jam" (awal).
+- Keyakinan 0-100%: trend sungai 40 + hujan (5 model & tolok JPS) 25 + stesen hulu & GloFAS 20 + data segar & lengkap 15.
+- Notifikasi hanya bila keyakinan >= 85% (boleh ubah). Bawah itu: ditunjuk senyap di kad & loceng.
+  Berbunyi sekali bagi setiap tahap; berbunyi lagi bila naik ke 4 jam atau ke paras lebih tinggi.
+- Susunan Lembangan Sungai Kemaman (hulu -> hilir) & kampung hotspot ikut peta JPS; boleh ubah di Tetapan.
+  Muara Geliga & Kg. Yak Yah ditanda pasang surut (hanya trend 24 jam dipakai).
+- Peraturan lama (0.3 m/jam, 0.5 m/3 jam, Waspada 6 jam) digantikan.

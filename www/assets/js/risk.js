@@ -68,53 +68,179 @@
     P.forEach(function (p) { a += (p.t - mx) * (p.v - my); b += (p.t - mx) * (p.t - mx); });
     return b ? a / b * HOUR : null;
   }
-  function valueAt(pts, t) {
-    var best = null;
-    pts.forEach(function (p) { if (Math.abs(p.t - t) <= 20 * 60000 && (!best || Math.abs(p.t - t) < Math.abs(best.t - t))) best = p; });
+  function valueAt(pts, t, tolMin) {
+    var best = null, tol = (tolMin || 20) * 60000;
+    pts.forEach(function (p) { if (Math.abs(p.t - t) <= tol && (!best || Math.abs(p.t - t) < Math.abs(best.t - t))) best = p; });
     return best ? best.v : null;
   }
-  /* how one river gauge is moving; cfg: { rate (m/h), rise3h (m), hours (to Waspada) } */
+  /* how well a straight line fits the last `span` hours (R², 0..1) */
+  function fit(pts, end, span) {
+    var P = pts.filter(function (p) { return p.t >= end - span * HOUR && p.t <= end; });
+    if (P.length < 3) return null;
+    var n = P.length, mx = 0, my = 0;
+    P.forEach(function (p) { mx += p.t; my += p.v; });
+    mx /= n; my /= n;
+    var sxy = 0, sxx = 0, syy = 0;
+    P.forEach(function (p) { sxy += (p.t - mx) * (p.v - my); sxx += (p.t - mx) * (p.t - mx); syy += (p.v - my) * (p.v - my); });
+    if (!sxx) return null;
+    if (syy < 1e-6) return 1;
+    return Math.max(0, Math.min(1, sxy * sxy / (sxx * syy)));
+  }
+  /* how one river gauge is moving: rates over the last 1, 4 and 24 hours (m/h), fit, freshness, completeness.
+     cfg: { stepMin: minutes between readings (5 for JPS), tidal: river mouth (the tide moves it every few hours) } */
   function trend(pts, st, now, cfg) {
     cfg = cfg || {};
+    now = now || Date.now();
     pts = (pts || []).filter(function (p) { return p.v !== null && p.v > -100; });
     var last = pts[pts.length - 1];
-    if (!last || (now || Date.now()) - last.t > 3 * HOUR) return null;
-    var rate = slope(pts, last.t, 1), rate3 = slope(pts, last.t, 3);
-    var v3 = valueAt(pts, last.t - 3 * HOUR), v1 = valueAt(pts, last.t - HOUR);
-    var rise3 = v3 === null ? null : last.v - v3, rise1 = v1 === null ? null : last.v - v1;
-    var alert = num(st && st.alert), lvNow = last.v, gap = alert === null ? null : alert - lvNow;
-    var useRate = rate !== null && rate3 !== null ? Math.max(rate, rate3) : rate !== null ? rate : rate3;
-    var tta = gap !== null && gap > 0 && useRate !== null && useRate > 0.02 ? gap / useRate : null;
-    var below = gap === null || gap > 0;
-    var fast = useRate !== null && useRate >= (cfg.rate || 0.3), jump = rise3 !== null && rise3 >= (cfg.rise3h || 0.5);
-    var soon = tta !== null && tta <= (cfg.hours || 6);
-    return { at: last.t, level: lvNow, rate: useRate, rate1: rate, rate3: rate3, rise1h: rise1, rise3h: rise3, tta: tta, gap: gap,
-      rising: useRate !== null && useRate > 0.02, falling: useRate !== null && useRate < -0.02,
-      early: below && (fast || jump || soon), fast: fast, jump: jump, soon: soon, n: pts.length };
+    if (!last || now - last.t > 3 * HOUR) return null;
+    var r1 = slope(pts, last.t, 1); if (r1 === null) r1 = slope(pts, last.t, 2);
+    var r4 = slope(pts, last.t, 4), r24 = slope(pts, last.t, 24);
+    var v4 = valueAt(pts, last.t - 4 * HOUR, 30), v24 = valueAt(pts, last.t - 24 * HOUR, 60);
+    var step = cfg.stepMin || 5, n4 = pts.filter(function (p) { return p.t > last.t - 4 * HOUR; }).length;
+    /* at a river mouth the tide goes up and down every ~6 hours: only the 24-hour trend means anything */
+    var tidal = !!cfg.tidal;
+    var rs = tidal ? r24 : r1 !== null && r4 !== null ? (r1 + r4) / 2 : r1 !== null ? r1 : r4;
+    return { at: last.t, level: last.v, rate: rs, rate1: tidal ? null : r1, rate4: tidal ? null : r4, rate24: r24, fit4: tidal ? null : fit(pts, last.t, 4),
+      rise4h: v4 === null ? null : last.v - v4, rise24h: v24 === null ? null : last.v - v24, tidal: tidal,
+      complete: Math.min(1, n4 / (4 * 60 / step)), ageMin: Math.round((now - last.t) / 60000), step: step,
+      rising: rs !== null && rs > 0.01, falling: rs !== null && rs < -0.01, n: pts.length };
   }
-  /* a gauge's readings from the app's own history lines ({ t, levels: { id: m } }) plus the reading now */
+  /* a gauge's readings from the app's own history lines ({ t, levels: { id: m } }) plus the reading now (26 hours) */
   function histPoints(hist, st, now) {
     var pts = [];
-    (hist || []).forEach(function (h) { var v = h.levels && h.levels[st.id]; if (v !== null && v !== undefined && now - h.t <= 4 * HOUR) pts.push({ t: h.t, v: +v }); });
+    (hist || []).forEach(function (h) { var v = h.levels && h.levels[st.id]; if (v !== null && v !== undefined && now - h.t <= 26 * HOUR) pts.push({ t: h.t, v: +v }); });
     if (num(st.level) !== null) pts.push({ t: st.updated ? Date.parse(st.updated) || now : now, v: +st.level });
     return pts.sort(function (a, b) { return a.t - b.t; });
   }
-  /* the early flood warnings to show / ring, from the trends of the profile's gauges */
-  function earlyFlood(stations, trends, now) {
+
+  /* river layout: one line per gauge, "Station < upstream 1, upstream 2 | village 1, village 2"; "~" in front = river mouth (tidal).
+     Names are matched by part of the JPS station name. */
+  var KEMAMAN_RIVERS = [
+    'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu',
+    'Tebak < Sg. Mas | Kg. Padang Kubu',
+    'Air Putih | Kg. Teladas, Kg. Dadong',
+    'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah',
+    'Ban Ho',
+    'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan',
+    '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting',
+    '~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok'
+  ].join('\n');
+  function parseRivers(text) {
     var out = [];
+    String(text || '').split(/\n+/).forEach(function (line) {
+      line = line.trim();
+      if (!line || line[0] === '#') return;
+      var tidal = line[0] === '~'; if (tidal) line = line.slice(1).trim();
+      var bar = line.split('|'), left = bar[0].split('<');
+      var name = left[0].trim();
+      if (!name) return;
+      var list = function (x) { return String(x || '').split(',').map(function (y) { return y.trim(); }).filter(Boolean); };
+      out.push({ match: name.toLowerCase(), name: name, tidal: tidal, up: list(left[1]).map(function (y) { return y.toLowerCase(); }), villages: list(bar[1]) });
+    });
+    return out;
+  }
+  function riverFor(rivers, st) {
+    var n = String((st && st.name) || '').toLowerCase();
+    return (rivers || []).filter(function (r) { return n.indexOf(r.match) >= 0; })[0] || null;
+  }
+  function isTidal(rivers, st) { var r = riverFor(rivers, st); return r ? r.tidal : /muara/i.test((st && st.name) || ''); }
+
+  /* rain per model (advisor.collectLand answers, one place) in the next 4 and 24 hours */
+  function rainAhead(raw, now) {
+    var r4 = [], r24 = [];
+    Object.keys((raw && raw.models) || {}).forEach(function (id) {
+      var m = raw.models[id], d = m && m.ok && m.data && m.data[0];
+      if (!d) return;
+      var a = 0, b = 0, n = 0;
+      for (var i = 0; i < d.p.length; i++) {
+        var t = d.t0 + i * HOUR;
+        if (t < now - HOUR || t >= now + 24 * HOUR || d.p[i] === null) continue;
+        n++; b += d.p[i]; if (t < now + 4 * HOUR) a += d.p[i];
+      }
+      if (n) { r4.push(a); r24.push(b); }
+    });
+    return { rain4: r4, rain24: r24 };
+  }
+  /* rain so far today at the gauge in the same place ("Sg. X di Kg. Y" <-> "Kg. Y") */
+  function obsRain(rains, st) {
+    var place = String((st && st.name) || '').split(/\s+di\s+/i).pop().toLowerCase();
+    var hit = (rains || []).filter(function (r) { var n = String(r.name || '').toLowerCase(); return n && (n === place || (place.length > 4 && (n.indexOf(place) >= 0 || place.indexOf(n) >= 0))); })[0];
+    if (!hit) return null;
+    var v = hit.today !== undefined ? hit.today : hit.rainToday;
+    return num(v);
+  }
+  var EW_W = { trend: 40, rain: 25, up: 20, data: 15 };
+  var NEXT = [['alert', 'Waspada'], ['warning', 'Amaran'], ['danger', 'Bahaya']];
+  function levelIndex(st, v) {
+    return num(st.danger) !== null && v >= st.danger ? 3 : num(st.warning) !== null && v >= st.warning ? 2 : num(st.alert) !== null && v >= st.alert ? 1 : 0;
+  }
+  /* where the river will be in 4 and 24 hours, whether it reaches the next level, and how sure (0..100).
+     ctx: { rain4: [mm per model], rain24: [...], obsToday (mm at the gauge), upstream: [trends], glofas (ratio) } */
+  function project(tr, st, ctx) {
+    ctx = ctx || {};
+    if (!tr) return null;
+    var lv = levelIndex(st, tr.level);
+    if (lv >= 3) return { tier: 0, lv: lv };
+    var tgt = NEXT[lv], target = num(st[tgt[0]]);
+    if (target === null) return { tier: 0, lv: lv };
+    var r = tr.rate === null ? 0 : tr.rate;
+    var r24 = tr.rate24 === null ? r : tr.rate24;
+    var med = function (a) { a = clean(a || []).sort(function (x, y) { return x - y; }); return a.length ? a[Math.floor((a.length - 1) / 2)] : null; };
+    var rain24 = med(ctx.rain24), k = rain24 === null ? 0.6 : rain24 >= 30 ? 1 : rain24 >= 5 ? 0.75 : 0.5;
+    var p4 = tr.level + Math.max(0, r) * 4;
+    var p24 = tr.level + Math.max(0, tr.tidal ? r24 : (r + Math.max(0, r24)) / 2) * 24 * k;
+    if (tr.tidal) p4 = tr.level + Math.max(0, r24) * 4;
+    var gap = target - tr.level, rr = tr.tidal ? r24 : r;
+    var eta = rr > 0.005 ? gap / rr : null;
+    var tier = !tr.tidal && p4 >= target ? 4 : p24 >= target ? 24 : 0;
+    /* confidence parts, each 0..1 */
+    var h = tier || 24, trendS = 0;
+    if (rr > 0.005) {
+      var agree = tr.rate1 !== null && tr.rate4 !== null ? 1 - Math.min(1, Math.abs(tr.rate1 - tr.rate4) / Math.max(Math.abs(tr.rate4), 0.05)) : 0.6;
+      var f4 = tr.fit4 === null ? 0.5 : tr.fit4;
+      trendS = tr.tidal ? (tr.rate24 !== null && tr.rate24 > 0 ? 0.7 : 0) : 0.5 * f4 + 0.5 * agree;
+      if (h === 24) trendS *= tr.rate24 === null ? 0.7 : tr.rate24 > 0 ? 1 : 0.4;
+    }
+    var models = clean((h === 4 ? ctx.rain4 : ctx.rain24) || []), thr = h === 4 ? 3 : 15;
+    var rainF = models.length ? models.filter(function (v) { return v >= thr; }).length / models.length : 0;
+    var obs = num(ctx.obsToday), rainO = obs === null ? 0 : obs >= 30 ? 1 : obs >= 10 ? 0.6 : obs >= 3 ? 0.3 : 0;
+    var rainS = Math.max(rainF, rainO);
+    var ups = (ctx.upstream || []).filter(Boolean), u = ups.length ? ups.filter(function (x) { return x.rate !== null && x.rate > 0.01; }).length / ups.length : null;
+    var g = ctx.glofas === null || ctx.glofas === undefined ? null : ctx.glofas >= 1.5 ? 1 : ctx.glofas >= 1.2 ? 0.6 : ctx.glofas >= 1 ? 0.3 : 0;
+    var upS = u !== null && g !== null ? 0.6 * u + 0.4 * g : u !== null ? u : g !== null ? g : 0;
+    var fresh = tr.ageMin <= 30 ? 1 : tr.ageMin <= 60 ? 0.6 : 0.2, dataS = 0.5 * fresh + 0.5 * tr.complete;
+    var parts = { trend: Math.round(EW_W.trend * trendS), rain: Math.round(EW_W.rain * rainS), up: Math.round(EW_W.up * upS), data: Math.round(EW_W.data * dataS) };
+    var conf = parts.trend + parts.rain + parts.up + parts.data;
+    return { tier: tier, lv: lv, target: tgt[0], targetName: tgt[1], targetM: target, p4: p4, p24: p24, eta: eta, gap: gap, conf: conf, parts: parts,
+      rain24: rain24, upRising: ups.length ? ups.filter(function (x) { return x.rate !== null && x.rate > 0.01; }).length : null, upN: ups.length, glofas: ctx.glofas };
+  }
+  /* the early flood warnings: projected to reach the next level within 4 or 24 hours. Only those at >= minConf ring;
+     the others are shown quietly. ctx: { rivers (parseRivers), rain4, rain24, glofas, obs(st) -> mm today, minConf, prevLoud: { key: true } } */
+  function earlyFlood(stations, trends, now, ctx) {
+    ctx = ctx || {};
+    var out = [], minConf = ctx.minConf || 85, rivers = ctx.rivers || [];
+    var byName = {}; (stations || []).forEach(function (st) { byName[st.name] = st; });
     (stations || []).forEach(function (st) {
       var tr = trends && trends[st.name];
-      if (!tr || !tr.early) return;
-      var why = [];
-      if (tr.fast) why.push(L('naik {r} m/jam', { r: r2(tr.rate) }));
-      if (tr.jump) why.push(L('naik {d} m dalam 3 jam', { d: r2(tr.rise3h) }));
-      if (tr.tta !== null) why.push(L('dijangka capai Waspada ({a} m) dalam ~{h} jam', { a: r1(num(st.alert)), h: tr.tta < 1 ? '<1' : r1(tr.tta) }));
-      out.push({ key: 'ew:' + (st.id || st.name) + ':' + dateKey(now) + ':' + Math.floor(new Date(now + TZ).getUTCHours() / 3), cat: 'water',
-        level: tr.tta !== null && tr.tta <= 2 ? 'warning' : 'info', station: st.name, tta: tr.tta,
-        title: L('Amaran awal banjir: {n}', { n: st.name }),
-        body: L('Paras {v} m (bawah Waspada {a} m): {w}.', { v: r2(tr.level), a: r1(num(st.alert)), w: why.join(', ') }) });
+      if (!tr) return;
+      var rv = riverFor(rivers, st);
+      var up = rv ? (stations || []).filter(function (o) { return o !== st && rv.up.some(function (m) { return String(o.name).toLowerCase().indexOf(m) >= 0; }); }).map(function (o) { return trends[o.name]; }) : [];
+      var pr = project(tr, st, { rain4: ctx.rain4, rain24: ctx.rain24, obsToday: ctx.obs ? ctx.obs(st) : null, upstream: up, glofas: ctx.glofas });
+      tr.proj = pr;
+      if (!pr || !pr.tier) return;
+      var base = 'ew:' + (st.id || st.name) + ':' + pr.target + ':' + pr.tier;
+      var loud = pr.conf >= minConf || (!!(ctx.prevLoud && ctx.prevLoud[base]) && pr.conf >= minConf - 5);
+      var vil = rv && rv.villages.length ? L(' Kampung berisiko: {k}.', { k: rv.villages.join(', ') }) : '';
+      out.push({ key: base + (loud ? ':n' : ':q'), base: base, cat: 'water', quiet: !loud,
+        level: pr.tier === 4 ? (pr.target === 'danger' ? 'critical' : 'warning') : 'info', station: st.name, tier: pr.tier, conf: pr.conf, parts: pr.parts, proj: pr,
+        villages: rv ? rv.villages : [],
+        title: L('Amaran awal banjir ({h} jam): {n}', { h: pr.tier, n: st.name }),
+        body: L('Paras {v} m, dijangka capai {lv} ({t} m){e}. Anggaran 4 jam {p4} m, 24 jam {p24} m. Keyakinan {c}%{q}.', {
+          v: r2(tr.level), lv: L(pr.targetName), t: r2(pr.targetM), e: pr.eta !== null ? L(' dalam ~{h} jam', { h: pr.eta < 1 ? '<1' : r1(pr.eta) }) : '',
+          p4: r2(pr.p4), p24: r2(pr.p24), c: pr.conf, q: loud ? '' : L(' (bawah {k}%: tiada notifikasi)', { k: minConf }) }) + vil });
     });
-    return out.sort(function (a, b) { return (a.tta === null ? 99 : a.tta) - (b.tta === null ? 99 : b.tta); });
+    return out.sort(function (a, b) { return a.tier - b.tier || b.conf - a.conf; });
   }
 
   /* ------------------------------------------------------------- land parts */
@@ -144,17 +270,16 @@
       var lv = st.status && R[st.status] !== undefined ? R[st.status] : num(st.danger) !== null && v >= st.danger ? 3 : num(st.warning) !== null && v >= st.warning ? 2 : num(st.alert) !== null && v >= st.alert ? 1 : 0;
       var x = [0, 55, 75, 95][lv], tr = o.trends && o.trends[st.name];
       if (lv === 0 && num(st.alert) !== null && st.alert - v <= 0.3) x = 30;
+      var pr = tr && tr.proj;
       if (tr) {
-        if (tr.tta !== null && tr.tta <= 2) x = Math.max(x, 65);
-        else if (tr.tta !== null && tr.tta <= 6) x = Math.max(x, 50);
+        if (pr && pr.tier) x = Math.max(x, (pr.tier === 4 ? 65 : 45) * (0.6 + 0.4 * pr.conf / 100) + (pr.target === 'danger' ? 10 : 0));
         if (tr.rising && lv >= 1) x += 10;
-        if (tr.fast || tr.jump) x = Math.max(x, 40);
         if (tr.falling && lv >= 1) x -= 10;
       }
       x *= near;
       if (x > s) s = x;
       if (lv >= 1) why.push(L('{n}: {l} ({v} m){t}.', { n: st.name, l: L(['Normal', 'Waspada', 'Amaran', 'Bahaya'][lv]), v: r2(v), t: tr && tr.rising ? L(', naik {r} m/jam', { r: r2(tr.rate) }) : tr && tr.falling ? L(', turun') : '' }));
-      else if (tr && tr.early) why.push(L('{n}: {v} m, naik {r} m/jam{h}.', { n: st.name, v: r2(v), r: r2(tr.rate), h: tr.tta !== null ? L(', Waspada dalam ~{h} jam', { h: r1(tr.tta) }) : '' }));
+      else if (pr && pr.tier) why.push(L('{n}: {v} m, dijangka capai {l} dalam {h} jam (keyakinan {c}%).', { n: st.name, v: r2(v), l: L(pr.targetName), h: pr.tier, c: pr.conf }));
       else if (x >= 30) why.push(L('{n} hampir Waspada ({v} m, Waspada {a} m).', { n: st.name, v: r2(v), a: r1(num(st.alert)) }));
     });
     if (o.glofas !== null && o.glofas !== undefined) {
@@ -292,7 +417,8 @@
     return out;
   }
 
-  return { LEVELS: LEVELS, level: level, combine: combine, ramp: ramp, seriesUrl: seriesUrl, rainUrl: rainUrl, histPoints: histPoints, slope: slope, trend: trend, earlyFlood: earlyFlood,
+  return { LEVELS: LEVELS, level: level, combine: combine, ramp: ramp, seriesUrl: seriesUrl, rainUrl: rainUrl, histPoints: histPoints, slope: slope, fit: fit, trend: trend, project: project, earlyFlood: earlyFlood,
+    KEMAMAN_RIVERS: KEMAMAN_RIVERS, parseRivers: parseRivers, rainAhead: rainAhead, obsRain: obsRain, riverFor: riverFor, isTidal: isTidal, EW_W: EW_W,
     rainScore: rainScore, weatherPart: weatherPart, riverPart: riverPart, coastalPart: coastalPart, landScore: landScore,
     windPart: windPart, seaPart: seaPart, weatherOffPart: weatherOffPart, offScore: offScore, offValues: offValues, earlyOffshore: earlyOffshore, windows: windows, when: when };
 });

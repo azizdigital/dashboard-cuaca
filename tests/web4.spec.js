@@ -249,16 +249,23 @@ test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Fl
   expect(+(await page.locator('#rkBody .rk-score b').textContent())).toBeGreaterThanOrEqual(0);
   /* a river rising 0.3 m/h for 3 hours, still below Waspada -> early flood warning (from the app's own readings) */
   const st = await page.evaluate(() => {
-    const x = MC.state.snap.stations.find(s => !s.stale && s.level !== null && s.alert && s.level < s.alert - 0.4);
+    const x = MC.state.snap.stations.find(s => !s.stale && s.level !== null && s.alert && s.alert - s.level > 0.5 && s.alert - s.level < 3 && !/muara|yak yah/i.test(s.name));
     const now = Date.now(), key = 'mc_d_hist_' + MC.state.profiles.active;
     const hist = [3, 2, 1].map(h => ({ t: now - h * 3600000, levels: { [x.id]: x.level - 0.3 * h } }));
     localStorage.setItem(key, JSON.stringify(hist));
     return { name: x.name, id: x.id };
   });
   await page.click('#btnRefresh');
-  await expect(page.locator('#rkBody .rk-ew')).toContainText('Early flood warning: ' + st.name, { timeout: 20000 });
+  await expect(page.locator('#rkBody .rk-ew')).toContainText(/Early flood warning \((4|24) hours\): /, { timeout: 20000 });
+  await expect(page.locator('#rkBody .rk-ew')).toContainText(st.name);
+  await expect(page.locator('#rkBody .rk-ew')).toContainText(/Confidence \d+%: trend \d+\/40 · rain \d+\/25/);
   await expect(page.locator('#rkBody .rk-win')).toContainText('+0.30');
-  expect(await page.evaluate(n => MC.state.snap.alerts.active.some(a => a.title === 'Early flood warning: ' + n), st.name)).toBe(true);
+  /* in the bell list; it only rings at 85 % or more */
+  const a = await page.evaluate(n => MC.state.snap.alerts.active.find(x => x.title.indexOf(n) > 0 && /^Early flood warning/.test(x.title)), st.name);
+  expect(a).toBeTruthy();
+  const conf = +a.body.match(/Confidence (\d+)%/)[1];
+  expect(a.quiet).toBe(conf < 85);
+  if (conf < 85) expect(a.body).toContain('below 85%: no notification');
   await page.addStyleTag({ content: '#toasts { display: none !important; }' });
   await page.locator('#cardRisk').scrollIntoViewIfNeeded();
   await page.screenshot({ path: '/tmp/shots/risk-land.png' });

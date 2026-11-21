@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.4.0';
+  var VERSION = '4.4.1';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -158,7 +158,12 @@
     advShift: '07-19',               /* AI suggestion: day shift hours (the night shift is the rest) */
     coastal: true,                   /* land: the place is by the sea (Coastal Risk: tide, waves at the coast) */
     advWindowH: 4,                   /* AI suggestion: shortest weather window worth showing (hours) */
-    ewRate: 0.3, ewRise3h: 0.5, ewHours: 6,   /* Early Flood Warning: rising m/h, or m in 3 h, or Waspada within this many hours */
+    ewConf: 85,                      /* Early Flood Warning: rings only at this confidence (%) or more; below, shown quietly */
+    /* river layout for the early warning (upstream gauges) and the villages at risk: "Station < upstream, ... | village, ..."; ~ = river mouth */
+    ewUpstream: 'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\n' +
+      'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
+      'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
+      '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
     ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
@@ -179,7 +184,7 @@
   var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
     'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace',
     'offWindKt', 'offWaveM', 'coastal'];
-  var CAN_BE_EMPTY = ['advLimits', 'advPlaces', 'adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
+  var CAN_BE_EMPTY = ['ewUpstream', 'advLimits', 'advPlaces', 'adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
   var JPS_STATES = ['PLS', 'KDH', 'PNG', 'PRK', 'SEL', 'WLH', 'PTJ', 'NSN', 'MLK', 'JHR', 'PHG', 'TRG', 'KEL', 'SRK', 'SAB', 'WLP'];
   /* ---- site relay (iPad / phone): sites that refuse to be shown inside another app go through the user's relay */
@@ -253,7 +258,7 @@
       if (v === undefined || v === null || v === '') { out[k] = d; continue; }
       if (typeof d === 'number') { v = Number(v); out[k] = isFinite(v) ? v : d; }
       else if (typeof d === 'boolean') out[k] = v === true || v === 'true' || v === 1 || v === 'on';
-      else out[k] = String(v).slice(0, k === 'adblockExcept' ? 2000 : k === 'advLimits' || k === 'advPlaces' ? 4000 : 200);
+      else out[k] = String(v).slice(0, k === 'adblockExcept' ? 2000 : k === 'advLimits' || k === 'advPlaces' || k === 'ewUpstream' ? 4000 : 200);
     }
     if (REFRESH_CHOICES.indexOf(out.refreshMin) < 0) out.refreshMin = DEFAULTS.refreshMin;
     if (['alert', 'warning', 'danger'].indexOf(out.waterAlertLevel) < 0) out.waterAlertLevel = 'alert';
@@ -274,7 +279,7 @@
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
     try { if (out.advLimits) { var al = JSON.parse(out.advLimits); if (!al || typeof al !== 'object' || Array.isArray(al)) out.advLimits = ''; } } catch (e) { out.advLimits = ''; }
     if (!/^\s*\d{1,2}\s*[-–:]\s*\d{1,2}\s*$/.test(out.advShift)) out.advShift = DEFAULTS.advShift;
-    [['advWindowH', 1, 24], ['ewRate', 0.05, 3], ['ewRise3h', 0.1, 5], ['ewHours', 1, 24], ['ewWindRise', 2, 30], ['ewSwellTp', 5, 20]].forEach(function (r) {
+    [['advWindowH', 1, 24], ['ewConf', 50, 99], ['ewWindRise', 2, 30], ['ewSwellTp', 5, 20]].forEach(function (r) {
       if (!(out[r[0]] >= r[1] && out[r[0]] <= r[2])) out[r[0]] = DEFAULTS[r[0]];
     });
     if (!(out.offWindKt >= 1 && out.offWindKt <= 80)) out.offWindKt = DEFAULTS.offWindKt;
@@ -1073,7 +1078,7 @@
     if (m && m.maxWave24h !== null && m.maxWave24h !== undefined && m.maxWave24h >= s.waveM)
       out.push({ key: 'wave:' + dateKey(now), cat: 'sea', level: 'warning', title: L('Ombak tinggi'), body: L('Sehingga {v} m dalam 24 jam', { v: f1(m.maxWave24h) }) + (m.maxSwell24h ? L(', alun {s} m', { s: f1(m.maxSwell24h) }) : '') + L(' (ambang {t} m)', { t: s.waveM }) });
     /* early warnings worked out by the page / the PC (risk.js): river rising fast, wind / waves rising offshore */
-    (snap.early || []).forEach(function (e) { if (e && e.key && e.title) out.push({ key: e.key, cat: e.cat || 'water', level: e.level || 'info', title: e.title, body: e.body || '' }); });
+    (snap.early || []).forEach(function (e) { if (e && e.key && e.title) out.push({ key: e.key, cat: e.cat || 'water', level: e.level || 'info', title: e.title, body: e.body || '', quiet: !!e.quiet }); });
     ((snap.met || {}).warnings || []).forEach(function (wn) {
       var en = I18N && I18N.lang() !== 'ms';
       out.push({ key: 'met:' + wn.id, cat: 'met', level: wn.severity, title: 'MET: ' + (en ? (wn.title_en || wn.title_bm) : (wn.title_bm || wn.title_en)),
@@ -1086,7 +1091,8 @@
   function newAlerts(prevActive, current) {
     var prev = {};
     (prevActive || []).forEach(function (a) { prev[a.key] = a; });
-    return (current || []).filter(function (a) { var p = prev[a.key]; return !p || LEVEL_RANK[a.level] > LEVEL_RANK[p.level]; });
+    /* quiet alerts (an early warning below the confidence needed) are listed but never ring */
+    return (current || []).filter(function (a) { var p = prev[a.key]; return !a.quiet && (!p || LEVEL_RANK[a.level] > LEVEL_RANK[p.level]); });
   }
 
   /* ------------------------------------------------- dates written in a page

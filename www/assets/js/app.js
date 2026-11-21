@@ -1108,7 +1108,8 @@
   }
   function rkEarly(list, none) {
     return '<div class="rk-ew"><h4>' + L('Amaran awal') + '</h4>' + (list.length ? list.map(function (e) {
-      return '<div class="rk-ewi lv-' + e.level + '">' + (e.level === 'warning' ? '⚠️' : '🔔') + ' <b>' + esc(e.title) + '</b><span>' + esc(e.body) + '</span></div>';
+      var parts = e.parts ? '<div class="rk-conf"><div class="rk-bar"><i style="width:' + e.conf + '%"></i></div><small>' + L('Keyakinan {c}%: trend {t}/40 · hujan {r}/25 · hulu & GloFAS {u}/20 · data {d}/15', { c: e.conf, t: e.parts.trend, r: e.parts.rain, u: e.parts.up, d: e.parts.data }) + '</small></div>' : '';
+      return '<div class="rk-ewi lv-' + e.level + (e.quiet ? ' quiet' : '') + '">' + (e.quiet ? '🔕' : e.level === 'info' ? '🔔' : '⚠️') + ' <b>' + esc(e.title) + '</b><span>' + esc(e.body) + '</span>' + parts + '</div>';
     }).join('') : '<div class="muted">' + none + '</div>') + '</div>';
   }
   function renderRiskCard() {
@@ -1150,10 +1151,11 @@
       var tr = snap.trends || {}, sts = (snap.stations || []).filter(function (x) { return !x.stale && tr[x.name]; });
       h = rkHead(sc2, s.locationName + ' · ' + L('24 jam akan datang')) + '<div class="rk-parts">' + sc2.parts.map(rkBar).join('') + '</div>' +
         '<div class="rk-cols">' + rkEarly(early2, L('Tiada sungai naik cepat.')) +
-        '<div class="rk-win"><h4>' + L('Trend sungai (JPS)') + '</h4>' + (sts.length ? '<table class="tbl"><thead><tr><th>' + L('Stesen') + '</th><th class="num">m</th><th class="num">' + L('m/jam') + '</th><th class="num">' + L('Ke Waspada') + '</th></tr></thead><tbody>' + sts.map(function (st) {
-          var t = tr[st.name];
-          return '<tr><td>' + esc(st.name) + '</td><td class="num">' + f(t.level, 2) + '</td><td class="num ' + (t.early ? 'hot' : '') + '">' + (t.rate === null ? '-' : (t.rate > 0 ? '+' : '') + f(t.rate, 2)) + '</td><td class="num">' + (t.gap !== null && t.gap <= 0 ? L('sudah') : t.tta !== null ? '~' + f(t.tta, 1) + L(' j') : '-') + '</td></tr>';
-        }).join('') + '</tbody></table><p class="note">' + (sts.some(function (st) { return tr[st.name].src === 'jps'; }) ? L('Kadar naik daripada data 5 minit JPS (12 jam terakhir).') : L('Kadar naik daripada bacaan yang app simpan; lebih tepat bila relay dipasang.')) + '</p>'
+        '<div class="rk-win"><h4>' + L('Trend & anggaran sungai (JPS)') + '</h4>' + (sts.length ? '<div class="oc-scroll"><table class="tbl"><thead><tr><th>' + L('Stesen') + '</th><th class="num">m</th><th class="num">' + L('m/jam') + '</th><th class="num">' + L('4 j') + '</th><th class="num">' + L('24 j') + '</th><th class="num">' + L('Keyakinan') + '</th></tr></thead><tbody>' + sts.map(function (st) {
+          var t = tr[st.name], p = t.proj || {};
+          return '<tr><td>' + esc(st.name) + (t.tidal ? ' <small class="muted">(' + L('pasang surut') + ')</small>' : '') + '</td><td class="num">' + f(t.level, 2) + '</td><td class="num ' + (t.rising ? 'hot' : '') + '">' + (t.rate === null ? '-' : (t.rate > 0 ? '+' : '') + f(t.rate, 2)) + '</td>' +
+            '<td class="num' + (p.tier === 4 ? ' hot' : '') + '">' + (p.p4 !== undefined ? f(p.p4, 2) : '-') + '</td><td class="num' + (p.tier === 24 ? ' hot' : '') + '">' + (p.p24 !== undefined ? f(p.p24, 2) : '-') + '</td><td class="num">' + (p.tier ? p.conf + '%' : '-') + '</td></tr>';
+        }).join('') + '</tbody></table></div><p class="note">' + (sts.some(function (st) { return tr[st.name].src === 'jps'; }) ? L('Data 5 minit JPS (26 jam terakhir). Anggaran 4 & 24 jam: trend sungai, hujan 5 model; notifikasi hanya bila keyakinan ≥ {k}%.', { k: s.ewConf }) : L('Kadar naik daripada bacaan yang app simpan; lebih tepat bila relay dipasang.')) + '</p>'
           : '<div class="muted">' + L('Belum cukup bacaan untuk kira kadar naik.') + '</div>') + '</div></div>';
       $('rkSub').textContent = L('cuaca · sungai · pantai');
     }
@@ -1677,36 +1679,53 @@
   /* early warnings (risk.js): rivers rising fast (5-minute JPS history through the relay, else the app's own readings),
      wind / waves rising offshore; they ring like the other alerts */
   var Early = {
-    cache: {},
-    cfg: function (s) { return { rate: s.ewRate, rise3h: s.ewRise3h, hours: s.ewHours }; },
+    cache: {}, rainCache: null,
     offCfg: function (s) { return { windRise: s.ewWindRise, swellTp: s.ewSwellTp, windKt: s.offWindKt, waveM: s.offWaveM, ahead: 24 }; },
+    get: function (u) {
+      var url = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(u) : u;
+      return fetchT(url, 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    },
+    /* rain of the 5 models at the profile's place, the next 4 / 24 hours (kept 30 minutes) */
+    rain: function (s, now) {
+      var A = window.MCAdvisor, R = window.MCRisk, key = s.lat + ',' + s.lon, c = Early.rainCache;
+      if (!A) return Promise.resolve({});
+      if (c && c.key === key && now - c.at < 30 * 60000) return Promise.resolve(R.rainAhead(c.raw, now));
+      return A.collectLand([{ lat: s.lat, lon: s.lon }], Early.get).then(function (raw) { Early.rainCache = { key: key, at: now, raw: raw }; return R.rainAhead(raw, now); }).catch(function () { return {}; });
+    },
     add: function (snap, s, hist, now, viaRelay) {
-      var R = window.MCRisk;
+      var R = window.MCRisk, A = window.MCAdvisor;
       if (!R) return Promise.resolve();
       if (s.kind === 'offshore') {
         var rep = Off.report();
         snap.early = rep ? R.earlyOffshore(rep, now, Early.offCfg(s)) : [];
         return Promise.resolve();
       }
-      var cfg = Early.cfg(s), sts = (snap.stations || []).filter(function (x) { return !x.stale && x.level !== null; });
-      var water = (snap.jps && snap.jps.water) || [];
+      var sts = (snap.stations || []).filter(function (x) { return !x.stale && x.level !== null; });
+      var water = (snap.jps && snap.jps.water) || [], rivers = R.parseRivers(s.ewUpstream);
       var gidOf = function (name) { var w = water.filter(function (x) { return x.name === name; })[0]; return w && w.gid; };
-      return Promise.all(sts.slice(0, 15).map(function (st) {
-        var gid = gidOf(st.name), c = Early.cache[st.name];
-        var fromHist = function () { return [st.name, R.trend(R.histPoints(hist, st, now), st, now, cfg), 'app']; };
+      /* 26 hours of each gauge: JPS 5-minute data through the relay, else the app's own readings */
+      var series = Promise.all(sts.slice(0, 15).map(function (st) {
+        var gid = gidOf(st.name), c = Early.cache[st.name], tidal = R.isTidal(rivers, st);
+        var fromHist = function () { return [st.name, R.trend(R.histPoints(hist, st, now), st, now, { stepMin: s.refreshMin, tidal: tidal }), 'app']; };
         if (!gid || !viaRelay || !window.MCParse) return Promise.resolve(fromHist());
-        if (c && now - c.at < 10 * 60000) return Promise.resolve([st.name, R.trend(c.pts, st, now, cfg), 'jps']);
-        return viaRelay(R.seriesUrl(gid, now, 12)).then(function (txt) {
+        if (c && now - c.at < 10 * 60000) return Promise.resolve([st.name, R.trend(c.pts, st, now, { stepMin: 5, tidal: tidal }), 'jps']);
+        return viaRelay(R.seriesUrl(gid, now, 26)).then(function (txt) {
           var pts = window.MCParse.wlSeries(txt);
           if (pts.length < 3) throw new Error('no series');
           Early.cache[st.name] = { at: now, pts: pts };
-          return [st.name, R.trend(pts, st, now, cfg), 'jps'];
+          return [st.name, R.trend(pts, st, now, { stepMin: 5, tidal: tidal }), 'jps'];
         }).catch(fromHist);
-      })).then(function (list) {
+      }));
+      return Promise.all([series, Early.rain(s, now)]).then(function (res) {
         var tr = {};
-        list.forEach(function (x) { if (x[1]) { x[1].src = x[2]; tr[x[0]] = x[1]; } });
+        res[0].forEach(function (x) { if (x[1]) { x[1].src = x[2]; tr[x[0]] = x[1]; } });
         snap.trends = tr;
-        snap.early = R.earlyFlood(sts, tr, now);
+        var gl = A ? Math.max(A.riverRatio(snap, C.dateKey(now)) || 0, A.riverRatio(snap, C.dateKey(now + 86400000)) || 0) || null : null;
+        var prevLoud = {};
+        (((state.snap && state.snap.early) || [])).forEach(function (e) { if (e.base && !e.quiet) prevLoud[e.base] = true; });
+        var rains = (snap.jps && snap.jps.rain && snap.jps.rain.stations) || snap.rainStations || [];
+        snap.early = R.earlyFlood(sts, tr, now, { rivers: rivers, rain4: res[1].rain4, rain24: res[1].rain24, glofas: gl, minConf: s.ewConf, prevLoud: prevLoud,
+          obs: function (st) { return R.obsRain(rains, st); } });
       });
     }
   };

@@ -755,35 +755,69 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   assert.ok(pts.length > 100); assert.strictEqual(pts[0].t, Date.parse('2026-11-20T00:00:00+08:00'));
   const u = R.seriesUrl('4131001_', Date.parse('2026-11-21T12:00:00+08:00'), 12);
   assert.ok(u.includes('searchresultwaterleveldtlead.php?station=4131001_&from=21%2F11%2F2026%2000%3A00&to=21%2F11%2F2026%2012%3A00&datafreq=15'), u);
-  /* the fixture river is falling: no warning */
-  const st = { name: 'Sg. Setiu di Kg. Besut (RHN)', level: 14.17, alert: 16, warning: 17, danger: 17.5 };
-  const fall = R.trend(pts, st, pts[pts.length - 1].t + 60000, { rate: 0.3, rise3h: 0.5, hours: 6 });
-  assert.ok(fall && fall.rate < 0 && !fall.early, JSON.stringify(fall));
-  /* made-up rising river: +0.25 m/h for 4 hours, 1.2 m below Waspada -> ~4.8 h to Waspada -> early warning */
-  const t0 = Date.parse('2026-11-21T08:00:00+08:00'), rise = [];
-  for (let i = 0; i <= 16; i++) rise.push({ t: t0 + i * 15 * 60000, v: 13.8 + 0.0625 * i });
-  const tr = R.trend(rise, st, t0 + 4 * 3600000 + 60000, { rate: 0.3, rise3h: 0.5, hours: 6 });
-  assert.ok(Math.abs(tr.rate - 0.25) < 0.01 && Math.abs(tr.rise3h - 0.75) < 0.01 && tr.tta > 4 && tr.tta < 5, JSON.stringify(tr));
-  assert.ok(tr.early && tr.jump && tr.soon && !tr.fast);
-  const ew = R.earlyFlood([st], { [st.name]: tr }, t0 + 4 * 3600000);
-  assert.strictEqual(ew.length, 1); assert.ok(/^Amaran awal banjir: Sg. Setiu/.test(ew[0].title)); assert.ok(/Waspada \(16.0 m\) dalam ~4.\d jam/.test(ew[0].body), ew[0].body);
-  /* already above Waspada: the normal alerts handle it, no early warning */
-  assert.strictEqual(R.trend(rise.map(p => ({ t: p.t, v: p.v + 3 })), st, t0 + 4 * 3600000, {}).early, false);
-  /* old readings: nothing */
-  assert.strictEqual(R.trend(rise, st, t0 + 9 * 3600000, {}), null);
+  /* the fixture river is falling: no projection to the next level */
+  const st = { id: 'S1', name: 'Sg. Setiu di Kg. Besut (RHN)', level: 14.17, alert: 16, warning: 17, danger: 17.5 };
+  const fall = R.trend(pts, st, pts[pts.length - 1].t + 60000, { stepMin: 15 });
+  assert.ok(fall && fall.rate < 0 && fall.rate24 < 0 && fall.complete === 1, JSON.stringify(fall));
+  assert.strictEqual(R.project(fall, st, {}).tier, 0);
+  /* made-up rising river, 26 hours of 5-minute readings: flat, then +0.25 m/h for the last 4 hours, 1.2 m below Waspada */
+  const now = Date.parse('2026-11-21T12:00:00+08:00'), rise = [];
+  for (let t = now - 26 * 3600000; t <= now; t += 300000) { const h = (now - t) / 3600000; rise.push({ t, v: h > 4 ? 13.8 : 14.8 - 0.25 * h }); }
+  const tr = R.trend(rise, st, now + 60000, { stepMin: 5 });
+  assert.ok(Math.abs(tr.rate1 - 0.25) < 0.01 && Math.abs(tr.rate4 - 0.25) < 0.02 && tr.fit4 > 0.95 && tr.complete === 1 && tr.rise4h > 0.95, JSON.stringify(tr));
+  /* 4 h: 14.8 + 1.0 = 15.8 < 16 -> not in 4 h; 24 h: reaches Waspada -> the 24-hour tier */
+  const wet = { rain4: [6, 8, 5, 9, 7], rain24: [40, 55, 35, 60, 45], obsToday: 35, upstream: [{ rate: 0.2 }, { rate: 0.1 }], glofas: 1.6 };
+  const p24 = R.project(tr, st, wet);
+  assert.strictEqual(p24.tier, 24); assert.strictEqual(p24.target, 'alert'); assert.ok(p24.p4 < 16 && p24.p24 >= 16 && Math.abs(p24.eta - 4.8) < 0.2, JSON.stringify(p24));
+  assert.ok(p24.conf >= 85, JSON.stringify(p24.parts));
+  /* the same river, dry forecast, no rain at the gauge, upstream flat, no GloFAS: below 85 */
+  const dry = R.project(tr, st, { rain4: [0, 0, 0, 0, 0], rain24: [0, 1, 0, 2, 0], obsToday: 0, upstream: [{ rate: 0 }], glofas: 0.9 });
+  assert.ok(dry.conf < 85 && dry.parts.rain === 0 && dry.parts.up === 0, JSON.stringify(dry));
+  /* faster: +0.4 m/h -> Waspada within 4 hours */
+  const fast = rise.map(p => ({ t: p.t, v: p.v === 13.8 ? 13.4 : 13.4 + (p.v - 13.8) * 1.6 }));
+  const p4 = R.project(R.trend(fast, st, now + 60000, { stepMin: 5 }), st, wet);
+  assert.strictEqual(p4.tier, 4); assert.ok(p4.p4 >= 16);
+  /* already above Waspada: the next target is Amaran */
+  const hi = rise.map(p => ({ t: p.t, v: p.v + 1.6 }));
+  const ph = R.project(R.trend(hi, st, now + 60000, { stepMin: 5 }), st, wet);
+  assert.strictEqual(ph.target, 'warning'); assert.strictEqual(ph.tier, 4);
+  /* river mouth (tide): the 4-hour swing does not count, only the 24-hour trend */
+  const tide = []; for (let t = now - 26 * 3600000; t <= now; t += 300000) tide.push({ t, v: 1 + 0.8 * Math.sin((t - now) / 3600000 / 12.4 * 2 * Math.PI) });
+  const tt = R.trend(tide, { name: 'Muara Sg. Kemaman di Kg. Geliga (F2)', alert: 1.5 }, now + 60000, { stepMin: 5, tidal: true });
+  assert.strictEqual(tt.rate1, null); assert.strictEqual(R.project(tt, { alert: 1.5, warning: 2, danger: 2.5 }, wet).tier !== 4, true);
+  /* the warnings: ring only at >= 85 %, quiet below; key per level & tier; villages from the river layout */
+  const rivers = R.parseRivers(core.DEFAULTS.ewUpstream);
+  assert.strictEqual(rivers.length, 8); assert.ok(R.riverFor(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }).up.includes('ban ho'));
+  assert.ok(R.isTidal(rivers, { name: 'Muara Sg. Kemaman di Kg. Geliga (F2)' }) && !R.isTidal(rivers, { name: 'Sg. Mas di Kg. Sg. Mas (F2)' }));
+  const pp = { id: 'PP', name: 'Sg. Kemaman di Rumah Pam Paya Paman', level: 14.8, alert: 16, warning: 17, danger: 17.5 };
+  const up1 = { id: 'RP', name: 'Sg. Kemaman di Kg. Rantau Panjang (F2)', level: 5 }, up2 = { id: 'BH', name: 'Sg. Cherul di Jambatan Ban Ho', level: 11 };
+  const trends = { [pp.name]: tr, [up1.name]: { rate: 0.3 }, [up2.name]: { rate: 0.2 } };
+  const ew = R.earlyFlood([pp, up1, up2], trends, now, { rivers, rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6, minConf: 85, obs: () => 35 });
+  assert.strictEqual(ew.length, 1);
+  assert.ok(!ew[0].quiet && ew[0].key === 'ew:PP:alert:24:n' && ew[0].conf >= 85, JSON.stringify(ew[0]));
+  assert.ok(/^Amaran awal banjir \(24 jam\): Sg. Kemaman di Rumah Pam Paya Paman/.test(ew[0].title));
+  assert.ok(/Waspada \(16.00 m\) dalam ~4.8 jam/.test(ew[0].body) && /Kampung berisiko: Kg. Sungai Pinang, Kg. Pasir Minal/.test(ew[0].body), ew[0].body);
+  assert.strictEqual(trends[pp.name].proj.upN, 5 - 3);   /* Rantau Panjang & Ban Ho of the 5 upstream names are in the list */
+  const q = R.earlyFlood([pp], { [pp.name]: tr }, now, { rivers, rain4: [0, 0, 0], rain24: [0, 0, 0], glofas: 0.9, minConf: 85, obs: () => 0 });
+  assert.ok(q[0].quiet && /:q$/.test(q[0].key) && /bawah 85%: tiada notifikasi/.test(q[0].body), JSON.stringify(q[0]));
+  /* quiet alerts are listed but never ring */
+  assert.strictEqual(core.newAlerts([], [{ key: 'a', level: 'info', quiet: true }, { key: 'b', level: 'info' }]).map(a => a.key).join(), 'b');
+  /* once ringing, it keeps ringing down to 80 % (no on / off around 85) */
+  const mid = R.earlyFlood([pp], { [pp.name]: tr }, now, { rivers, rain4: wet.rain4, rain24: [40, 0, 0, 30, 0], glofas: 1.6, minConf: 85, obs: () => 0, prevLoud: { 'ew:PP:alert:24': true } });
+  if (mid[0].conf >= 80 && mid[0].conf < 85) assert.strictEqual(mid[0].quiet, false);
   /* readings the app kept itself */
-  const hist = [0, 1, 2, 3].map(i => ({ t: t0 + i * 3600000, levels: { S1: 13.8 + 0.4 * i } }));
-  const hp = R.histPoints(hist, { id: 'S1', level: 15.4, updated: new Date(t0 + 4 * 3600000).toISOString() }, t0 + 4 * 3600000);
-  assert.strictEqual(hp.length, 5); assert.ok(R.trend(hp, { alert: 16 }, t0 + 4 * 3600000, { rate: 0.3 }).fast);
+  const hist = [0, 1, 2, 3].map(i => ({ t: now - (4 - i) * 3600000, levels: { S1: 13.8 + 0.3 * i } }));
+  const hp = R.histPoints(hist, { id: 'S1', level: 15.0, updated: new Date(now).toISOString() }, now);
+  assert.strictEqual(hp.length, 5); assert.ok(R.trend(hp, { alert: 16 }, now, { stepMin: 60 }).rising);
   /* parts and the combined score */
   const wp = R.weatherPart({ rain: 70, hours: 24, wet: 210, met: [] });
   assert.ok(wp.score >= 55 && wp.score <= 70 && wp.level === 2, JSON.stringify(wp));
   assert.strictEqual(R.weatherPart({ rain: 2, hours: 24, met: [{ severity: 'warning', title: 'Hujan berterusan' }] }).score, 55);
   const rp = R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 0 });
   assert.strictEqual(rp.score, 55); assert.ok(/Waspada/.test(rp.why[0]));
-  assert.strictEqual(R.riverPart({ stations: [st], trends: { [st.name]: tr }, leadH: 0 }).score, 50);   /* early warning counts */
+  assert.ok(R.riverPart({ stations: [pp], trends, leadH: 0 }).score >= 40);   /* early warning counts */
   assert.ok(R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 100 }).score < 20);   /* days ahead: fades */
-  const cp = R.coastalPart({ coastal: true, tide: { t: t0, sea: 2.9 }, top: 2.95, wave: 2.6, waveDir: 45 });
+  const cp = R.coastalPart({ coastal: true, tide: { t: now, sea: 2.9 }, top: 2.95, wave: 2.6, waveDir: 45 });
   assert.ok(cp.score >= 60, JSON.stringify(cp));
   assert.strictEqual(R.coastalPart({ coastal: false }).score, 0);
   const sc = R.landScore(wp, rp, cp);

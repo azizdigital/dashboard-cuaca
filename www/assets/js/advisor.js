@@ -506,8 +506,12 @@
       r.windows.forEach(function (w) { line('- ' + w.name + ': ' + (w.list.length ? w.list.slice(0, 4).map(function (x) { return shortDay(dateKey(x.t0)) + ' ' + hhmm(x.t0) + '–' + (dateKey(x.t1) !== dateKey(x.t0) ? shortDay(dateKey(x.t1)) + ' ' : '') + hhmm(x.t1) + ' (' + x.hours + ' j)'; }).join('; ') : 'tiada') ); });
     }
     if (!off && snap.trends && Object.keys(snap.trends).length) {
-      line('Trend sungai JPS (stesen | paras m | kadar m/jam | naik 3 jam m | anggaran jam ke Waspada):');
-      Object.keys(snap.trends).slice(0, short ? 6 : 20).forEach(function (n) { var t = snap.trends[n]; line('- ' + n + ' | ' + r1(t.level) + ' | ' + (t.rate === null ? '-' : t.rate.toFixed(2)) + ' | ' + (t.rise3h === null ? '-' : t.rise3h.toFixed(2)) + ' | ' + (t.tta === null ? '-' : r1(t.tta))); });
+      line('Trend & anggaran sungai JPS (stesen | paras m | kadar m/jam | naik 4 jam m | naik 24 jam m | anggaran 4 jam m | anggaran 24 jam m | sasaran | keyakinan):');
+      Object.keys(snap.trends).slice(0, short ? 6 : 20).forEach(function (n) {
+        var t = snap.trends[n], p = t.proj || {}, x = function (v) { return v === null || v === undefined ? '-' : (+v).toFixed(2); };
+        line('- ' + n + (t.tidal ? ' (pasang surut)' : '') + ' | ' + x(t.level) + ' | ' + x(t.rate) + ' | ' + x(t.rise4h) + ' | ' + x(t.rise24h) + ' | ' + x(p.p4) + ' | ' + x(p.p24) + ' | ' + (p.targetName ? p.targetName + ' ' + x(p.targetM) + ' m' : '-') + ' | ' + (p.tier ? p.conf + '%' : '-'));
+      });
+      line('Keyakinan amaran awal = trend sungai (40) + hujan 5 model & tolok JPS (25) + stesen hulu & GloFAS (20) + data segar & lengkap (15); notifikasi hanya ≥ ' + (s.ewConf || 85) + '%.');
     }
     line('');
     line('## Data');
