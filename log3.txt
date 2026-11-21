@@ -1,34 +1,80 @@
-== wl 27192 f1 1d 30302 bytes .903146131s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 27192 f5 1d 30302 bytes .326695005s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 27192 f15 1d 30302 bytes .328185586s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4131001_ f1 1d 31271 bytes .408238908s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4131001_ f5 1d 31271 bytes .378828663s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4131001_ f15 1d 31271 bytes .299459790s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4233453_ f1 1d 30083 bytes .392919229s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4233453_ f5 1d 30083 bytes .344982013s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 4233453_ f15 1d 30083 bytes .364388583s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 27197 f1 1d 31516 bytes .429844459s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 27197 f5 1d 31516 bytes .314981509s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl 27197 f15 1d 31516 bytes .326819167s
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" "dt":"20/11/2026 21:10" "dt":"20/11/2026 21:15" 
-== wl30 879007 2.445985700s count 8651
-== rf30 885941 3.006894872s count 8399
-"dt":"22/10/2026 21:00" "dt":"22/10/2026 21:05" "dt":"22/10/2026 21:10" grep: write error: Broken pipe
-
-== rf 4131001_ 31109 291
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" 
-== rf TKMN0007 10432 98
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:15" 
-== rf 26665 30690 292
-"dt":"20/11/2026 21:00" "dt":"20/11/2026 21:05" 
+v24.22.3
+== run1 18s
+{
+ "at": "2026-11-21T13:35:14.607Z",
+ "sources": {
+  "kemaman": {
+   "ok": true,
+   "gauges": 25,
+   "failed": 0,
+   "full": 25
+  },
+  "jps-TRG": {
+   "water": true,
+   "rain": true,
+   "errors": {},
+   "stations": 47
+  },
+  "tide-cukai": {
+   "ok": true,
+   "error": null,
+   "events": 105
+  }
+ }
+}
+916K	s8/run1/kemaman
+now.json
+rf-25822.json
+rf-26661.json
+rf-26665.json
+rf-27191.json
+rf-27192.json
+rf-27193.json
+rf-27194.json
+rf-27195.json
+rf-27196.json
+rf-27197.json
+rf-27199.json
+rf-3933001_.json
+rf-4131001_.json
+rf-4232002_.json
+rf-4233453_.json
+rf-4234109_.json
+rf-TKMN0007.json
+wl-25822.json
+wl-26675.json
+wl-27192.json
+wl-27195.json
+wl-27196.json
+wl-27197.json
+wl-4131001_.json
+wl-4233453_.json
+end 1795268100000 water 8 rain 17
+WL Sg. Cherul di Jambatan Ban Ho 4131001_ 10.7 307 [10.7, 10.7, 10.7]
+WL Sg. Kemaman di Rumah Pam Paya Paman 4233453_ 1.54 26 [1.43, 1.51, 1.54]
+WL Sg. Tumpat di Kg. Baru Kemasik 25822 1.01 26 [0.9, 1.04, 1.01]
+WL Sg. Kemaman di Jamb. Air Putih (F2) 27192 8.84 306 [8.84, 8.84, 8.84]
+WL Sg. Cukai di Kg. Yak Yah (F2) 27195 0.03 308 [0.03, 0.03, 0.03]
+WL Sg. Kemaman di Kg. Rantau Panjang (F2) 27196 3.67 301 [3.67, 3.67, 3.67]
+WL Sg. Mas di Kg. Sg. Mas (F2) 27197 29.14 308 [29.14, 29.14, 29.14]
+WL Muara Sg. Kemaman di Kg. Geliga (F2) 26675 1.12 308 [1.23, 1.22, 1.2]
+RF Hulu Jabor 3933001_ 48 8 [None, None, None, None, None, None]
+RF Jambatan Ban Ho 4131001_ 158 0 [0, None, None, None, None, None]
+RF Kg. Baru Kemasik 25822 168 52.5 [None, None, None, None, None, None]
+RF Jambatan Air Putih 4232002_ 168 202.5 [None, 0, None, None, None, None]
+RF Rumah Pam Paya Paman 4233453_ 168 0 [None, None, None, None, None, None]
+RF JPS Kemaman 4234109_ 168 214 [None, None, None, None, None, None]
+RF Yak Yah TKMN0007 168 220.0 [None, 0, None, None, None, None]
+RF SMK Neram (F2) 26665 168 281.5 [0, 0, None, None, None, None]
+RF Jambatan Air Putih (F2) 27192 168 573.0 [0, 0, None, 0, 0, None]
+RF Hulu Jabor (F2) 27191 145 102.0 [0, 0, None, None, None, None]
+RF Jambatan Tebak (F2) 27193 126 162.0 [0, 0, None, None, None, None]
+RF Seri Bandi (F2) 27194 168 336.0 [0, 0, None, None, None, None]
+RF Kg. Yak Yah (F2) 27195 126 306.0 [0, 0, None, None, None, None]
+RF Kg. Rantau Panjang (F2) 27196 168 388.0 [0, 0, None, None, None, None]
+RF Kg. Sg. Mas (F2) 27197 92 234.0 [0, 0, None, None, None, None]
+RF Bukit Teruna Kijal (F2) 27199 168 666.0 [0, 0, None, None, None, None]
+RF Kuarter JPS di Dusun Nyior (F2) 26661 168 670.0 [0, 0, None, None, None, None]
+run1/kemaman/wl-25822.json 8640 first 4 nulls 7925
+run1/kemaman/wl-26675.json 8640 first 0 nulls 6
+run1/kemaman/wl-27192.json 8640 first 0 nulls 247
