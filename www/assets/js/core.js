@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.5.2';
+  var VERSION = '4.5.3';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -168,6 +168,7 @@
     ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
+    soundLevel: 'critical',          /* sound for: critical = Bahaya / critical alerts only, warning = Amaran & up, all = every alert (4.5.3) */
     sound: true, notify: true, keepInTray: false, startWithWindows: false,   /* keepInTray off: closing the window quits the app (3.3.1) */
     scrapeInfobanjir: true, useDataGovFlood: true,
     siteCheck: true,
@@ -281,6 +282,7 @@
     if (OLD_UPSTREAM.indexOf(String(out.ewUpstream).replace(/\r/g, '').trim()) >= 0) out.ewUpstream = DEFAULTS.ewUpstream;
     if (REFRESH_CHOICES.indexOf(out.refreshMin) < 0) out.refreshMin = DEFAULTS.refreshMin;
     if (['alert', 'warning', 'danger'].indexOf(out.waterAlertLevel) < 0) out.waterAlertLevel = 'alert';
+    if (['critical', 'warning', 'all'].indexOf(out.soundLevel) < 0) out.soundLevel = DEFAULTS.soundLevel;
     if (['land', 'offshore'].indexOf(out.kind) < 0) out.kind = 'land';
     if (['en', 'ms'].indexOf(out.lang) < 0) out.lang = 'en';
     out.adblockExcept = adHosts(out.adblockExcept).join(', ');

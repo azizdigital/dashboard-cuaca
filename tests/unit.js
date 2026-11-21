@@ -842,6 +842,8 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   /* an unchanged 4.4.3 layout becomes the new one; one the user wrote is kept */
   assert.strictEqual(core.cleanSettings({ ewUpstream: "Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\nRantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Tumpat | Kg. Baru Kemasik\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok" }).ewUpstream, core.DEFAULTS.ewUpstream);
   assert.strictEqual(core.cleanSettings({ ewUpstream: 'Ban Ho < Sg. Mas' }).ewUpstream, 'Ban Ho < Sg. Mas');
+  /* sound: critical alerts only by default (4.5.3) */
+  assert.strictEqual(core.cleanSettings({}).soundLevel, 'critical'); assert.strictEqual(core.cleanSettings({ soundLevel: 'all' }).soundLevel, 'all'); assert.strictEqual(core.cleanSettings({ soundLevel: 'loud' }).soundLevel, 'critical');
   assert.ok(R.isTidal(rivers, { name: 'Muara Sg. Kemaman di Kg. Geliga (F2)' }) && R.isTidal(rivers, { name: 'Sg. Tumpat di Kg. Baru Kemasik' }) && R.isTidal(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }) && !R.isTidal(rivers, { name: 'Sg. Mas di Kg. Sg. Mas (F2)' }));
   const pp = { id: 'PP', name: 'Sg. Kemaman di Kg. Rantau Panjang (F2)', level: 14.8, alert: 16, warning: 17, danger: 17.5 };
   const up1 = { id: 'AP', name: 'Sg. Kemaman di Jamb. Air Putih (F2)', level: 9 }, up2 = { id: 'SM', name: 'Sg. Mas di Kg. Sg. Mas (F2)', level: 29 };

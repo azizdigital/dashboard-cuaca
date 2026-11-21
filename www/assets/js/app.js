@@ -1505,8 +1505,11 @@
   /* ------------------------------------------------------------- alerts */
   var Sound = {
     ctx: null,
-    play: function (level) {
+    /* only the levels chosen in Tetapan › Bunyi untuk (default: critical only); "test" always rings */
+    rings: function (level) { var min = { critical: 3, warning: 2, all: 1 }[state.settings.soundLevel] || 3; return (C.LEVEL_RANK[level] || 1) >= min; },
+    play: function (level, test) {
       if (!state.settings.sound || Date.now() < state.mutedUntil) return;
+      if (!test && !this.rings(level)) return;
       try {
         this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
         if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -1521,8 +1524,8 @@
       } catch (e) { /* no audio */ }
     }
   };
-  /* unacknowledged BAHAYA / critical alerts keep ringing every minute */
-  setInterval(function () { if (activeAlerts().some(function (a) { return a.level === 'critical' && !a.acked; })) Sound.play('critical'); }, 60000);
+  /* unacknowledged BAHAYA / critical alerts ring again every 15 minutes (was every minute) */
+  setInterval(function () { if (activeAlerts().some(function (a) { return a.level === 'critical' && !a.acked; })) Sound.play('critical'); }, 15 * 60000);
 
   function onAlerts(list) {
     if (!list || !list.length) return;
@@ -2443,7 +2446,7 @@
   $('hHours').onchange = function () { History.load(); };
   $('hCsv').onclick = function () { History.csv(); };
   $('aAckAll').onclick = function () { Data.ack('all'); };
-  $('aTest').onclick = function () { Sound.play('warning'); Data.test(); };
+  $('aTest').onclick = function () { Sound.play('warning', true); Data.test(); };
   $('aMute').onclick = function () { state.mutedUntil = Date.now() < state.mutedUntil ? 0 : Date.now() + 3600000; Alerts.renderView(); };
   $('aSettings').onclick = function () { show('settings'); };
   $('setForm').addEventListener('input', function (e) { if (e.target.id !== 'f_theme' && !/^newProf/.test(e.target.id)) { state.dirty = true; $('setMsg').textContent = L('Belum disimpan'); } });

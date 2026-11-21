@@ -1,0 +1,6 @@
+Dashboard Cuaca Aziz 4.5.3
+
+- Tetapan › Notifikasi & aplikasi › "Bunyi untuk": Kritikal / Bahaya sahaja (lalai), Amaran & kritikal, atau Semua alert.
+  Alert lain (Waspada, info, amaran awal kecil, offshore) tetap dipapar dan dicatat, cuma senyap.
+- Alert Bahaya / kritikal yang belum diakui berbunyi semula setiap 15 minit (dulu setiap 1 minit).
+- Butang "Uji alert" tetap berbunyi.

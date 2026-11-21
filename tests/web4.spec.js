@@ -377,6 +377,9 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await expect.poll(() => page.evaluate(() => window.__printed)).toContain('Jambatan Ban Ho');
   expect(await page.evaluate(() => window.__printed)).toContain('Hidrograf');
   await fr.locator('[data-act="close"]').click();
+  /* sound: only the chosen levels ring (default critical); the test button always rings */
+  expect(await page.evaluate(() => MC.state.settings.soundLevel)).toBe('critical');
+  await expect(page.locator('#f_soundLevel option')).toHaveCount(3);
   await page.locator('[data-site="rainfall"]').first().click();
   await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=rain/);
   const fr2 = page.frameLocator('#siteHost .frame.on iframe');
@@ -388,7 +391,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.5\.2/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.5\.3/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
