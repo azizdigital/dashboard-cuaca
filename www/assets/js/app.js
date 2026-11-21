@@ -342,9 +342,9 @@
       var site = C.siteById(id);
       /* the iPad app: every site in its own full browser view (like Electron on the PC) */
       if (Native.ok && site && tapped) { Native.open(site); return; }
-      /* infobanjir Terengganu & met.gov.my only answer from Malaysia (not through the relay): the real site, over the app
-         (iPad / iPhone home-screen app: a Safari sheet with "Done"); their data is also on the dashboard cards */
-      if (!isDesktop && site && tapped && C.malaysiaOnly(site, state.settings)) {
+      /* infobanjir Terengganu & met.gov.my only answer from Malaysia (not through the relay): their data on the
+         dashboard cards (water level, station rainfall, MET); only a site with no stand-in opens the real site over the app */
+      if (!isDesktop && site && tapped && C.malaysiaOnly(site, state.settings) && !C.altFor(site, state.settings)) {
         var mw = null;
         try { mw = window.open(siteUrl(site), '_blank'); } catch (e) { mw = null; }
         if (mw) { try { mw.opener = null; } catch (e2) { /* */ } return; }

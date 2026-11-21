@@ -60,6 +60,13 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
   await expect(page.locator('.frame.on iframe, #siteHost .frame.on iframe').first()).toHaveAttribute('src', /embed\.windy\.com.*overlay=waves/);
   await page.locator('[data-site="tideforecast"]').first().click();
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
+  /* the Malaysia-only sites show their data on the dashboard, not a new tab */
+  for (const [id, card] of [['waterlevel', '#cardWater'], ['rainfall', '#cardRainSt'], ['infobanjir', '#cardWater'], ['metmalaysia', '#cardMet']]) {
+    await page.locator('[data-site="' + id + '"]').first().click();
+    await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
+    await expect(page.locator(card)).toBeInViewport();
+  }
+  expect(context.pages().length).toBe(1);
   await page.locator('[data-site="floodhub"]').first().click();
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
   /* no stand-in: straight to the site in a new tab, no card in between */
