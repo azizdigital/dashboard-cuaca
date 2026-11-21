@@ -16,7 +16,10 @@
 const KEY = '__KEY__';
 const HOSTS = __HOSTS__;
 
-const VERSION = 2;
+const VERSION = 3;
+/* small per-site fixes (e.g. JPS: open with your district chosen), kept in the web app on GitHub so they can change
+   without pasting this script again */
+const TWEAKS = '__TWEAKS__';
 /* ad and pop-up networks: their scripts and frames are taken out of relayed pages, and blocked if the page adds them later */
 const AD_HOSTS = ['doubleclick.net', 'googlesyndication.com', 'googleadservices.com', 'adservice.google.com', 'googletagservices.com',
   'amazon-adsystem.com', 'adnxs.com', 'criteo.com', 'criteo.net', 'taboola.com', 'outbrain.com', 'pubmatic.com', 'rubiconproject.com',
@@ -62,7 +65,8 @@ function stripAds(html) {
   html = html.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, tag => adHost(srcOf(tag.slice(0, tag.indexOf('>') + 1))) ? '' : tag);
   html = html.replace(/<link\b[^>]*>/gi, tag => adHost(srcOf(tag)) ? '' : tag);
   html = html.replace(/<ins\b[^>]*class=["'][^"']*adsbygoogle[^"']*["'][^>]*>[\s\S]*?<\/ins>/gi, '');
-  const add = '<style>' + AD_CSS + '</style><script>' + AD_GUARD + '</script>';
+  const add = '<style>' + AD_CSS + '</style><script>' + AD_GUARD + '</script>' +
+    (/^https?:\/\//.test(TWEAKS) ? '<script src="' + TWEAKS + '" defer></script>' : '');
   const head = /<head\b[^>]*>/i.exec(html);
   return head ? html.slice(0, head.index + head[0].length) + add + html.slice(head.index + head[0].length) : add + html;
 }

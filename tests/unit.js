@@ -14,10 +14,10 @@ const test = (name, fn) => tests.push({ name, fn });
 const NOW = Date.UTC(2026, 10, 17, 12, 20); /* 17 Nov 2026 20:20 MYT */
 
 /* ---------------------------------------------------------------- core */
-test('28 sites, unique ids, all https', () => {
-  assert.strictEqual(core.SITES.length, 28);
+test('29 sites, unique ids, all https', () => {
+  assert.strictEqual(core.SITES.length, 29);
   assert.strictEqual(core.SITES.filter(s => !s.added).length, 16);
-  assert.strictEqual(new Set(core.SITES.map(s => s.id)).size, 28);
+  assert.strictEqual(new Set(core.SITES.map(s => s.id)).size, 29);
   core.SITES.forEach(s => assert.ok(/^https:\/\//.test(s.url), s.id));
   assert.strictEqual(core.CATEGORIES.length, 6);
 });
@@ -352,7 +352,8 @@ test('relay worker: removes the framing refusal, keeps the page working, refuses
     assert.strictEqual(core.relayVerdict(502, false), 'down'); assert.strictEqual(core.relayVerdict(403, true), 'refused');
     const rs = core.cleanSettings({ relayUrl: 'https://r.a.workers.dev', relayKey: 'abcdefgh1', relayBad: 'infobanjir.terengganu.gov.my' });
     assert.strictEqual(core.relayFor(core.siteById('infobanjir'), rs), false, 'failed at the last test: browser');
-    assert.strictEqual(core.relayFor(core.siteById('zoomearth'), rs), true);
+    assert.strictEqual(core.relayFor(core.siteById('floodhub'), rs), true);
+    assert.strictEqual(core.relayFor(core.siteById('zoomearth'), rs), false, 'own stand-in preferred');
     /* only the allowed hosts are rewritten in pages */
     assert.strictEqual(R.mod.rewriteText('<a href="https://evil.example.com/x">', 'https://r.dev'), '<a href="https://evil.example.com/x">');
   } finally { R.stop(); }
@@ -393,7 +394,7 @@ test('collector run: snapshot, history, alert log, ack, failure fallback', async
   assert.strictEqual(s3.sources.openMeteo.ok, false);
   await col.checkSites();
   const sites = col.snapshot().sites;
-  assert.strictEqual(Object.keys(sites).length, 28);
+  assert.strictEqual(Object.keys(sites).length, 29);
   assert.strictEqual(sites.windy.frameable, false); assert.strictEqual(sites.jalanow.ok, false); assert.strictEqual(sites.ventusky.frameable, true);
 });
 test('store keeps settings and prunes old history', () => {
@@ -578,7 +579,7 @@ test('relay v2 removes ads; ad-heavy sites go through the relay when wanted', as
   assert.ok(out.includes('var keep=1') && out.includes('/app.js') && out.includes('<p>Tides</p>'));
   assert.ok(/<head><style>/.test(out), 'guard goes first in <head>');
   const root = await w.handle(new Request('https://relay.test/'));
-  assert.ok(/relay v2/.test(await root.text()));
+  assert.ok(/relay v3/.test(await root.text()));
   const s = core.cleanSettings({ relayUrl: 'https://r.workers.dev', relayKey: 'abcdefgh123' });
   assert.strictEqual(core.relayAdsFor(core.siteById('tideforecast'), s), true);
   assert.strictEqual(core.relayAdsFor(core.siteById('windy'), s), false);

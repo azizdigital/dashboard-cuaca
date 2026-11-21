@@ -208,6 +208,12 @@
       wrap.appendChild(wv);
       fr.view = wv;
       wv.addEventListener('did-start-loading', function () { clearMsg(); progress(true); });
+      /* the same small per-site fixes as through the relay (e.g. JPS with the profile's district chosen) */
+      wv.addEventListener('dom-ready', function () {
+        if (!/publicinfobanjir\.water\.gov\.my/.test(wv.getURL ? wv.getURL() : '')) return;
+        fetch('relay-tweaks.js', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; })
+          .then(function (code) { if (code) wv.executeJavaScript(code).catch(function () { }); }).catch(function () { });
+      });
       wv.addEventListener('did-stop-loading', function () {
         fr.lastLoad = Date.now(); progress(false);
         clearTimeout(fr.freshTimer);
@@ -1506,7 +1512,7 @@
     var key = ($('f_relayKey').value || '').trim();
     if (!/^[A-Za-z0-9_-]{8,64}$/.test(key)) { key = newKey(); $('f_relayKey').value = key; state.dirty = true; }
     return fetch('relay-worker.js', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(function (t) { return C.relayCode(t, key); });
+      .then(function (t) { return C.relayCode(t, key, location.origin + location.pathname.replace(/[^/]*$/, '') + 'relay-tweaks.js'); });
   }
   $('relayNewKey').onclick = function () { $('f_relayKey').value = newKey(); state.dirty = true; relayMsg(L('Kunci baru dibuat. Simpan, kemudian salin & tampal skrip relay sekali lagi di Cloudflare.')); };
   $('relayCopy').onclick = function () {
@@ -1547,7 +1553,7 @@
     if (D && D.relayTest) return D.relayTest(s.relayUrl, s.relayKey, targets);
     return fetch(s.relayUrl + '/', { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
       if (!/Relay is running/.test(t)) return { code: 'notrelay', sites: [] };
-      var sites = [], stop = null, old = !/relay v(\d+)/i.test(t) || +/relay v(\d+)/i.exec(t)[1] < 2;
+      var sites = [], stop = null, old = !/relay v(\d+)/i.test(t) || +/relay v(\d+)/i.exec(t)[1] < 3;
       return targets.reduce(function (p, x) {
         return p.then(function () {
           if (stop) return;
@@ -1599,7 +1605,7 @@
           var site = C.siteById(x.id.slice(4));
           return '<div class="rl ' + (x.verdict === 'ok' ? 'y' : 'n') + '">' + (x.verdict === 'ok' ? '✓ ' : '✗ ') + esc(x.id === 'alt:jpsdata' ? L('Paras air & hujan JPS untuk dashboard') : L('Laman ganti untuk {s}', { s: L(site ? site.title : x.id) })) +
             (x.verdict === 'ok' ? '' : ' - ' + esc(L(RELAY_WHY[x.verdict] || RELAY_WHY.http)) + (x.status ? ' (HTTP ' + x.status + ')' : '')) + '</div>';
-        }).join('') + (r.old ? '<div class="rl n">' + esc(L('⚠ Skrip relay di Cloudflare versi lama (tiada buang iklan). Tekan Salin skrip relay, tampal di Cloudflare (Edit code) dan Deploy.')) + '</div>' : '');
+        }).join('') + (r.old ? '<div class="rl n">' + esc(L('⚠ Skrip relay di Cloudflare versi lama. Tekan Salin skrip relay, tampal di Cloudflare (Edit code) dan Deploy sekali lagi.')) + '</div>' : '');
       /* remember the sites the relay cannot fetch, and save what was tested */
       var badHosts = bad.map(function (x) { try { return new URL(C.siteUrl(C.siteById(x.id), s)).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }).filter(Boolean);
       $('f_relayBad').value = badHosts.join(', ');

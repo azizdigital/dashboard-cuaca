@@ -25,18 +25,18 @@ test('dashboard shows water levels, weather, MET and alerts', async ({ page }) =
   await expect(page.locator('#chartRain svg')).toBeVisible();
   await expect(page.locator('#seaBody svg')).toBeVisible();
   await expect(page.locator('#bellBadge')).toHaveText('5');
-  await expect(page.locator('#dashLinks .link')).toHaveCount(28);
+  await expect(page.locator('#dashLinks .link')).toHaveCount(29);
   await expect(page.locator('#cardOffshore')).toBeHidden();
   await expect(page.locator('#profName')).toHaveText('Kemaman');
   await expect(page.locator('#statusText')).toContainText('Updated');
   expect(problems).toEqual([]);
 });
 
-test('all 28 sites open as tabs (6 kept, oldest closed), then "Close all"', async ({ page }) => {
+test('all 29 sites open as tabs (6 kept, oldest closed), then "Close all"', async ({ page }) => {
   const problems = []; await guard(page, problems);
   await ready(page);
   const ids = await page.evaluate(() => MCCore.SITES.map(s => s.id));
-  expect(ids.length).toBe(28);
+  expect(ids.length).toBe(29);
   /* sites whose stand-in is a card on the dashboard (MET, JPS, tides) */
   const toCard = await page.evaluate(() => MCCore.SITES.filter(s => { const a = MCCore.altFor(s, MC.state.settings); return a && a.kind === 'view'; }).map(s => s.id));
   expect(toCard.length).toBe(10);

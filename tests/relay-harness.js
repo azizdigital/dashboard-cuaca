@@ -11,9 +11,10 @@ const { pathToFileURL } = require('url');
 
 const GIF = Buffer.from('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64');
 
-async function loadWorker(key, hosts) {
+async function loadWorker(key, hosts, opts) {
   const src = fs.readFileSync(path.join(__dirname, '..', 'www', 'relay-worker.js'), 'utf8')
-    .replace("'__KEY__'", JSON.stringify(key)).replace('__HOSTS__', JSON.stringify(hosts));
+    .replace("'__KEY__'", JSON.stringify(key)).replace('__HOSTS__', JSON.stringify(hosts))
+    .replace("'__TWEAKS__'", JSON.stringify((opts && opts.tweaks) || ''));
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mc-relay-')), 'relay.mjs');
   fs.writeFileSync(file, src);
   return import(pathToFileURL(file).href);
@@ -28,6 +29,11 @@ function originServer() {
     if (req.url === '/s.css') { res.writeHead(200, { 'Content-Type': 'text/css' }); return res.end('#bg{background:url(/img/c.gif);width:5px;height:5px}'); }
     if (req.url === '/api/data') { res.writeHead(200, { 'Content-Type': 'application/json', 'Set-Cookie': 'sid=1; Domain=127.0.0.1' }); return res.end('{"level":"3.21 m"}'); }
     if (req.url.startsWith('/cf530')) { res.writeHead(530, { 'Content-Type': 'text/html' }); return res.end('error code: 1016'); }
+    if (req.url.startsWith('/jps-page')) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Frame-Options': 'SAMEORIGIN' });
+      return res.end('<!doctype html><html><head><title>River Water Level Data</title></head><body><select id="district"><option value="ALL">ALL</option><option value="Besut">Besut</option><option value="Kemaman">Kemaman</option></select>' +
+        '<div id="result">ALL</div><script>function searchStation(){ document.getElementById("result").textContent = "district:" + document.getElementById("district").value; }</script></body></html>');
+    }
     if (req.url.startsWith('/jps-water')) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Frame-Options': 'SAMEORIGIN' });
       return res.end('<html><body><table><thead><tr><th>No.</th><th>Station ID</th><th>Station Name</th><th>District</th><th>Main Basin</th><th>Sub River Basin</th><th>Last Updated</th><th>Water Level (m)</th><th colspan=4>Threshold</th></tr></thead><tbody>' +
@@ -92,7 +98,7 @@ function hostServer() {
 async function start(key, opts) {
   opts = opts || {};
   const origin = await originServer();
-  const mod = await loadWorker(key, opts.hosts || ['127.0.0.1']);
+  const mod = await loadWorker(key, opts.hosts || ['127.0.0.1'], opts);
   let restore = null;
   if (opts.route) {
     const orig = globalThis.fetch;

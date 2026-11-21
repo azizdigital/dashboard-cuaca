@@ -80,8 +80,8 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
 test('relay again: a refused site (Flood Hub) shows inside the app through the relay; relay test lists it', async ({ page, baseURL }) => {
   const harness = require('./relay-harness');
   const core = require('../www/assets/js/core');
-  const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page'
-    : /aras-air/.test(u) ? 'http://127.0.0.1:' + port + '/jps-water' : /rainfall/.test(u) ? 'http://127.0.0.1:' + port + '/jps-rain' : /tide-forecast/.test(u) ? 'http://127.0.0.1:' + port + '/tides' : null });
+  const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), tweaks: baseURL + 'relay-tweaks.js', route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page'
+    : /aras-air\/data-paras-air\/\?/.test(u) ? 'http://127.0.0.1:' + port + '/jps-page' : /aras-air/.test(u) ? 'http://127.0.0.1:' + port + '/jps-water' : /rainfall/.test(u) ? 'http://127.0.0.1:' + port + '/jps-rain' : /tide-forecast/.test(u) ? 'http://127.0.0.1:' + port + '/tides' : null });
   try {
     await open(page, baseURL);
     await page.click('[data-view="settings"]');
@@ -102,5 +102,9 @@ test('relay again: a refused site (Flood Hub) shows inside the app through the r
     await page.click('[data-view="dashboard"]');
     await expect(page.locator('#waterSub')).toContainText('live through the relay');
     await expect(page.locator('#tideSub')).toContainText('GitHub mirror');
+    /* JPS water level site: the full page, with the profile's district picked by the relay's site fix */
+    await page.locator('[data-site="jpsaras"]').first().click();
+    await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /aras-air\/data-paras-air\/\?state=TRG&type=NEGERI&lang=en#dcdistrict=Kemaman/);
+    await expect(page.frameLocator('#siteHost .frame.on iframe').locator('#result')).toHaveText('district:Kemaman');
   } finally { R.stop(); }
 });

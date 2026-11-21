@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.8';
+  var VERSION = '4.1.9';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -25,7 +25,7 @@
       { id: 'rainfall', title: 'Rainfall Kemaman', desc: 'Data hujan real-time', icon: '🌧️', url: 'https://infobanjir.terengganu.gov.my/Rainfall/District/4' },
       { id: 'floodhub', title: 'Flood Hub Chukai', desc: 'Ramalan banjir AI (Google)', icon: '🤖', url: 'https://sites.research.google/floods/l/4.226693947058215/103.41916850003622/13.39981973087496/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1' },
       { id: 'infobanjir', title: 'Info Banjir Terengganu', desc: 'Portal banjir Terengganu', icon: '🌊', url: 'https://infobanjir.terengganu.gov.my/' },
-      { id: 'jpsaras', title: 'JPS Aras Air Terengganu', desc: 'Public Infobanjir (JPS Malaysia)', icon: '📏', url: 'https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/aras-air-data/?state=TRG&district=ALL&station=ALL&lang=en', added: true },
+      { id: 'jpsaras', title: 'JPS Aras Air Terengganu', desc: 'Public Infobanjir (JPS Malaysia) · daerah profil', icon: '📏', profile: true, url: 'https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/?state=TRG&type=NEGERI&lang=en#dcdistrict={district}', added: true },
       { id: 'jpspeta', title: 'JPS Peta Infobanjir', desc: 'Peta hujan & aras air seluruh negara', icon: '🗺️', url: 'https://publicinfobanjir.water.gov.my/main/', added: true }
     ] },
     { id: 'cuaca', name: 'Cuaca & Radar', icon: '🌧️', items: [
@@ -45,7 +45,8 @@
       { id: 'windyswell', title: 'Windy Swell', desc: 'Alun: tinggi, tempoh, arah · ikut lokasi profil', icon: '〰️', url: 'https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&product=ecmwf&level=surface&detail=true&marker=true&zoom=7&overlay=swell1&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', profile: true, added: true, sea: true },
       { id: 'blitzortung', title: 'Peta Kilat Blitzortung', desc: 'Panahan kilat langsung · ikut lokasi profil', icon: '⚡', url: 'https://map.blitzortung.org/#7/{lat}/{lon}', profile: true, added: true,
         note: 'Untuk rujukan sahaja: laman ini menyatakan datanya bukan untuk melindungi orang atau peralatan.' },
-      { id: 'vesselfinder', title: 'VesselFinder', desc: 'Kedudukan kapal (AIS)', icon: '🚢', url: 'https://www.vesselfinder.com/', added: true }
+      { id: 'vesselfinder', title: 'VesselFinder', desc: 'Kedudukan kapal (AIS)', icon: '🚢', url: 'https://www.vesselfinder.com/', added: true },
+      { id: 'marinetraffic', title: 'MarineTraffic', desc: 'Peta kapal (AIS) · ikut lokasi profil', icon: '⚓', url: 'https://www.marinetraffic.com/en/ais/embed/zoom:9/centery:{lat}/centerx:{lon}/maptype:4/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vtypes:/showmenu:/remember:false', profile: true, sea: true, added: true }
     ] },
     { id: 'marine', name: 'Pasang Surut', icon: '⚓', items: [
       { id: 'tideforecast', title: 'Tide Forecast', desc: 'Pasang surut 30 hari', icon: '🌊', url: 'https://www.tide-forecast.com/locations/Cukai/tides/latest', ads: true },
@@ -84,12 +85,12 @@
     metmalaysia: { view: 'dashboard', anchor: 'cardMet', title: 'Ramalan & amaran MET di Dashboard (data rasmi MET)' },
     floodhub: { view: 'dashboard', anchor: 'cardFlood', title: 'Ramalan aliran sungai 30 hari di Dashboard (GloFAS)' },
     jpspeta: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
-    himawari: { url: WINDY + '&zoom=5&overlay=clouds&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - awan' },
+    himawari: { prefer: true, url: 'https://www.ventusky.com/?p={lat};{lon};5&l=satellite', title: 'Ventusky - satelit (imej Himawari) - CIRA SLIDER hanya boleh dilihat di lamannya sendiri' },
     windy: { prefer: true, url: WINDY + '&zoom=8&overlay=rain&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - hujan & ribut petir' },
     windywave: { prefer: true, url: WINDY + '&zoom=7&overlay=waves&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - ombak' },
     windywind: { prefer: true, url: WINDY + '&zoom=7&overlay=wind&lat={mlat}&lon={mlon}&detailLat={mlat}&detailLon={mlon}', title: 'Windy (versi embed) - angin' },
     metradar: { url: 'https://www.rainviewer.com/map.html?loc={lat},{lon},7&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=3&o=83&lm=1&layer=radar&sm=1&sn=1', title: 'RainViewer - radar hujan langsung' },
-    zoomearth: { url: 'https://www.rainviewer.com/map.html?loc={lat},{lon},7&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=3&o=83&lm=1&layer=radar&sm=1&sn=1', title: 'RainViewer - radar & awan' },
+    zoomearth: { prefer: true, url: 'https://www.ventusky.com/?p={lat};{lon};6&l=satellite', title: 'Ventusky - satelit (imej Himawari) - Zoom Earth sering gagal melalui relay' },
     storms: { url: WINDY + '&zoom=4&overlay=wind&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - angin & ribut tropika' },
     webcam: { prefer: true, url: 'https://webcams.windy.com/webcams/public/embed/player/1733738208/day', title: 'Webcam Jambatan Lama Teladas (Windy Webcams embed)' },
     vesselfinder: { prefer: true, url: 'embed/vessels.html?lat={mlat}&lon={mlon}&zoom=8', local: true, title: 'VesselFinder - peta kapal (versi embed rasmi)' }
@@ -126,7 +127,8 @@
     var sea = s.kind === 'offshore' || site.sea;
     var lat = sea ? s.marineLat : s.lat, lon = sea ? s.marineLon : s.lon;
     var mb = Math.abs(lat).toFixed(3) + (lat >= 0 ? 'N' : 'S') + Math.abs(lon).toFixed(3) + (lon >= 0 ? 'E' : 'W');
-    return site.url.replace(/\{lat\}/g, (+lat).toFixed(3)).replace(/\{lon\}/g, (+lon).toFixed(3)).replace('{mb}', mb);
+    return site.url.replace(/\{lat\}/g, (+lat).toFixed(3)).replace(/\{lon\}/g, (+lon).toFixed(3)).replace('{mb}', mb)
+      .replace('{district}', encodeURIComponent(s.waterDistrict || 'ALL'));
   }
 
   /* government sites whose certificate chain is often incomplete: accepted anyway, and ONLY these */
@@ -219,8 +221,9 @@
       return s.relayUrl + '/' + s.relayKey + '/' + u.protocol.replace(':', '') + '/' + u.host + u.pathname + u.search + u.hash;
     } catch (e) { return ''; }
   }
-  function relayCode(template, key) {
-    return String(template).replace("'__KEY__'", JSON.stringify(key)).replace('__HOSTS__', JSON.stringify(relayHosts()));
+  function relayCode(template, key, tweaksUrl) {
+    return String(template).replace("'__KEY__'", JSON.stringify(key)).replace('__HOSTS__', JSON.stringify(relayHosts()))
+      .replace("'__TWEAKS__'", JSON.stringify(tweaksUrl || ''));
   }
 
   /* "https://www.tide-forecast.com/x, vesselfinder.com" -> ["tide-forecast.com", "vesselfinder.com"] */
