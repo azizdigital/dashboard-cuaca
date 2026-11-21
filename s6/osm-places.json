@@ -1,0 +1,6172 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-21T12:53:21Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 254072832,
+  "lat": 4.4267153,
+  "lon": 103.4523390,
+  "tags": {
+    "is_in": "kemaman",
+    "name": "Kemasik",
+    "name:en": "Kemasik",
+    "name:ms": "Kemasek",
+    "name:zh": "甘马仕",
+    "name:zh-Hans": "甘马仕",
+    "name:zh-Hant": "甘馬仕",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 254072947,
+  "lat": 3.9160548,
+  "lon": 103.0342962,
+  "tags": {
+    "name": "Sungai Lembing",
+    "name:ms": "Sungai Lembing",
+    "name:zh": "林明",
+    "name:zh-Hans": "林明",
+    "name:zh-Hant": "林明",
+    "place": "town",
+    "wikidata": "Q7640157",
+    "wikipedia": "en:Sungai Lembing"
+  }
+},
+{
+  "type": "node",
+  "id": 254072955,
+  "lat": 3.8594630,
+  "lon": 103.2208940,
+  "tags": {
+    "name": "Tanjung Pasir",
+    "name:en": "Tanjung Pasir",
+    "name:ms": "Tanjung Pasir",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 254073297,
+  "lat": 4.3349921,
+  "lon": 103.4811629,
+  "tags": {
+    "name": "Kijal",
+    "name:en": "Kijal",
+    "name:ms": "Kijal",
+    "name:zh": "基惹",
+    "name:zh-Hans": "基惹",
+    "name:zh-Hant": "基惹",
+    "place": "town",
+    "wikidata": "Q4204552",
+    "wikipedia": "en:Kijal"
+  }
+},
+{
+  "type": "node",
+  "id": 254073303,
+  "lat": 3.8827400,
+  "lon": 103.1792050,
+  "tags": {
+    "name": "Pasir Kemudi",
+    "name:ms": "Pasir Kemudi",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 254073306,
+  "lat": 4.5083051,
+  "lon": 103.4418038,
+  "tags": {
+    "alt_name": "Kertih",
+    "ele": "1",
+    "name": "Kerteh",
+    "name:en": "Kerteh",
+    "name:ms": "Kerteh",
+    "name:zh": "吉利地",
+    "name:zh-Hans": "吉利地",
+    "name:zh-Hant": "吉利地",
+    "place": "town",
+    "population": "3064",
+    "wikidata": "Q2460772",
+    "wikipedia": "en:Kerteh"
+  }
+},
+{
+  "type": "node",
+  "id": 254073406,
+  "lat": 4.4091197,
+  "lon": 103.3967577,
+  "tags": {
+    "name": "Air Jernih",
+    "name:zh": "亚益仁耐",
+    "name:zh-Hant": "亞益仁耐",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 254073467,
+  "lat": 4.3742870,
+  "lon": 103.3300930,
+  "tags": {
+    "name": "Pasir Belaram",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 254073974,
+  "lat": 3.8604490,
+  "lon": 103.2098630,
+  "tags": {
+    "name": "Batu Sawar",
+    "name:en": "Batu Sawar",
+    "name:ms": "Batu Sawar",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 254074007,
+  "lat": 4.2193065,
+  "lon": 103.4225158,
+  "tags": {
+    "alt_name": "Cukai;Kemaman",
+    "alt_name:ar": "تشيوكاي",
+    "ele": "1",
+    "name": "Chukai",
+    "name:ar": "تشوكاي",
+    "name:en": "Chukai",
+    "name:ja": "チュカイ",
+    "name:ms": "Chukai",
+    "name:zh": "朱盖",
+    "name:zh-Hans": "朱盖",
+    "name:zh-Hant": "朱蓋",
+    "place": "city",
+    "population": "215582",
+    "population:date": "2020",
+    "source:population": "DOSM 2020",
+    "wikidata": "Q2546441",
+    "wikipedia": "en:Chukai"
+  }
+},
+{
+  "type": "node",
+  "id": 254074194,
+  "lat": 4.3384820,
+  "lon": 103.3904660,
+  "tags": {
+    "created_by": "JOSM",
+    "name": "Pondok Limau",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 254074218,
+  "lat": 3.9663280,
+  "lon": 103.2901502,
+  "tags": {
+    "name": "Perasing",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 254074386,
+  "lat": 4.3108460,
+  "lon": 103.3788690,
+  "tags": {
+    "created_by": "JOSM",
+    "name": "Pengkalan Yakyah",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 254074419,
+  "lat": 4.3855920,
+  "lon": 103.2576470,
+  "tags": {
+    "created_by": "JOSM",
+    "name": "Lubuk Gayung",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 1498267007,
+  "lat": 4.2448553,
+  "lon": 103.4075478,
+  "tags": {
+    "name": "Kampung Mak Chili",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1498267014,
+  "lat": 4.4072256,
+  "lon": 103.4118273,
+  "tags": {
+    "name": "Kampung Semayor",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1552529057,
+  "lat": 4.3594358,
+  "lon": 103.3906924,
+  "tags": {
+    "name": "Kampung Batu 9",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1552529062,
+  "lat": 4.3777591,
+  "lon": 103.4120984,
+  "tags": {
+    "name": "Kampung Bukit Teruna",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1552529067,
+  "lat": 4.3199680,
+  "lon": 103.3666733,
+  "tags": {
+    "name": "Kampung Ibok",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1552529070,
+  "lat": 4.3110439,
+  "lon": 103.3709289,
+  "tags": {
+    "name": "Kampung Yak Yah",
+    "name:zh": "甘榜亚雅",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1598668514,
+  "lat": 4.5422842,
+  "lon": 103.4566281,
+  "tags": {
+    "name": "Kampung Labohan",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1598732354,
+  "lat": 4.1479628,
+  "lon": 103.4019143,
+  "tags": {
+    "name": "Kampung Kubang Ikan",
+    "name:ms": "Kampung Kubang Ikan",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1598732431,
+  "lat": 4.1852355,
+  "lon": 103.4319050,
+  "tags": {
+    "name": "Taman Perwaja",
+    "name:ms": "Taman Perwaja",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 1604494382,
+  "lat": 4.0404850,
+  "lon": 103.3925637,
+  "tags": {
+    "name": "Kampung Sungai Ular",
+    "name:ms": "Kampung Sungai Ular",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 1635341601,
+  "lat": 4.5144410,
+  "lon": 103.4480693,
+  "tags": {
+    "name": "Kampung Tengah",
+    "name:ms": "Kampung Tengah",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 1727304247,
+  "lat": 4.3715741,
+  "lon": 103.4547228,
+  "tags": {
+    "name": "Kampung Meraga Beris",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 2155586788,
+  "lat": 4.2345863,
+  "lon": 103.4235854,
+  "tags": {
+    "name": "Kemaman",
+    "name:en": "Kemaman",
+    "name:ms": "Kemaman",
+    "name:zh": "甘马挽",
+    "name:zh-Hans": "甘马挽",
+    "name:zh-Hant": "甘馬挽",
+    "place": "city",
+    "population": "327547",
+    "wikidata": "Q1827701",
+    "wikipedia": "en:Kemaman District"
+  }
+},
+{
+  "type": "node",
+  "id": 2194455258,
+  "lat": 4.2284563,
+  "lon": 103.4408463,
+  "tags": {
+    "name": "Kampung Kuala Kemaman",
+    "name:zh": "甘马挽港口",
+    "place": "village",
+    "wikidata": "Q65221429",
+    "wikipedia": "ms:Kampung Kuala Kemaman"
+  }
+},
+{
+  "type": "node",
+  "id": 2953935601,
+  "lat": 3.8888210,
+  "lon": 103.3625425,
+  "tags": {
+    "name": "Taman Batu Hitam",
+    "name:ms": "Taman Batu Hitam",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3339658203,
+  "lat": 4.4796697,
+  "lon": 103.4397659,
+  "tags": {
+    "name": "Taman Kektus",
+    "name:ms": "Taman Kektus",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 3345653323,
+  "lat": 4.5077729,
+  "lon": 103.4376734,
+  "tags": {
+    "name": "Taman Wan Adnan",
+    "name:ms": "Taman Wan Adnan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3345653342,
+  "lat": 4.4860605,
+  "lon": 103.4366928,
+  "tags": {
+    "name": "Kampung Baru",
+    "name:ms": "Kampung Baru",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 3393385031,
+  "lat": 4.1265086,
+  "lon": 103.3924741,
+  "tags": {
+    "name": "Cherating",
+    "name:en": "Cherating",
+    "name:ms": "Cherating",
+    "name:zh": "遮拉汀",
+    "name:zh-Hans": "遮拉汀",
+    "name:zh-Hant": "遮拉汀",
+    "place": "village",
+    "wikidata": "Q5091844",
+    "wikipedia": "en:Cherating"
+  }
+},
+{
+  "type": "node",
+  "id": 3430123613,
+  "lat": 4.5174106,
+  "lon": 103.4461098,
+  "tags": {
+    "name": "Kampung Gelugor",
+    "name:ms": "Kampung Gelugor",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3430124206,
+  "lat": 4.4736528,
+  "lon": 103.4051653,
+  "tags": {
+    "name": "Kampung Chabang",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3451752394,
+  "lat": 4.4833946,
+  "lon": 103.4386812,
+  "tags": {
+    "addr:postcode": "24300",
+    "addr:street": "Lorong Tanjung Utara",
+    "name": "Taman Kertih Indah 3",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 3473326104,
+  "lat": 4.4633319,
+  "lon": 103.4420280,
+  "tags": {
+    "name": "Perumahan Casa Impian",
+    "name:ms": "Perumahan Casa Impian",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 3473326110,
+  "lat": 4.4840679,
+  "lon": 103.4328231,
+  "tags": {
+    "name": "Taman Nabila",
+    "name:ms": "Taman Nabila",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3473326111,
+  "lat": 4.4785463,
+  "lon": 103.4346279,
+  "tags": {
+    "name": "Taman Selasih 1",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3501074889,
+  "lat": 4.5491209,
+  "lon": 103.4046797,
+  "tags": {
+    "name": "Kampung Pengkalan Ranggon",
+    "name:ms": "Kampung Pengkalan Ranggon",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3514902715,
+  "lat": 4.5058337,
+  "lon": 103.4351320,
+  "tags": {
+    "name": "Perumahan Panalex",
+    "name:ms": "Perumahan Panalex",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3665695726,
+  "lat": 4.5089756,
+  "lon": 103.4444492,
+  "tags": {
+    "addr:city": "Kerteh",
+    "addr:district": "Kemaman",
+    "addr:postcode": "24300",
+    "name": "Kampung Telaga Papan",
+    "name:ms": "Kampung Telaga Papan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3665695825,
+  "lat": 4.5147574,
+  "lon": 103.4535973,
+  "tags": {
+    "name": "Pantai Rekreasi Kuala Kertih",
+    "name:en": "Kuala Kertih Recreation Beach",
+    "name:ms": "Pantai Rekreasi Kuala Kertih",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 3755341625,
+  "lat": 4.4276616,
+  "lon": 103.4410712,
+  "tags": {
+    "name": "Kg Tok Kaya Kanan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433273,
+  "lat": 4.2502258,
+  "lon": 103.4270577,
+  "tags": {
+    "name": "Kampung Bakau Tinggi",
+    "name:ms": "Kampung Bakau Tinggi",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433274,
+  "lat": 4.4258352,
+  "lon": 103.4431635,
+  "tags": {
+    "name": "Kampung Baru Kanan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433275,
+  "lat": 4.4240136,
+  "lon": 103.4390137,
+  "tags": {
+    "name": "Kampung Baru Kemasik",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433276,
+  "lat": 4.4226763,
+  "lon": 103.4441785,
+  "tags": {
+    "name": "Kampung Baru Kiri",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433277,
+  "lat": 4.4280989,
+  "lon": 103.4482722,
+  "tags": {
+    "name": "Kampung Lubuk Kawah",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433278,
+  "lat": 4.4161215,
+  "lon": 103.4566104,
+  "tags": {
+    "name": "Pantai Kemasik",
+    "name:en": "Kemasik Beach",
+    "name:ms": "Pantai Kemasik",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 3755433282,
+  "lat": 4.2513118,
+  "lon": 103.4250173,
+  "tags": {
+    "name": "Taman Kemaman",
+    "name:ms": "Taman Kemaman",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3803009978,
+  "lat": 4.4901757,
+  "lon": 103.4387951,
+  "tags": {
+    "name": "Taman Kerteh Indah 1",
+    "name:ms": "Taman Kerteh Indah 1",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3803009988,
+  "lat": 4.4744338,
+  "lon": 103.4401949,
+  "tags": {
+    "name": "Taman Kerteh Indah 4",
+    "name:ms": "Taman Kerteh Indah 4",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3803010010,
+  "lat": 4.4928096,
+  "lon": 103.4393744,
+  "tags": {
+    "name": "Taman Dahlia Jaya",
+    "name:ms": "Taman Dahlia Jaya",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 3812181205,
+  "lat": 3.9058336,
+  "lon": 103.3605326,
+  "tags": {
+    "name": "Kampung Sungai Karang Darat",
+    "name:ms": "Kampung Sungai Karang Darat",
+    "name:zh": "甘榜双溪加浪达辣",
+    "name:zh-Hans": "甘榜双溪加浪达辣",
+    "name:zh-Hant": "甘榜雙溪加浪達辣",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3913952498,
+  "lat": 4.1333245,
+  "lon": 103.2429761,
+  "tags": {
+    "name": "Bandar Baharu Cheneh",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3913952499,
+  "lat": 4.2782778,
+  "lon": 103.2260065,
+  "tags": {
+    "name": "Kampung Dadong",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3913952500,
+  "lat": 4.2503200,
+  "lon": 103.2912206,
+  "tags": {
+    "name": "Kampung Pasir Gajah",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 3913952501,
+  "lat": 4.0467899,
+  "lon": 103.2880851,
+  "tags": {
+    "name": "Kampung Sungai Pergam",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 3913952502,
+  "lat": 4.2851105,
+  "lon": 103.2358671,
+  "tags": {
+    "name": "Kampung Tebak",
+    "place": "hamlet",
+    "postal_code": "24000",
+    "wikidata": "Q61105049",
+    "wikipedia": "ms:Kampung Tebak"
+  }
+},
+{
+  "type": "node",
+  "id": 3913953619,
+  "lat": 4.2838652,
+  "lon": 103.2598032,
+  "tags": {
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4001765887,
+  "lat": 3.8639052,
+  "lon": 103.2495371,
+  "tags": {
+    "name": "Taman Kampung Padang",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4001765888,
+  "lat": 3.8564268,
+  "lon": 103.2533838,
+  "tags": {
+    "name": "Taman Padang Jaya",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4085128869,
+  "lat": 3.9121343,
+  "lon": 103.2570452,
+  "tags": {
+    "name": "FELDA Bukit Goh",
+    "name:zh": "武吉莪",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4085128871,
+  "lat": 4.3790985,
+  "lon": 103.3976833,
+  "tags": {
+    "name": "Kampung Payoh",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4085128877,
+  "lat": 4.4964303,
+  "lon": 103.4314998,
+  "tags": {
+    "name": "Taman Kertih Dahlia 4",
+    "name:ms": "Taman Kertih Dahlia 4",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 4215191090,
+  "lat": 4.0406754,
+  "lon": 103.3961989,
+  "tags": {
+    "name": "Kampung Tengah",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4215191098,
+  "lat": 4.0781642,
+  "lon": 103.3865715,
+  "tags": {
+    "name": "Taman Agroteknologi MARDI Cherating",
+    "place": "farm"
+  }
+},
+{
+  "type": "node",
+  "id": 4312486317,
+  "lat": 4.3378592,
+  "lon": 103.4770124,
+  "tags": {
+    "name": "Kampung Beris Nenas",
+    "name:ms": "Kampung Beris Nenas",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4319054161,
+  "lat": 4.2403524,
+  "lon": 103.4045047,
+  "tags": {
+    "name": "Kampung Jaya",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4327793892,
+  "lat": 4.1858898,
+  "lon": 103.4306136,
+  "tags": {
+    "name": "Taman Geliga Indah",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4352171918,
+  "lat": 4.1917739,
+  "lon": 103.4323646,
+  "tags": {
+    "name": "Taman Geliga Sempadan",
+    "name:ms": "Taman Geliga Sempadan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307895,
+  "lat": 4.2434339,
+  "lon": 103.4252969,
+  "tags": {
+    "name": "Kampung Besut",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307896,
+  "lat": 4.4118251,
+  "lon": 103.4523514,
+  "tags": {
+    "name": "Kampung Bukit Kukuran",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307897,
+  "lat": 4.1743499,
+  "lon": 103.4098318,
+  "tags": {
+    "alt_name": "Chendor",
+    "name": "Cendur",
+    "name:ms": "Cendur",
+    "official_name": "Cendur",
+    "place": "village",
+    "wikidata": "Q12685025"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307898,
+  "lat": 4.0114468,
+  "lon": 103.4073213,
+  "tags": {
+    "name": "Kampung Gebeng",
+    "name:ms": "Kampung Gebeng",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307910,
+  "lat": 4.2868711,
+  "lon": 103.4732728,
+  "tags": {
+    "name": "Taman Sri Kalongan",
+    "name:ms": "Taman Sri Kalongan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4352307912,
+  "lat": 4.0155513,
+  "lon": 103.4056406,
+  "tags": {
+    "name": "Taman Sungai Ular Jaya",
+    "name:ms": "Taman Sungai Ular Jaya",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 4573367993,
+  "lat": 3.9472192,
+  "lon": 103.3214600,
+  "tags": {
+    "name": "Jabor",
+    "name:en": "Jabor",
+    "name:zh": "雅姆",
+    "place": "hamlet",
+    "wikidata": "Q29400068",
+    "wikipedia": "en:Jabor"
+  }
+},
+{
+  "type": "node",
+  "id": 5113406240,
+  "lat": 3.9242295,
+  "lon": 103.3617890,
+  "tags": {
+    "name": "Chengal Lempong",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 5201659622,
+  "lat": 3.8975940,
+  "lon": 103.1438002,
+  "tags": {
+    "name": "Panching",
+    "name:en": "Panching",
+    "name:ms": "Panching",
+    "name:zh": "班珍",
+    "name:zh-Hans": "班珍",
+    "name:zh-Hant": "班珍",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 5332803042,
+  "lat": 4.2850345,
+  "lon": 103.4730577,
+  "tags": {
+    "name": "Kampung Teluk Kalong",
+    "name:ms": "Kampung Teluk Kalong",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 5342507670,
+  "lat": 4.2397449,
+  "lon": 103.4520399,
+  "tags": {
+    "name": "Pantai Teluk Marina",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 5360249307,
+  "lat": 4.3877525,
+  "lon": 103.4542394,
+  "tags": {
+    "name": "Bandar Pelancungan Pantai Kijal",
+    "name:ms": "Bandar Pelancungan Pantai Kijal",
+    "place": "neighbourhood",
+    "tourism": "attraction"
+  }
+},
+{
+  "type": "node",
+  "id": 5368325951,
+  "lat": 3.8711242,
+  "lon": 103.2752741,
+  "tags": {
+    "alt_name": "KotaSAS",
+    "name": "Kota Sultan Ahmad Shah (KOTASAS)",
+    "name:ms": "Kota Sultan Ahmad Shah",
+    "name:zh": "尚城",
+    "place": "suburb",
+    "wikidata": "Q105759461"
+  }
+},
+{
+  "type": "node",
+  "id": 5899280192,
+  "lat": 3.9584186,
+  "lon": 103.3712530,
+  "tags": {
+    "name": "Perumahan Balok Perdana",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 5901635256,
+  "lat": 4.1757348,
+  "lon": 103.4100313,
+  "tags": {
+    "name": "Perumahan Cendur Makmur",
+    "name:ms": "Perumahan Cendur Makmur",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6427530733,
+  "lat": 4.0806137,
+  "lon": 103.3834068,
+  "tags": {
+    "name": "Taman Baging Jaya",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6435772171,
+  "lat": 4.4264383,
+  "lon": 103.4460646,
+  "tags": {
+    "name": "Perumahan Lot 2102 Taman Kemasik Tok Kaya",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6438261793,
+  "lat": 3.9271821,
+  "lon": 103.3512297,
+  "tags": {
+    "addr:city": "Kuantan",
+    "name": "Taman Mutiara Sungai Karang",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6438261997,
+  "lat": 4.0994313,
+  "lon": 103.3803785,
+  "tags": {
+    "name": "Perkampungan Cherating Perdana",
+    "name:ms": "Perkampungan Cherating Perdana",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6438498544,
+  "lat": 4.1917108,
+  "lon": 103.4350027,
+  "tags": {
+    "name": "Taman Geliga Intan",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6452203802,
+  "lat": 4.0111912,
+  "lon": 103.2740155,
+  "tags": {
+    "name": "FELDA Neram 1",
+    "place": "village",
+    "source": "wikipedia",
+    "wikidata": "Q7333181",
+    "wikipedia": "ms:Felda Neram 1"
+  }
+},
+{
+  "type": "node",
+  "id": 6454909596,
+  "lat": 4.0443024,
+  "lon": 103.3869137,
+  "tags": {
+    "name": "Kampung Sungai Ular",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 6564341904,
+  "lat": 4.3598433,
+  "lon": 103.4660017,
+  "tags": {
+    "name": "Taman Kijal Mentauh 2",
+    "name:ms": "Taman Kijal Mentauh 2",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6567189812,
+  "lat": 4.2217645,
+  "lon": 103.3539058,
+  "tags": {
+    "name": "Alam Perdana",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6567189815,
+  "lat": 4.2294755,
+  "lon": 103.3624620,
+  "tags": {
+    "name": "Kampung Tok Kapor",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6567486315,
+  "lat": 4.2348630,
+  "lon": 103.3825995,
+  "tags": {
+    "name": "Perumahan Seroja Indah",
+    "name:ms": "Perumahan Seroja Indah",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6567486413,
+  "lat": 4.2364348,
+  "lon": 103.3851965,
+  "tags": {
+    "name": "Taman Binjai Seroja",
+    "name:ms": "Taman Binjai Seroja",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6569036983,
+  "lat": 4.4783426,
+  "lon": 103.4389550,
+  "tags": {
+    "name": "Perumahan Gemilang - Taman Kertih Indah 4",
+    "name:ms": "Perumahan Gemilang - Taman Kertih Indah 4",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 6790298067,
+  "lat": 4.2447281,
+  "lon": 103.4489860,
+  "tags": {
+    "alt_name": "Pulau Kuching",
+    "gns:ufi": "-2378646",
+    "name": "Pulau Kucing",
+    "note": "Much of the stream surrounding this island has been reclaimed that it is no longer an island in definition.",
+    "place": "locality",
+    "source": "USNGA"
+  }
+},
+{
+  "type": "node",
+  "id": 6790320820,
+  "lat": 4.2789785,
+  "lon": 103.4183192,
+  "tags": {
+    "place": "island"
+  }
+},
+{
+  "type": "node",
+  "id": 6793006507,
+  "lat": 3.9365848,
+  "lon": 103.0951056,
+  "tags": {
+    "gns:ufi": "10908522",
+    "name": "Pulau Kawah",
+    "place": "islet",
+    "source": "USNGA",
+    "wikidata": "Q49671695"
+  }
+},
+{
+  "type": "node",
+  "id": 7231985580,
+  "lat": 4.0981055,
+  "lon": 103.3827909,
+  "tags": {
+    "name": "Kampung Baru Cherating",
+    "name:ms": "Kampung Baru Cherating",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 7236818713,
+  "lat": 3.8560694,
+  "lon": 103.0395020,
+  "tags": {
+    "name": "Kuantan",
+    "name:ar": "كوانتان",
+    "place": "district"
+  }
+},
+{
+  "type": "node",
+  "id": 8015470065,
+  "lat": 3.8518849,
+  "lon": 103.3350445,
+  "tags": {
+    "name": "Perkampungan Semambu",
+    "name:ms": "Perkampungan Semambu",
+    "place": "village",
+    "source": "https://openstreetcam.org/details/2347434/685"
+  }
+},
+{
+  "type": "node",
+  "id": 8250467669,
+  "lat": 3.9362750,
+  "lon": 103.3730888,
+  "tags": {
+    "alt_name": "Kampung Baluk",
+    "name": "Kampung Balok",
+    "place": "village",
+    "wikidata": "Q61105270"
+  }
+},
+{
+  "type": "node",
+  "id": 8250498633,
+  "lat": 3.8939245,
+  "lon": 103.3576290,
+  "tags": {
+    "name": "Taman Sungai Karang",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 8589367451,
+  "lat": 3.9640998,
+  "lon": 103.1880140,
+  "tags": {
+    "name": "FELDA Bukit Sagu 2",
+    "place": "village",
+    "postal_code": "26050"
+  }
+},
+{
+  "type": "node",
+  "id": 8589367452,
+  "lat": 3.9511863,
+  "lon": 103.1934482,
+  "tags": {
+    "name": "FELDA Bukit Sagu 1",
+    "place": "village",
+    "postal_code": "26050"
+  }
+},
+{
+  "type": "node",
+  "id": 8589372585,
+  "lat": 3.9484628,
+  "lon": 103.2376816,
+  "tags": {
+    "name": "FELDA Bukit Kuantan",
+    "place": "village"
+  }
+},
+{
+  "type": "node",
+  "id": 8992779298,
+  "lat": 3.9954834,
+  "lon": 103.0502134,
+  "tags": {
+    "GNS:id": "10908527",
+    "name": "Tanjung Belit",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 9007736349,
+  "lat": 4.0155322,
+  "lon": 103.1605482,
+  "tags": {
+    "GNS:id": "-2397893",
+    "name": "Bukit Tenggek",
+    "note": "formerly a hill but has been mined for aggregates.",
+    "place": "locality",
+    "wikidata": "Q31261772"
+  }
+},
+{
+  "type": "node",
+  "id": 9054083816,
+  "lat": 4.2865063,
+  "lon": 103.1744776,
+  "tags": {
+    "GNS:id": "11144791",
+    "name": "Tanjung Belimbing",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 9054114196,
+  "lat": 3.8854466,
+  "lon": 103.1824851,
+  "tags": {
+    "GNS:id": "11011184",
+    "name": "Tanjung Putus",
+    "name:ms": "Tanjung Putus",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 9071053010,
+  "lat": 4.2712008,
+  "lon": 103.2325065,
+  "tags": {
+    "GNS:id": "11144794",
+    "name": "Tanjung Lubuk Dadung",
+    "place": "locality"
+  }
+},
+{
+  "type": "node",
+  "id": 11395375950,
+  "lat": 4.3887046,
+  "lon": 103.4513345,
+  "tags": {
+    "addr:state": "Terengganu",
+    "addr:suburb": "Kijal",
+    "name": "Taman D'Mawardah",
+    "name:ms": "Taman D'Mawardah",
+    "place": "village",
+    "postal_code": "24100"
+  }
+},
+{
+  "type": "node",
+  "id": 11395375956,
+  "lat": 4.3804889,
+  "lon": 103.4539282,
+  "tags": {
+    "addr:state": "Terengganu",
+    "addr:suburb": "Kijal",
+    "name": "Perumahan Taman Mawardah",
+    "name:en": "Taman Mawardah Housing",
+    "name:ms": "Perumahan Taman Mawardah",
+    "place": "neighbourhood",
+    "postal_code": "24100"
+  }
+},
+{
+  "type": "node",
+  "id": 11780431265,
+  "lat": 3.8552561,
+  "lon": 103.3578502,
+  "tags": {
+    "alt_name": "Taman Darat Sekolah Beserah",
+    "name": "Taman Carnation Park",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 11780431291,
+  "lat": 3.8564818,
+  "lon": 103.3604063,
+  "tags": {
+    "name": "Kampung Darat Sekolah",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 11782603721,
+  "lat": 3.8513102,
+  "lon": 103.3579709,
+  "tags": {
+    "name": "Taman Beserah Ria",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 11802639245,
+  "lat": 3.9368668,
+  "lon": 102.9223792,
+  "tags": {
+    "name": "Ulu Kuantan",
+    "place": "region",
+    "source:name": "1965 Ulu Lepar map. Series L7010, Sheet 81, Edition 1, Director of National Mapping Malaysia"
+  }
+},
+{
+  "type": "node",
+  "id": 12073618772,
+  "lat": 4.2526270,
+  "lon": 103.1296706,
+  "tags": {
+    "name": "Pulau Utonk",
+    "place": "locality",
+    "source:name": "Director of National Mapping Malaysia, Series L7010, Sheet 72, Ayer Puteh, 1965 (Copyright expired)"
+  }
+},
+{
+  "type": "node",
+  "id": 12074598573,
+  "lat": 4.2149752,
+  "lon": 103.4030360,
+  "tags": {
+    "name": "Kampung Bukit Mentok",
+    "place": "village",
+    "source:name": "Jabatan Perancangan Bandar dan Desa"
+  }
+},
+{
+  "type": "node",
+  "id": 12074598574,
+  "lat": 4.2085981,
+  "lon": 103.3960515,
+  "tags": {
+    "alt_name": "Kampong Tanjong Mak Ta",
+    "name": "Kampung Tanjung Mak Tak",
+    "place": "hamlet",
+    "source:alt_name": "Director of National Mapping Malaysia, Series L7010, Sheet 73, Chukai, 1965 (Copyright expired)",
+    "source:name": "Jabatan Perancangan Bandar dan Desa"
+  }
+},
+{
+  "type": "node",
+  "id": 12090139863,
+  "lat": 4.3812565,
+  "lon": 103.3162987,
+  "tags": {
+    "alt_name": "Kampung Seri Bandi",
+    "name": "Kampung Sri Bandi",
+    "place": "hamlet",
+    "source:name": "Jabatan Perancangan Bandar dan Desa"
+  }
+},
+{
+  "type": "node",
+  "id": 13073462863,
+  "lat": 3.9286578,
+  "lon": 103.3576722,
+  "tags": {
+    "name": "Cengal Lempung Perdana",
+    "place": "neighbourhood",
+    "postal_code": "26100"
+  }
+},
+{
+  "type": "node",
+  "id": 13164470871,
+  "lat": 4.2208755,
+  "lon": 103.4227653,
+  "tags": {
+    "name": "Taman Jakar",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13447708894,
+  "lat": 3.8552792,
+  "lon": 103.2826699,
+  "tags": {
+    "name": "Indera Mahkota 18",
+    "place": "quarter"
+  }
+},
+{
+  "type": "node",
+  "id": 13503005810,
+  "lat": 3.8979400,
+  "lon": 103.3366803,
+  "tags": {
+    "name": "Bandar Damansara Kuantan",
+    "place": "suburb"
+  }
+},
+{
+  "type": "node",
+  "id": 13536139834,
+  "lat": 3.9072279,
+  "lon": 103.0295779,
+  "tags": {
+    "name": "Kampung Kolong Pahat",
+    "name:en": "Kolong Pahat Village",
+    "name:ms": "Kampung Kolong Pahat",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536139835,
+  "lat": 3.9100739,
+  "lon": 103.0287486,
+  "tags": {
+    "name": "Kampung Seberang",
+    "name:en": "Seberang Village",
+    "name:ms": "Kampung Seberang",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536139836,
+  "lat": 3.9219084,
+  "lon": 103.0312417,
+  "tags": {
+    "name": "Kampung Sungai Arang",
+    "name:ms": "Kampung Sungai Arang",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536139837,
+  "lat": 3.9236180,
+  "lon": 103.0354311,
+  "tags": {
+    "name": "Kampung Jeram Takar",
+    "name:en": "Jeram Takar Village",
+    "name:ms": "Kampung Jeram Takar",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536139838,
+  "lat": 3.9023262,
+  "lon": 103.0299452,
+  "tags": {
+    "name": "Kampung Sungai Rimau",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536189388,
+  "lat": 3.9271670,
+  "lon": 103.0364860,
+  "tags": {
+    "name": "Kampung Bukit Pos",
+    "name:ms": "Kampung Bukit Pos",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536189389,
+  "lat": 3.9202360,
+  "lon": 103.0367252,
+  "tags": {
+    "name": "Kampung Melayu Sungai Lembing",
+    "name:en": "Lembing River Malay Village",
+    "name:ms": "Kampung Melayu Sungai Lembing",
+    "name:zh": "林明马来甘榜",
+    "name:zh-Hans": "林明马来甘榜",
+    "name:zh-Hant": "林明馬來甘榜",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13536189440,
+  "lat": 3.9309293,
+  "lon": 103.0486644,
+  "tags": {
+    "name": "Kampung Kuala Kenau",
+    "name:ms": "Kampung Kuala Kenau",
+    "place": "hamlet",
+    "source:name": "GNS"
+  }
+},
+{
+  "type": "node",
+  "id": 13536189444,
+  "lat": 3.9662769,
+  "lon": 103.0289418,
+  "tags": {
+    "name": "Kampung Sungai Mas",
+    "name:en": "Sungai Mas Orang Asli Village",
+    "name:ms": "Kampung Orang Asli Sungai Mas",
+    "place": "hamlet",
+    "source": "trail route for HOKA KoSL 2025"
+  }
+},
+{
+  "type": "node",
+  "id": 13576367809,
+  "lat": 3.9414935,
+  "lon": 103.3620434,
+  "tags": {
+    "alt_name": "Taman Balok Baru",
+    "name": "Taman Baluk Baru",
+    "place": "neighbourhood",
+    "postal_code": "26080",
+    "wikidata": "Q61105271"
+  }
+},
+{
+  "type": "node",
+  "id": 13606906836,
+  "lat": 3.9478987,
+  "lon": 103.3702060,
+  "tags": {
+    "name": "Kampung Tebing Tinggi",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 13606937287,
+  "lat": 3.9342089,
+  "lon": 103.3639708,
+  "tags": {
+    "alt_name": "Baluk Permai",
+    "name": "Balok Permai",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13606937288,
+  "lat": 3.9376761,
+  "lon": 103.3681282,
+  "tags": {
+    "name": "Balok Darat",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13606937289,
+  "lat": 3.9516940,
+  "lon": 103.3837005,
+  "tags": {
+    "name": "Seberang Balok",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13606937290,
+  "lat": 3.9308576,
+  "lon": 103.3704861,
+  "tags": {
+    "name": "Taman Balok Maju",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13606937291,
+  "lat": 3.9273383,
+  "lon": 103.3693276,
+  "tags": {
+    "name": "Balok Sejahtera",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13606965554,
+  "lat": 3.9313291,
+  "lon": 103.3657157,
+  "tags": {
+    "admin_level": "8",
+    "name": "Sungai Karang",
+    "official_name": "Mukim Sungai Karang",
+    "place": "town",
+    "wikidata": "Q12710004"
+  }
+},
+{
+  "type": "node",
+  "id": 13613537755,
+  "lat": 3.9542781,
+  "lon": 103.3605433,
+  "tags": {
+    "alt_name": "Perumahan Balok Baru",
+    "name": "Perumahan Baluk Baru",
+    "place": "neighbourhood",
+    "postal_code": "26100"
+  }
+},
+{
+  "type": "node",
+  "id": 13657668735,
+  "lat": 4.0554046,
+  "lon": 103.3917919,
+  "tags": {
+    "name": "Perumahan Sungai Ular Aman",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 13657668943,
+  "lat": 3.9296112,
+  "lon": 103.3714585,
+  "tags": {
+    "name": "Taman Balok Sejahtera",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14383548101,
+  "lat": 3.9087823,
+  "lon": 103.1036009,
+  "tags": {
+    "name": "RRM Kg Kolek",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14383548181,
+  "lat": 3.9054033,
+  "lon": 103.1231079,
+  "tags": {
+    "name": "Kampung Sungai Derhaka",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 14383548182,
+  "lat": 3.9037847,
+  "lon": 103.1288253,
+  "tags": {
+    "name": "Kampung Sungai Charu",
+    "place": "hamlet"
+  }
+},
+{
+  "type": "node",
+  "id": 14385117406,
+  "lat": 3.8727452,
+  "lon": 103.2082096,
+  "tags": {
+    "name": "Bukit Kuin",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14385483876,
+  "lat": 4.3395787,
+  "lon": 103.4753548,
+  "tags": {
+    "name": "Perumahan Beris Nenas 1",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14394527750,
+  "lat": 3.8587053,
+  "lon": 103.3642981,
+  "tags": {
+    "admin_level": "8",
+    "name": "Beserah",
+    "place": "town",
+    "wikidata": "Q65064632",
+    "wikipedia": "en:Beserah (state constituency)"
+  }
+},
+{
+  "type": "node",
+  "id": 14397966302,
+  "lat": 4.4053052,
+  "lon": 103.4463518,
+  "tags": {
+    "name": "Perumahan RMM Gong Chengal Sejahtera Fasa 2",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14398233727,
+  "lat": 4.4327100,
+  "lon": 103.4503317,
+  "tags": {
+    "name": "Perumahan Lot 1086 Taman Kemasik Utama",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14398811830,
+  "lat": 4.5053880,
+  "lon": 103.4333889,
+  "tags": {
+    "name": "Taman Kerteh Sri Gemilang 2",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "node",
+  "id": 14398841099,
+  "lat": 4.5161313,
+  "lon": 103.4352634,
+  "tags": {
+    "name": "Kuarters Meteorologi Kerteh",
+    "place": "neighbourhood"
+  }
+},
+{
+  "type": "way",
+  "id": 155374134,
+  "center": {
+    "lat": 3.9371848,
+    "lon": 103.3043973
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Aspa Cottage;Gebeng;Beserah;Pelabuhan Kuantan;Cherating",
+    "destination:ref": "101;3;14",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "junction:ref": "836",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 155374135,
+  "center": {
+    "lat": 3.9371009,
+    "lon": 103.3043963
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kuala Terengganu;Kuantan;Kuala Lumpur",
+    "destination:ref": "E8",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "junction:ref": "836",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 157664516,
+  "center": {
+    "lat": 3.8587220,
+    "lon": 103.2328789
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 157664520,
+  "center": {
+    "lat": 3.8586986,
+    "lon": 103.2329869
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 166224959,
+  "center": {
+    "lat": 4.0244507,
+    "lon": 103.4000532
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk_link",
+    "layer": "1",
+    "name": "Gebeng Bypass",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "source": "gps"
+  }
+},
+{
+  "type": "way",
+  "id": 183843321,
+  "center": {
+    "lat": 4.3052173,
+    "lon": 103.3936411
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 183843323,
+  "center": {
+    "lat": 4.5292874,
+    "lon": 103.4394074
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "no",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "Kerteh–Kuantan Port Railway Line",
+    "name:en": "Kerteh–Kuantan Port Railway Line",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "branch"
+  }
+},
+{
+  "type": "way",
+  "id": 183843326,
+  "center": {
+    "lat": 4.4796750,
+    "lon": 103.4189844
+  },
+  "tags": {
+    "bridge": "yes",
+    "electrified": "no",
+    "gauge": "1000",
+    "layer": "1",
+    "name": "Kerteh–Kuantan Port Railway Line",
+    "name:en": "Kerteh–Kuantan Port Railway Line",
+    "railway": "abandoned",
+    "railway:traffic_mode": "freight",
+    "usage": "main"
+  }
+},
+{
+  "type": "way",
+  "id": 183843346,
+  "center": {
+    "lat": 4.5207839,
+    "lon": 103.4339071
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Batu Puteh",
+    "ref": "T127",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 183843347,
+  "center": {
+    "lat": 4.5140252,
+    "lon": 103.4380944
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "layer": "1",
+    "name": "Jalan Batu Puteh",
+    "ref": "T127",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 183843349,
+  "center": {
+    "lat": 4.4534175,
+    "lon": 103.4090711
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Cabang",
+    "name:ms": "Jalan Cabang",
+    "ref": "T129",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 183843409,
+  "center": {
+    "lat": 4.3796344,
+    "lon": 103.4057997
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "mapillary": "473414243912781",
+    "name": "Jalan Bukit Teruna",
+    "name:ms": "Jalan Bukit Teruna",
+    "ref": "T120",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 187203277,
+  "center": {
+    "lat": 3.8646920,
+    "lon": 103.2347573
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 187203279,
+  "center": {
+    "lat": 3.8646733,
+    "lon": 103.2348697
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 187329630,
+  "center": {
+    "lat": 3.9878140,
+    "lon": 103.3019284
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187329632,
+  "center": {
+    "lat": 3.9879184,
+    "lon": 103.3018426
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187351685,
+  "center": {
+    "lat": 4.3664799,
+    "lon": 103.3305111
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187351688,
+  "center": {
+    "lat": 4.3665835,
+    "lon": 103.3303872
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187351716,
+  "center": {
+    "lat": 4.3731826,
+    "lon": 103.3373513
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187351718,
+  "center": {
+    "lat": 4.3732687,
+    "lon": 103.3372571
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187352634,
+  "center": {
+    "lat": 4.3769499,
+    "lon": 103.3424178
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187352641,
+  "center": {
+    "lat": 4.3770134,
+    "lon": 103.3422403
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187374353,
+  "center": {
+    "lat": 4.4059212,
+    "lon": 103.3791842
+  },
+  "tags": {
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187374354,
+  "center": {
+    "lat": 4.4058926,
+    "lon": 103.3793147
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kijal",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187378502,
+  "center": {
+    "lat": 4.4112368,
+    "lon": 103.3820566
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187378505,
+  "center": {
+    "lat": 4.4112573,
+    "lon": 103.3822009
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kijal",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187388409,
+  "center": {
+    "lat": 4.4740954,
+    "lon": 103.3970037
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187388412,
+  "center": {
+    "lat": 4.4740163,
+    "lon": 103.3971033
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kijal",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187388416,
+  "center": {
+    "lat": 4.4751476,
+    "lon": 103.3974932
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187388418,
+  "center": {
+    "lat": 4.4751594,
+    "lon": 103.3976450
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kijal",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187748380,
+  "center": {
+    "lat": 4.5177562,
+    "lon": 103.3811948
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kuala Terengganu",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "motor_vehicle": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 187748381,
+  "center": {
+    "lat": 4.5178131,
+    "lon": 103.3813162
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "motor_vehicle": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 207272802,
+  "center": {
+    "lat": 3.8600150,
+    "lon": 103.3229654
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "name:ms": "Jalan Pintasan Kuantan",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 207272803,
+  "center": {
+    "lat": 3.8601160,
+    "lon": 103.3229360
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "name:ms": "Jalan Pintasan Kuantan",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 207273113,
+  "center": {
+    "lat": 3.8640266,
+    "lon": 103.3290756
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 208508176,
+  "center": {
+    "lat": 3.9422490,
+    "lon": 103.3723845
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Kuantan-Kemaman",
+    "ref": "2",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 208508178,
+  "center": {
+    "lat": 3.9429773,
+    "lon": 103.3757076
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Kuantan-Kemaman",
+    "ref": "2",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 286558079,
+  "center": {
+    "lat": 4.0517330,
+    "lon": 103.3083730
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286558083,
+  "center": {
+    "lat": 4.0518085,
+    "lon": 103.3084707
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286702782,
+  "center": {
+    "lat": 4.1645099,
+    "lon": 103.2795297
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286702783,
+  "center": {
+    "lat": 4.1644887,
+    "lon": 103.2794096
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286908407,
+  "center": {
+    "lat": 4.1449388,
+    "lon": 103.2350637
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "oneway": "no",
+    "ref": "14"
+  }
+},
+{
+  "type": "way",
+  "id": 286917519,
+  "center": {
+    "lat": 4.1555555,
+    "lon": 103.2591570
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "yes",
+    "bridge": "yes",
+    "cycleway": "no",
+    "foot": "yes",
+    "highway": "tertiary",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "motor_vehicle": "yes",
+    "name": "Jalan Mak Lagam",
+    "oneway": "no",
+    "ref": "T124",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 286919254,
+  "center": {
+    "lat": 4.1952330,
+    "lon": 103.2846455
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919256,
+  "center": {
+    "lat": 4.2208293,
+    "lon": 103.3053228
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919259,
+  "center": {
+    "lat": 4.2355172,
+    "lon": 103.3115136
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919261,
+  "center": {
+    "lat": 4.2354883,
+    "lon": 103.3116295
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919262,
+  "center": {
+    "lat": 4.2209033,
+    "lon": 103.3052215
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919264,
+  "center": {
+    "lat": 4.1951696,
+    "lon": 103.2847516
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919266,
+  "center": {
+    "lat": 4.2302530,
+    "lon": 103.3100697
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 286919267,
+  "center": {
+    "lat": 4.2302019,
+    "lon": 103.3101865
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287716837,
+  "center": {
+    "lat": 4.2907212,
+    "lon": 103.2528954
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "yes",
+    "bridge": "yes",
+    "cycleway": "no",
+    "foot": "yes",
+    "highway": "primary",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Air Putih",
+    "oneway": "no",
+    "ref": "237",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 287716838,
+  "center": {
+    "lat": 4.2736292,
+    "lon": 103.2720059
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "yes",
+    "bridge": "yes",
+    "cycleway": "no",
+    "foot": "yes",
+    "highway": "primary",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Air Putih",
+    "oneway": "no",
+    "ref": "237",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 287808148,
+  "center": {
+    "lat": 4.2178113,
+    "lon": 103.3174424
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "yes",
+    "bridge": "yes",
+    "cycleway": "no",
+    "foot": "yes",
+    "highway": "primary",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Air Putih",
+    "oneway": "no",
+    "ref": "237",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 287809371,
+  "center": {
+    "lat": 4.2687883,
+    "lon": 103.3033944
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287809373,
+  "center": {
+    "lat": 4.2687399,
+    "lon": 103.3032821
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287812873,
+  "center": {
+    "lat": 4.3225756,
+    "lon": 103.2995904
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287812875,
+  "center": {
+    "lat": 4.3225919,
+    "lon": 103.2994857
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287813082,
+  "center": {
+    "lat": 4.3544721,
+    "lon": 103.3137074
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 287813084,
+  "center": {
+    "lat": 4.3543840,
+    "lon": 103.3137815
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 291195805,
+  "center": {
+    "lat": 4.0245510,
+    "lon": 103.4000395
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Pelabuhan Kuantan;Kuantan",
+    "destination:ref": "3",
+    "highway": "trunk_link",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Pintas Gebeng",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "ref": "101",
+    "source": "Bing",
+    "wikidata": "Q5529559",
+    "wikipedia": "en:Gebeng Bypass"
+  }
+},
+{
+  "type": "way",
+  "id": 299276071,
+  "center": {
+    "lat": 4.3425016,
+    "lon": 103.4568575
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "yes",
+    "maxspeed": "90",
+    "name": "Jalan Kemaman-Dungun",
+    "name:ms": "Jalan Kemaman-Dungun",
+    "oneway": "yes",
+    "ref": "145",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 301893669,
+  "center": {
+    "lat": 4.2134295,
+    "lon": 103.4280603
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "oneway": "yes",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 338187032,
+  "center": {
+    "lat": 4.1306198,
+    "lon": 103.3935679
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "maxweight": "44",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 341124573,
+  "center": {
+    "lat": 4.2135001,
+    "lon": 103.4281410
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "oneway": "yes",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 377818385,
+  "center": {
+    "lat": 4.0232106,
+    "lon": 103.3795400
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Pintasan Gebeng",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "ref": "101",
+    "source": "Bing, mapbox, gps",
+    "wikidata": "Q5529559",
+    "wikipedia": "en:Gebeng Bypass"
+  }
+},
+{
+  "type": "way",
+  "id": 377818400,
+  "center": {
+    "lat": 4.0233125,
+    "lon": 103.3795278
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Pintasan Gebeng",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "ref": "101",
+    "source": "Bing",
+    "wikidata": "Q5529559",
+    "wikipedia": "en:Gebeng Bypass"
+  }
+},
+{
+  "type": "way",
+  "id": 378083290,
+  "center": {
+    "lat": 4.3763259,
+    "lon": 103.3357036
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jerangau - Jabor (Penghantar 2)",
+    "oneway": "no",
+    "ref": "124",
+    "source": "GPS",
+    "source:name": "JKR 2017"
+  }
+},
+{
+  "type": "way",
+  "id": 388177850,
+  "center": {
+    "lat": 4.2713662,
+    "lon": 103.2150540
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "ref": "14"
+  }
+},
+{
+  "type": "way",
+  "id": 388177851,
+  "center": {
+    "lat": 4.2003062,
+    "lon": 103.2979385
+  },
+  "tags": {
+    "access": "yes",
+    "bridge": "yes",
+    "cycleway": "no",
+    "foot": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Mak Lagam",
+    "oneway": "no",
+    "ref": "T124",
+    "sidewalk": "no",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 397975605,
+  "center": {
+    "lat": 3.9060498,
+    "lon": 103.0305477
+  },
+  "tags": {
+    "bridge": "yes",
+    "bridge:structure": "simple-suspension",
+    "highway": "footway",
+    "layer": "1",
+    "name": "Jambatan Gantung Kolong Pahat",
+    "name:en": "Kolong Pahat Suspension Bridge",
+    "name:ms": "Jambatan Gantung Kolong Pahat",
+    "surface": "wood",
+    "width": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 411929707,
+  "center": {
+    "lat": 3.8737577,
+    "lon": 103.2498452
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan FELDA Bukit Goh",
+    "ref": "1486",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 414038609,
+  "center": {
+    "lat": 4.0473729,
+    "lon": 103.3936436
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 414646755,
+  "center": {
+    "lat": 3.8986019,
+    "lon": 103.3639303
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Jalan Beserah",
+    "name:ms": "Jalan Beserah",
+    "ref": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 432082410,
+  "center": {
+    "lat": 4.3428363,
+    "lon": 103.4732605
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Federal Route 3",
+    "ref": "3",
+    "source": "bing"
+  }
+},
+{
+  "type": "way",
+  "id": 488643573,
+  "center": {
+    "lat": 3.8909557,
+    "lon": 103.1486163
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "ref": "231"
+  }
+},
+{
+  "type": "way",
+  "id": 490472110,
+  "center": {
+    "lat": 3.9029497,
+    "lon": 103.1284457
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231"
+  }
+},
+{
+  "type": "way",
+  "id": 490478371,
+  "center": {
+    "lat": 3.8690760,
+    "lon": 103.2367870
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing, GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 490478372,
+  "center": {
+    "lat": 3.8691208,
+    "lon": 103.2366888
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "name:ms": "Lebuhraya Pantai Timur",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing, GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 490478375,
+  "center": {
+    "lat": 3.8642663,
+    "lon": 103.2251932
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 490539441,
+  "center": {
+    "lat": 3.8729165,
+    "lon": 103.1909739
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231"
+  }
+},
+{
+  "type": "way",
+  "id": 496710169,
+  "center": {
+    "lat": 4.2307518,
+    "lon": 103.4233320
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Abdul Rahman",
+    "name:ms": "Jalan Abdul Rahman",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 496710192,
+  "center": {
+    "lat": 4.2332252,
+    "lon": 103.4244942
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Sulaimani",
+    "name:ms": "Jalan Sulaimani",
+    "oneway": "yes",
+    "source": "gps"
+  }
+},
+{
+  "type": "way",
+  "id": 496710193,
+  "center": {
+    "lat": 4.2331589,
+    "lon": 103.4244513
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Sulaimani",
+    "name:ms": "Jalan Sulaimani",
+    "oneway": "yes",
+    "source": "gps"
+  }
+},
+{
+  "type": "way",
+  "id": 506487743,
+  "center": {
+    "lat": 4.2112958,
+    "lon": 103.4254737
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan GCA 1"
+  }
+},
+{
+  "type": "way",
+  "id": 547296946,
+  "center": {
+    "lat": 3.8792176,
+    "lon": 103.1798893
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 547296948,
+  "center": {
+    "lat": 3.8807774,
+    "lon": 103.1734162
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231"
+  }
+},
+{
+  "type": "way",
+  "id": 553469070,
+  "center": {
+    "lat": 4.2789317,
+    "lon": 103.4356038
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Chukai-Kerteh",
+    "name:ms": "Jalan Chukai-Kerteh",
+    "ref": "145"
+  }
+},
+{
+  "type": "way",
+  "id": 553783223,
+  "center": {
+    "lat": 3.8639804,
+    "lon": 103.3291841
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 555611536,
+  "center": {
+    "lat": 4.3424577,
+    "lon": 103.4569340
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "yes",
+    "name": "Jalan Kemaman-Dungun",
+    "name:ms": "Jalan Kemaman-Dungun",
+    "oneway": "yes",
+    "ref": "145",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 556908923,
+  "center": {
+    "lat": 3.8573098,
+    "lon": 103.3068048
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan IM 21/1",
+    "source:name": "ImproveOSM"
+  }
+},
+{
+  "type": "way",
+  "id": 556956165,
+  "center": {
+    "lat": 4.2330430,
+    "lon": 103.3809111
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 557371450,
+  "center": {
+    "lat": 4.2218710,
+    "lon": 103.3807569
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 557371556,
+  "center": {
+    "lat": 4.2194584,
+    "lon": 103.3810837
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 557371561,
+  "center": {
+    "lat": 4.2274759,
+    "lon": 103.3804346
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 625049843,
+  "center": {
+    "lat": 4.1808561,
+    "lon": 103.4230074
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 625049904,
+  "center": {
+    "lat": 4.1630733,
+    "lon": 103.4030119
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 625572736,
+  "center": {
+    "lat": 4.1896548,
+    "lon": 103.3802481
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Mak Lagam",
+    "name:ms": "Jalan Mak Lagam",
+    "ref": "T124",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 685800279,
+  "center": {
+    "lat": 4.0678333,
+    "lon": 103.3895126
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Kuantan - Kuala Terengganu",
+    "name:ms": "Jalan Kuantan - Kuala Terengganu",
+    "ref": "3"
+  }
+},
+{
+  "type": "way",
+  "id": 693049328,
+  "center": {
+    "lat": 4.0242688,
+    "lon": 103.3176385
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 693049330,
+  "center": {
+    "lat": 4.0242396,
+    "lon": 103.3175212
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 693049352,
+  "center": {
+    "lat": 4.0142540,
+    "lon": 103.3171277
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 693049354,
+  "center": {
+    "lat": 4.0143025,
+    "lon": 103.3170031
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 750366889,
+  "center": {
+    "lat": 3.8722369,
+    "lon": 103.3605244
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Taman Berserah 18",
+    "source": "digitalglobe",
+    "source:name": "ImproveOSM"
+  }
+},
+{
+  "type": "way",
+  "id": 750381400,
+  "center": {
+    "lat": 3.9332053,
+    "lon": 103.0493385
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "name": "Jalan Kampung Kuala Kenau Seberang",
+    "source": "digitalglobe"
+  }
+},
+{
+  "type": "way",
+  "id": 750660082,
+  "center": {
+    "lat": 3.9928223,
+    "lon": 103.3580019
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Qinzhou",
+    "name:ms": "Jalan Qinzhou",
+    "name:zh": "钦州路",
+    "name:zh-Hans": "钦州路",
+    "name:zh-Hant": "欽州路",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 753868426,
+  "center": {
+    "lat": 3.9096488,
+    "lon": 103.0295698
+  },
+  "tags": {
+    "bicycle": "yes",
+    "bridge": "yes",
+    "foot": "yes",
+    "highway": "path",
+    "horse": "no",
+    "layer": "1",
+    "motor_vehicle": "no",
+    "name": "Jambatan Gantung Kampung Seberang Sg. Lembing",
+    "surface": "wood",
+    "width": "1.5 m"
+  }
+},
+{
+  "type": "way",
+  "id": 755807150,
+  "center": {
+    "lat": 4.2098454,
+    "lon": 103.4254150
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan GCA 1/3"
+  }
+},
+{
+  "type": "way",
+  "id": 758326401,
+  "center": {
+    "lat": 3.9125731,
+    "lon": 103.0916470
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Sungai Lembing",
+    "name:ms": "Jalan Sungai Lembing",
+    "name:zh": "林明路",
+    "name:zh-Hans": "林明路",
+    "name:zh-Hant": "林明路",
+    "ref": "231"
+  }
+},
+{
+  "type": "way",
+  "id": 758460102,
+  "center": {
+    "lat": 4.0988173,
+    "lon": 103.2819912
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 758460103,
+  "center": {
+    "lat": 4.0987856,
+    "lon": 103.2818460
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 758623001,
+  "center": {
+    "lat": 3.8907343,
+    "lon": 103.3576530
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong SK 1/2",
+    "source": "Bing",
+    "source:name": "ImproveOSM"
+  }
+},
+{
+  "type": "way",
+  "id": 759754479,
+  "center": {
+    "lat": 4.3780800,
+    "lon": 103.2611974
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "ref": "14",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 759780326,
+  "center": {
+    "lat": 4.4799930,
+    "lon": 103.4383037
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Selasih"
+  }
+},
+{
+  "type": "way",
+  "id": 760448802,
+  "center": {
+    "lat": 4.5433336,
+    "lon": 103.3217201
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "name": "Jalan Rasau Kerteh Selatan",
+    "ref": "123"
+  }
+},
+{
+  "type": "way",
+  "id": 780452353,
+  "center": {
+    "lat": 4.5443157,
+    "lon": 103.3669571
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kuala Terengganu",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "motor_vehicle": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 780452355,
+  "center": {
+    "lat": 4.5443927,
+    "lon": 103.3670611
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "motor_vehicle": "yes",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 797664913,
+  "center": {
+    "lat": 4.3588914,
+    "lon": 103.3971687
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 800761614,
+  "center": {
+    "lat": 4.3757407,
+    "lon": 103.4483260
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "mapillary": "473414243912781",
+    "name": "Jalan Bukit Teruna",
+    "ref": "T120",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 800761624,
+  "center": {
+    "lat": 4.3765083,
+    "lon": 103.3973563
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Ibok",
+    "ref": "T13",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 800761627,
+  "center": {
+    "lat": 4.3797598,
+    "lon": 103.4025864
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "mapillary": "473414243912781",
+    "name": "Jalan Bukit Teruna",
+    "name:ms": "Jalan Bukit Teruna",
+    "ref": "T120",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 813026024,
+  "center": {
+    "lat": 3.8634628,
+    "lon": 103.3651052
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Jalan Beserah",
+    "ref": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 813094984,
+  "center": {
+    "lat": 3.9053531,
+    "lon": 103.3600440
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "name": "Jalan Sungai Karang Darat",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 813108683,
+  "center": {
+    "lat": 4.0059896,
+    "lon": 103.3520161
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Pintasan Gebeng",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "ref": "101",
+    "source": "Bing",
+    "wikidata": "Q5529559"
+  }
+},
+{
+  "type": "way",
+  "id": 813108684,
+  "center": {
+    "lat": 4.0059210,
+    "lon": 103.3521549
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "90",
+    "name": "Jalan Pintasan Gebeng",
+    "name:en": "Gebeng Bypass",
+    "oneway": "yes",
+    "ref": "101",
+    "source": "Bing, mapbox, gps",
+    "wikidata": "Q5529559"
+  }
+},
+{
+  "type": "way",
+  "id": 813797266,
+  "center": {
+    "lat": 3.8594553,
+    "lon": 103.2835219
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Persiaran KotaSAS",
+    "name:ms": "Persiaran KotaSAS",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 813797268,
+  "center": {
+    "lat": 3.8594414,
+    "lon": 103.2833978
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Persiaran KotaSAS",
+    "name:ms": "Persiaran KotaSAS",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 813801085,
+  "center": {
+    "lat": 3.9540621,
+    "lon": 103.3315578
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "oneway": "no",
+    "ref": "14",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 813857458,
+  "center": {
+    "lat": 3.9195245,
+    "lon": 103.2970653
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing, GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 813857460,
+  "center": {
+    "lat": 3.9194249,
+    "lon": 103.2971417
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "int_ref": "AH141",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "source": "Bing, GPS",
+    "surface": "asphalt",
+    "toll": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 814048340,
+  "center": {
+    "lat": 3.9293445,
+    "lon": 103.3053432
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor Lama",
+    "ref": "3486",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 814114649,
+  "center": {
+    "lat": 4.4034608,
+    "lon": 103.2620229
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "ref": "14",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 814115121,
+  "center": {
+    "lat": 3.9360543,
+    "lon": 103.3566754
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 814115124,
+  "center": {
+    "lat": 3.9360931,
+    "lon": 103.3565641
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Pintasan Kuantan",
+    "name:en": "Kuantan Bypass",
+    "oneway": "yes",
+    "ref": "3",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 814393480,
+  "center": {
+    "lat": 3.9408594,
+    "lon": 103.3652534
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "tertiary",
+    "layer": "1",
+    "name": "Jalan Balok Baru",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 814407932,
+  "center": {
+    "lat": 3.8556689,
+    "lon": 103.3330149
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Semambu Baru",
+    "source:name": "ImproveOSM"
+  }
+},
+{
+  "type": "way",
+  "id": 814854132,
+  "center": {
+    "lat": 4.4217919,
+    "lon": 103.4236216
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Cabang",
+    "ref": "T129",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 814906508,
+  "center": {
+    "lat": 4.2263849,
+    "lon": 103.3785902
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Persiaran Perdana",
+    "name:ms": "Jalan Persiaran Perdana"
+  }
+},
+{
+  "type": "way",
+  "id": 814906513,
+  "center": {
+    "lat": 4.2253681,
+    "lon": 103.3826131
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Pasir Minal"
+  }
+},
+{
+  "type": "way",
+  "id": 815139748,
+  "center": {
+    "lat": 4.2784289,
+    "lon": 103.2234081
+  },
+  "tags": {
+    "bridge": "yes",
+    "cycleway": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Air Putih",
+    "ref": "237",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 815158991,
+  "center": {
+    "lat": 4.2814543,
+    "lon": 103.2608528
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Rtb Batu 14"
+  }
+},
+{
+  "type": "way",
+  "id": 816094070,
+  "center": {
+    "lat": 4.2304992,
+    "lon": 103.4130199
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Tanjung 2"
+  }
+},
+{
+  "type": "way",
+  "id": 816094072,
+  "center": {
+    "lat": 4.2298445,
+    "lon": 103.4131801
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Tanjung 3"
+  }
+},
+{
+  "type": "way",
+  "id": 816104085,
+  "center": {
+    "lat": 4.2009379,
+    "lon": 103.4316425
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan TF 1/6"
+  }
+},
+{
+  "type": "way",
+  "id": 816131116,
+  "center": {
+    "lat": 4.1849620,
+    "lon": 103.4240829
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Paya Berenjut 3",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 818639689,
+  "center": {
+    "lat": 4.1842601,
+    "lon": 103.4187510
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Paya Berenjut 9",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 818639693,
+  "center": {
+    "lat": 4.1844648,
+    "lon": 103.4203001
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Paya Berenjut 5",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 818640374,
+  "center": {
+    "lat": 4.2231913,
+    "lon": 103.3729718
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "name": "Jalan Desa Seri Jaya"
+  }
+},
+{
+  "type": "way",
+  "id": 818640376,
+  "center": {
+    "lat": 4.2265363,
+    "lon": 103.3766921
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan KP 14"
+  }
+},
+{
+  "type": "way",
+  "id": 818659926,
+  "center": {
+    "lat": 4.2693966,
+    "lon": 103.4354103
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Jalan Chukai-Kerteh",
+    "name:ms": "Jalan Chukai-Kerteh",
+    "oneway": "yes",
+    "ref": "145"
+  }
+},
+{
+  "type": "way",
+  "id": 818659928,
+  "center": {
+    "lat": 4.2693899,
+    "lon": 103.4352903
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Jalan Chukai-Kerteh",
+    "name:ms": "Jalan Chukai-Kerteh",
+    "oneway": "yes",
+    "ref": "145"
+  }
+},
+{
+  "type": "way",
+  "id": 818681096,
+  "center": {
+    "lat": 4.2597430,
+    "lon": 103.4013178
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "60",
+    "name": "Jalan Ibok",
+    "ref": "T131",
+    "source": "GPS"
+  }
+},
+{
+  "type": "way",
+  "id": 818692819,
+  "center": {
+    "lat": 4.2252506,
+    "lon": 103.4125466
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "70",
+    "name": "Jalan Kubang Kurus - Bukit Mentok",
+    "name:ms": "Jalan Kubang Kurus - Bukit Mentok",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 818692825,
+  "center": {
+    "lat": 4.2271558,
+    "lon": 103.4131349
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Haji Hussein"
+  }
+},
+{
+  "type": "way",
+  "id": 818692827,
+  "center": {
+    "lat": 4.2292139,
+    "lon": 103.4132658
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Jalan Kekwa"
+  }
+},
+{
+  "type": "way",
+  "id": 818704971,
+  "center": {
+    "lat": 4.2245537,
+    "lon": 103.4087512
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "maxspeed": "70",
+    "name": "Jalan Kubang Kurus - Bukit Mentok",
+    "name:ms": "Jalan Kubang Kurus - Bukit Mentok",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 818722385,
+  "center": {
+    "lat": 4.4956803,
+    "lon": 103.4303887
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Cabang",
+    "ref": "T129",
+    "source": "gpx"
+  }
+},
+{
+  "type": "way",
+  "id": 818933606,
+  "center": {
+    "lat": 4.1840508,
+    "lon": 103.4172463
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "layer": "1",
+    "name": "Lorong Paya Berenjut 13",
+    "source": "dgs"
+  }
+},
+{
+  "type": "way",
+  "id": 960876424,
+  "center": {
+    "lat": 3.8709892,
+    "lon": 103.2880888
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "motor_vehicle": "permit",
+    "name": "Persiaran Sultan Ahmad Shah",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1201844340,
+  "center": {
+    "lat": 4.2242409,
+    "lon": 103.3474790
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Air Putih",
+    "ref": "237",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1256416250,
+  "center": {
+    "lat": 4.4837423,
+    "lon": 103.4348445
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "residential",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Teratai"
+  }
+},
+{
+  "type": "way",
+  "id": 1267316221,
+  "center": {
+    "lat": 4.0124208,
+    "lon": 103.2976917
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "oneway": "no",
+    "ref": "14",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 1267735590,
+  "center": {
+    "lat": 3.8709477,
+    "lon": 103.2881188
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "unclassified",
+    "layer": "1",
+    "motor_vehicle": "permit",
+    "name": "Persiaran Sultan Ahmad Shah",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1303396911,
+  "center": {
+    "lat": 3.9550121,
+    "lon": 103.2955753
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303396912,
+  "center": {
+    "lat": 3.9550036,
+    "lon": 103.2954586
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "maxspeed": "110",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303396914,
+  "center": {
+    "lat": 3.9791160,
+    "lon": 103.3104434
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "trunk",
+    "lanes": "2",
+    "layer": "1",
+    "name": "Jalan Jabor - Al Muktafi Billah Shah",
+    "oneway": "no",
+    "ref": "14",
+    "source": "Bing"
+  }
+},
+{
+  "type": "way",
+  "id": 1303612695,
+  "center": {
+    "lat": 4.0803899,
+    "lon": 103.2906792
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303612698,
+  "center": {
+    "lat": 4.0804590,
+    "lon": 103.2907907
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303612706,
+  "center": {
+    "lat": 4.0350634,
+    "lon": 103.3145301
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303612708,
+  "center": {
+    "lat": 4.0350959,
+    "lon": 103.3146412
+  },
+  "tags": {
+    "bridge": "yes",
+    "destination": "Karak",
+    "highway": "motorway",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627387,
+  "center": {
+    "lat": 4.2021405,
+    "lon": 103.2898388
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627388,
+  "center": {
+    "lat": 4.2022081,
+    "lon": 103.2897278
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627397,
+  "center": {
+    "lat": 4.1277766,
+    "lon": 103.2820404
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627398,
+  "center": {
+    "lat": 4.1277798,
+    "lon": 103.2819144
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627400,
+  "center": {
+    "lat": 4.1171263,
+    "lon": 103.2813594
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Karak",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1303627403,
+  "center": {
+    "lat": 4.1171203,
+    "lon": 103.2812340
+  },
+  "tags": {
+    "access": "yes",
+    "bicycle": "no",
+    "bridge": "yes",
+    "cycleway": "no",
+    "destination": "Kerteh",
+    "highway": "motorway",
+    "horse": "no",
+    "lanes": "2",
+    "layer": "1",
+    "lit": "no",
+    "name": "Lebuhraya Pantai Timur",
+    "name:en": "East Coast Expressway",
+    "oneway": "yes",
+    "ref": "E8",
+    "surface": "asphalt",
+    "toll": "yes",
+    "wikipedia": "en:East Coast Expressway",
+    "wikipedia:ms": "Lebuhraya Pantai Timur"
+  }
+},
+{
+  "type": "way",
+  "id": 1378216411,
+  "center": {
+    "lat": 4.1022868,
+    "lon": 103.3376216
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1460689477,
+  "center": {
+    "lat": 3.9425275,
+    "lon": 103.3413289
+  },
+  "tags": {
+    "access": "private",
+    "bridge": "yes",
+    "highway": "residential",
+    "lanes": "1",
+    "layer": "1",
+    "name": "Lorong Desa Aspa 9",
+    "source": "Bing",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1466160350,
+  "center": {
+    "lat": 4.1333364,
+    "lon": 103.3717712
+  },
+  "tags": {
+    "bridge": "yes",
+    "electrified": "no",
+    "gauge": "1000",
+    "layer": "1",
+    "name": "Kerteh–Kuantan Port Railway Line",
+    "name:en": "Kerteh–Kuantan Port Railway Line",
+    "railway": "abandoned",
+    "railway:traffic_mode": "freight",
+    "usage": "main"
+  }
+},
+{
+  "type": "way",
+  "id": 1466160355,
+  "center": {
+    "lat": 4.3344998,
+    "lon": 103.3949933
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1474656932,
+  "center": {
+    "lat": 3.9279599,
+    "lon": 103.0355194
+  },
+  "tags": {
+    "bridge": "yes",
+    "highway": "path",
+    "layer": "1",
+    "name": "Jambatan Gantung Bukit Pos",
+    "surface": "wood"
+  }
+},
+{
+  "type": "way",
+  "id": 1474943572,
+  "center": {
+    "lat": 3.8667547,
+    "lon": 103.2969761
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1474943578,
+  "center": {
+    "lat": 3.8667096,
+    "lon": 103.2970065
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1474943580,
+  "center": {
+    "lat": 3.8666272,
+    "lon": 103.2970729
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1474943582,
+  "center": {
+    "lat": 3.8668258,
+    "lon": 103.2969073
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1474943584,
+  "center": {
+    "lat": 3.8669072,
+    "lon": 103.2968399
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256507,
+  "center": {
+    "lat": 4.0396138,
+    "lon": 103.3388141
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-11-06",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "opening_date": "2027-01-01",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256509,
+  "center": {
+    "lat": 4.0175629,
+    "lon": 103.3390956
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-11-06",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "opening_date": "2027-01-01",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256511,
+  "center": {
+    "lat": 3.9912330,
+    "lon": 103.3557523
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-12-24",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "ECRL (Kuantan Port Spurline)",
+    "opening_date": "2027-01-01",
+    "railway": "construction"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256513,
+  "center": {
+    "lat": 3.9970660,
+    "lon": 103.3848823
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-12-24",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "ECRL (Kuantan Port Spurline)",
+    "opening_date": "2027-01-01",
+    "railway": "construction"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256515,
+  "center": {
+    "lat": 3.9926792,
+    "lon": 103.4138595
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-12-24",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "electrified": "contact_line",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "ECRL (Kuantan Port Spurline)",
+    "opening_date": "2027-01-01",
+    "railway": "construction"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256518,
+  "center": {
+    "lat": 3.9291853,
+    "lon": 103.3394591
+  },
+  "tags": {
+    "bridge": "yes",
+    "check_date": "2025-11-06",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "opening_date": "2027-01-01",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1486256519,
+  "center": {
+    "lat": 3.9153215,
+    "lon": 103.3297005
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136103,
+  "center": {
+    "lat": 4.5453588,
+    "lon": 103.4199510
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136114,
+  "center": {
+    "lat": 4.4842292,
+    "lon": 103.4195518
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136116,
+  "center": {
+    "lat": 4.4777591,
+    "lon": 103.4159779
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136118,
+  "center": {
+    "lat": 4.4503664,
+    "lon": 103.4138842
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136119,
+  "center": {
+    "lat": 4.4299508,
+    "lon": 103.4147153
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136122,
+  "center": {
+    "lat": 4.4161348,
+    "lon": 103.4153116
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "construction:railway": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "old_name": "name=Kerteh–Kuantan Port Railway Line",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+},
+{
+  "type": "way",
+  "id": 1536136131,
+  "center": {
+    "lat": 4.2648702,
+    "lon": 103.3876174
+  },
+  "tags": {
+    "bridge": "yes",
+    "construction": "rail",
+    "gauge": "1435",
+    "layer": "1",
+    "name": "East Coast Rail Link",
+    "name:en": "East Coast Rail Link",
+    "proposed": "rail",
+    "proposed:electrified": "contact_line",
+    "proposed:frequency": "50",
+    "proposed:voltage": "25000",
+    "railway": "construction",
+    "railway:traffic_mode": "freight",
+    "short_name": "ECRL",
+    "usage": "main",
+    "wikidata": "Q24896324"
+  }
+}
+
+  ]
+}

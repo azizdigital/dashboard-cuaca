@@ -1,38 +1,4 @@
-== https://overpass-api.de/api/interpreter rivers -> 502 534
-# 502 Gateway Timeout
-
-This Overpass API server is currently at capacity. All query workers are busy
-and the request queue is full.
-
-## What to do
-
-Retry your request using exponential backoff: wait a short interval, then retry.
-If the request fails again, double the wait time and retry again.
-
-## F
-== https://maps.mail.ru/osm/tools/overpass/api/interpreter rivers -> 504 160
-<html>
-<head><title>504 Gateway Time-out</title></head>
-<body>
-<center><h1>504 Gateway Time-out</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-
-curl: (6) Could not resolve host: overpass.osm.jp
-== https://overpass.osm.jp/api/interpreter rivers -> 000 160
-<html>
-<head><title>504 Gateway Time-out</title></head>
-<body>
-<center><h1>504 Gateway Time-out</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-
-== nominatim 14487
-## Kampung Rantau Panjang, Kemaman
-[{"place_id":256533114,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"way","osm_id":388177861,"lat":"4.2788070","lon":"103.2666192","category":"amenity","type":"place_of_worship","place_rank":30,"importance":3.750133516437045e-05,"addresstype":"amenity","name":"Masjid Kampung Batu 14","display_name":"Masjid Kampung Batu 14, Jalan Rantau Panjang, Kemaman, Terengganu, 24050, Malaysia","boundingbox":["4.2781575","4.2796047","103.2659154","103.2676284"]}]
-## Paya Paman, Kemaman
-[]
-## Kampung Baru Kemasik
-[{"place_id":256108507,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"node","osm_id":3755433275,"lat":"4.4240136","lon":"103.4390137","category":"place","type":"ne
+== osm-rivers.json https://overpass-api.de/api/interpreter -> 200 3596530
+== osm-places.json https://overpass-api.de/api/interpreter -> 200 119598
+== osm-coast.json https://overpass-api.de/api/interpreter -> 200 135801
+== nominatim2 15588 rivers 180720
