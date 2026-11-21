@@ -82,7 +82,7 @@
     { id: 'ecmwf_ifs025', name: 'ECMWF IFS' }, { id: 'gfs_seamless', name: 'NOAA GFS' }, { id: 'icon_seamless', name: 'DWD ICON' },
     { id: 'jma_seamless', name: 'JMA GSM' }, { id: 'ukmo_seamless', name: 'UK Met Office' }
   ];
-  var LEVELS = ['Rendah', 'Sederhana', 'Tinggi', 'Sangat tinggi'];
+  var LEVELS = ['Sangat rendah', 'Rendah', 'Sederhana', 'Tinggi', 'Sangat tinggi'];
   function lc(s) { return String(s || '').toLowerCase(); }
   /* "Kg. Air Putih; 4.20; 103.35; Air Putih; pantai" one place per line (station text and "pantai" are optional) */
   function parsePlaces(text) {
@@ -251,7 +251,7 @@
         var sc = R.landScore(weather, river, coastal);
         /* the same with each model's rain: the share that gives High or more, and how far apart they are */
         var lv = per.map(function (v) { return R.landScore(R.weatherPart(Object.assign({}, wo, { rain: v, range: '' })), river, coastal).level; });
-        var prob = lv.length ? lv.filter(function (x) { return x >= 2; }).length / lv.length : null;
+        var prob = lv.length ? lv.filter(function (x) { return x >= 3; }).length / lv.length : null;
         var spread = lv.length ? maxOf(lv) - minOf(lv) : null;
         var conf = spread === null ? 1 : spread === 0 ? 3 : spread === 1 ? 2 : 1;
         if (b.lead >= 7) conf = Math.min(conf, 2);
@@ -261,7 +261,7 @@
         sc.parts.slice().sort(function (x, y) { return y.score - x.score; }).forEach(function (p) {
           p.why.slice(0, p.score >= 25 ? 3 : 1).forEach(function (w) { why.push(p.name + ': ' + w); });
         });
-        if (sc.boost) why.unshift(L('Dua risiko tinggi serentak: skor dinaikkan satu tahap.'));
+        if (sc.boost) why.unshift(L('Sungai sudah tinggi dan hujan / air pasang juga tinggi: dinaikkan satu tahap.'));
         return { level: sc.level, label: sc.label, score: sc.score, parts: sc.parts, boost: sc.boost, prob: prob, n: lv.length, conf: conf, confLabel: confLabel(conf), why: why, rain: rm, rainLo: rlo, rainHi: rhi };
       });
     });
@@ -497,8 +497,8 @@
       line('- ' + shortDay(b.day) + ' ' + b.label + ' | ' + row.join(' || '));
     });
     line('Peluang = ' + (off ? 'bahagian model (angin & ombak) yang memberi No-Go' : 'bahagian model hujan yang memberi risiko Tinggi atau lebih') + '. Keyakinan Tinggi = model sepakat; Rendah = model berbeza jauh atau terlalu jauh ke hadapan.');
-    line(off ? 'Skor risiko operasi 0–100 = gabungan Risiko angin (angin purata & tiupan), Risiko laut (Hs, alun panjang ≥9 s) dan Risiko cuaca (ribut petir, penglihatan, hujan, amaran MET): ambil yang paling tinggi, naik satu tahap (+25) bila dua bahagian ≥50. 25/50/75 = Sederhana/Tinggi/Sangat tinggi.'
-      : 'Skor risiko banjir 0–100 = gabungan Risiko cuaca (hujan 5 model, tanah basah, amaran MET), Risiko sungai (paras & trend JPS, GloFAS) dan Risiko pantai (air pasang besar, paras laut, ombak ke pantai): ambil yang paling tinggi, naik satu tahap (+25) bila dua bahagian ≥50. 25/50/75 = Sederhana/Tinggi/Sangat tinggi.');
+    line(off ? 'Skor risiko operasi 0–100 = gabungan Risiko angin (angin purata & tiupan), Risiko laut (Hs, alun panjang ≥9 s) dan Risiko cuaca (ribut petir, penglihatan, hujan, amaran MET): ambil yang paling tinggi, naik satu tahap bila dua bahagian ≥50. Tahap: <25 Sangat rendah, 25–49 Rendah, 50–70 Sederhana, 71–84 Tinggi, ≥85 Sangat tinggi.'
+      : 'Skor risiko banjir 0–100: Risiko sungai jadi asas (Normal 0, Waspada 5 = naik ketara belum banjir, Amaran 45 = kemungkinan kecil banjir, ≤0.25 m dari Bahaya 70, Bahaya 90 = banjir; dijangka capai Bahaya dalam 4 / 24 jam sehingga 75 / 55). Risiko cuaca (nilai tengah hujan 5 model, tanah basah, amaran MET) dan Risiko pantai (air pasang besar, ombak ke pantai) sahaja paling tinggi 45 (Rendah); ia naikkan skor satu tahap hanya bila sungai sudah Amaran (≥45) dan cuaca/pantai ≥50. Tiada hujan dalam ramalan = sungai tidak dijangka naik. Tahap: <25 Sangat rendah, 25–49 Rendah, 50–70 Sederhana, 71–84 Tinggi, ≥85 Sangat tinggi.');
     if ((r.early || []).length) { line('Amaran awal app:'); r.early.forEach(function (e) { line('- ' + e.title + ': ' + e.body); }); }
     else line('Amaran awal app: tiada (' + (off ? 'angin / ombak tidak naik cepat dalam 24 jam' : 'tiada sungai naik cepat') + ').');
     if (off && (r.windows || []).length) {
@@ -577,7 +577,7 @@
     line('## Format jawapan');
     line('Jawab dalam ' + (en ? 'Bahasa Inggeris' : 'Bahasa Melayu') + ', ringkas dan jelas:');
     line('A. Ringkasan 3–5 ayat: keadaan keseluruhan dan apa yang paling penting.');
-    line(off ? 'B. Jadual: blok masa × kerja (Go / Caution / No-Go), dengan peluang %, tahap keyakinan (Tinggi / Sederhana / Rendah) dan sebab ringkas.' : 'B. Jadual: kawasan × blok masa (risiko banjir Rendah / Sederhana / Tinggi / Sangat tinggi), dengan peluang %, tahap keyakinan dan sebab ringkas.');
+    line(off ? 'B. Jadual: blok masa × kerja (Go / Caution / No-Go), dengan peluang %, tahap keyakinan (Tinggi / Sederhana / Rendah) dan sebab ringkas.' : 'B. Jadual: kawasan × blok masa (risiko banjir Sangat rendah / Rendah / Sederhana / Tinggi / Sangat tinggi), dengan peluang %, tahap keyakinan dan sebab ringkas.');
     line('C. Perbezaan antara data app dan sumber luar, serta mana yang anda pilih dan kenapa.');
     line(off ? 'D. Tanda amaran untuk dipantau (contoh garisan squall, angin naik, swell panjang) dan masa terbaik (weather window) untuk kerja penting.' : 'D. Tanda amaran untuk dipantau (paras sungai, hujan berterusan, air pasang) dan kawasan / jalan yang perlu dielakkan.');
     line('E. Cadangan tindakan.');

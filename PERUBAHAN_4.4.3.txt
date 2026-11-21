@@ -1,0 +1,19 @@
+Dashboard Cuaca Aziz 4.4.3
+
+Skor risiko banjir: sungai jadi asas
+- Risiko sungai (paras JPS berbanding ambang):
+  Normal 0 · Waspada 5 (naik ketara, belum banjir) · Amaran 45 (kemungkinan kecil akan banjir)
+  · Amaran dan ≤ 0.25 m dari Bahaya 70 · Bahaya 90 (banjir).
+  Sungai naik (di Amaran atau lebih): +10. Sungai turun: −10.
+  Dijangka capai Bahaya: dalam 4 jam sehingga 75, dalam 24 jam sehingga 55 (ikut keyakinan).
+- Skor risiko banjir = Risiko sungai. Hujan lebat atau air pasang besar sahaja (sungai belum Amaran): paling tinggi 45 (Rendah).
+  Cuaca / pantai menaikkan skor satu tahap hanya bila sungai sudah Amaran (≥ 45) dan cuaca / pantai ≥ 50.
+- Hujan dibaca daripada 5 model (ECMWF, GFS, ICON, JMA, UKMO): nilai tengah, julat dan senarai setiap model.
+  Ramalan kering (24 jam < 5 mm dan hujan hari ini < 10 mm) = sungai tidak dijangka naik, tiada amaran awal.
+- Sungai rendah (Waspada ≤ 4 m) dianggap pasang surut sehingga ada 20 jam data, supaya air pasang tidak jadi amaran palsu.
+  Rumah Pam Paya Paman dan Kg. Baru Kemasik (Sg. Tumpat) ditanda pasang surut.
+
+Tahap skor baru (semua kad risiko, darat & offshore)
+  < 25 Sangat rendah 🟢 · 25–49 Rendah 🟡 · 50–70 Sederhana 🟠 · 71–84 Tinggi 🔴 · ≥ 85 Sangat tinggi 🟣
+- "Naik satu tahap" = ke tahap seterusnya (+15, dalam julat tahap itu).
+- Skala ini ditunjuk di bawah skor dalam kad.

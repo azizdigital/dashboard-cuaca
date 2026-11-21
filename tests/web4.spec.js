@@ -249,7 +249,7 @@ test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Fl
   expect(+(await page.locator('#rkBody .rk-score b').textContent())).toBeGreaterThanOrEqual(0);
   /* a river rising 0.3 m/h for 3 hours, still below Waspada -> early flood warning (from the app's own readings) */
   const st = await page.evaluate(() => {
-    const x = MC.state.snap.stations.find(s => !s.stale && s.level !== null && s.alert && s.alert - s.level > 0.5 && s.alert - s.level < 3 && !/muara|yak yah/i.test(s.name));
+    const x = MC.state.snap.stations.find(s => !s.stale && s.level !== null && s.alert > 4 && s.alert - s.level > 0.5 && s.alert - s.level < 3 && !/muara|yak yah/i.test(s.name));   /* upstream: low-lying rivers wait for 20 h of data (tide) */
     const now = Date.now(), key = 'mc_d_hist_' + MC.state.profiles.active;
     const hist = [3, 2, 1].map(h => ({ t: now - h * 3600000, levels: { [x.id]: x.level - 0.3 * h } }));
     localStorage.setItem(key, JSON.stringify(hist));

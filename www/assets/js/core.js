@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.4.2';
+  var VERSION = '4.4.3';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -162,8 +162,8 @@
     /* river layout for the early warning (upstream gauges) and the villages at risk: "Station < upstream, ... | village, ..."; ~ = river mouth */
     ewUpstream: 'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\n' +
       'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
-      'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
-      '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
+      '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
+      '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Tumpat | Kg. Baru Kemasik\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
     omEveryMin: 3,                   /* model data (5 rain models, offshore models): every this many minutes, slower near the free daily limit */
     ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,

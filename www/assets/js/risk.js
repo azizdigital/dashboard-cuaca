@@ -1,6 +1,6 @@
 /* Dashboard Cuaca Aziz - risk scores and early warnings.
    Land:     Weather Risk (rain models + MET), River Risk (JPS level & trend, GloFAS), Coastal Risk (tide, sea level, waves at the coast)
-             -> Flood Risk Score 0-100: the worst of the three, one level (25) higher when a second one is also high (>= 50).
+             -> Flood Risk Score 0-100: River risk is the base; rain / tide alone at most 45, one level higher when the river is at Amaran and rain / tide >= 50.
              Early Flood Warning: a river rising fast, or on course to reach Waspada within a few hours, while still below it.
    Offshore: Wind Risk, Sea Risk (Hs, long-period swell), Weather Risk (thunder, visibility, MET) -> Operational Risk Score, same rule.
              Early warnings: wind rising fast (cold surge), wind / waves reaching the limits within the next hours, long swell.
@@ -33,13 +33,17 @@
     for (var i = 1; i < pts.length; i++) if (x <= pts[i][0]) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (x - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]);
     return pts[pts.length - 1][1];
   }
-  var LEVELS = ['Rendah', 'Sederhana', 'Tinggi', 'Sangat tinggi'];
-  function level(score) { return score >= 75 ? 3 : score >= 50 ? 2 : score >= 25 ? 1 : 0; }
+  /* < 25 Sangat rendah · 25–49 Rendah · 50–70 Sederhana · 71–84 Tinggi · >= 85 Sangat tinggi */
+  var LEVELS = ['Sangat rendah', 'Rendah', 'Sederhana', 'Tinggi', 'Sangat tinggi'];
+  var BAND_LO = [0, 25, 50, 71, 85], BAND_HI = [24, 49, 70, 84, 100];
+  function level(score) { return score >= 85 ? 4 : score >= 71 ? 3 : score >= 50 ? 2 : score >= 25 ? 1 : 0; }
+  /* one level up: +15, kept inside the next band (already Sangat tinggi: unchanged) */
+  function bump(s) { var lv = level(s); return lv >= 4 ? s : Math.max(BAND_LO[lv + 1], Math.min(BAND_HI[lv + 1], s + 15)); }
   /* the three parts -> one score: the worst, plus one level when a second part is also high */
   function combine(parts) {
     var v = parts.map(function (p) { return p.score || 0; }).sort(function (a, b) { return b - a; });
     var s = v[0] || 0, boost = v.length > 1 && v[1] >= 50;
-    s = Math.min(100, s + (boost ? 25 : 0));
+    s = boost ? bump(s) : s;
     var lv = level(s);
     return { score: Math.round(s), level: lv, label: L(LEVELS[lv]), boost: boost };
   }
@@ -115,7 +119,9 @@
       sign = sg;
     }
     var tideSeen = turns >= 3 && hi !== null && hi - lo >= 0.25;
-    var tidal = !!cfg.tidal || tideSeen;
+    /* without 24 hours of readings the tide cannot be seen: a gauge with Waspada at 4 m or less is near sea level, take it as tidal */
+    var lowLying = num(st && st.alert) !== null && st.alert <= 4 && last.t - pts[0].t < 20 * HOUR;
+    var tidal = !!cfg.tidal || tideSeen || lowLying;
     var rs = tidal ? r24 : r1 !== null && r4 !== null ? (r1 + r4) / 2 : r1 !== null ? r1 : r4;
     return { at: last.t, level: last.v, rate: rs, rate1: tidal ? null : r1, rate4: tidal ? null : r4, rate24: r24, fit4: tidal ? null : fit(pts, last.t, 4),
       rise4h: v4 === null ? null : last.v - v4, rise24h: v24 === null ? null : last.v - v24, tidal: tidal, tideSeen: tideSeen,
@@ -138,8 +144,9 @@
     'Air Putih | Kg. Teladas, Kg. Dadong',
     'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah',
     'Ban Ho',
-    'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan',
+    '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan',
     '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting',
+    '~Tumpat | Kg. Baru Kemasik',
     '~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok'
   ].join('\n');
   function parseRivers(text) {
@@ -164,7 +171,7 @@
 
   /* rain per model (advisor.collectLand answers, one place) in the next 4 and 24 hours */
   function rainAhead(raw, now) {
-    var r4 = [], r24 = [];
+    var r4 = [], r24 = [], by = [];
     Object.keys((raw && raw.models) || {}).forEach(function (id) {
       var m = raw.models[id], d = m && m.ok && m.data && m.data[0];
       if (!d) return;
@@ -174,9 +181,9 @@
         if (t < now - HOUR || t >= now + 24 * HOUR || d.p[i] === null) continue;
         n++; b += d.p[i]; if (t < now + 4 * HOUR) a += d.p[i];
       }
-      if (n) { r4.push(a); r24.push(b); }
+      if (n) { r4.push(a); r24.push(b); by.push({ id: id, h4: Math.round(a * 10) / 10, h24: Math.round(b * 10) / 10 }); }
     });
-    return { rain4: r4, rain24: r24 };
+    return { rain4: r4, rain24: r24, byModel: by, at: raw && raw.at };
   }
   /* rain so far today at the gauge in the same place ("Sg. X di Kg. Y" <-> "Kg. Y") */
   function obsRain(rains, st) {
@@ -210,7 +217,12 @@
     var p24 = tr.level + Math.max(0, long) * 24 * k;
     var gap = target - tr.level, rr = tr.tidal ? r24 : r;
     var eta = rr > 0.005 ? gap / rr : null;
-    var tier = !tr.tidal && p4 >= target ? 4 : p24 >= target ? 24 : 0;
+    /* no rain, no rise: a river only keeps going up when it rains. Dry = the models' middle value under 5 mm in 24 hours
+       and under 10 mm so far today at the gauge; within 4 hours it also needs rain now or soon (1 mm in 4 hours, or 10 mm today) */
+    var rain4m = med(ctx.rain4), obsT = num(ctx.obsToday);
+    var dry = (rain24 === null || rain24 < 5) && (obsT === null || obsT < 10);
+    var wet4 = (rain4m !== null && rain4m >= 1) || (obsT !== null && obsT >= 10);
+    var tier = dry ? 0 : !tr.tidal && wet4 && p4 >= target ? 4 : p24 >= target ? 24 : 0;
     /* confidence parts, each 0..1 */
     var h = tier || 24, trendS = 0;
     if (rr > 0.005) {
@@ -229,7 +241,8 @@
     var fresh = tr.ageMin <= 30 ? 1 : tr.ageMin <= 60 ? 0.6 : 0.2, dataS = 0.5 * fresh + 0.5 * tr.complete;
     var parts = { trend: Math.round(EW_W.trend * trendS), rain: Math.round(EW_W.rain * rainS), up: Math.round(EW_W.up * upS), data: Math.round(EW_W.data * dataS) };
     var conf = parts.trend + parts.rain + parts.up + parts.data;
-    return { tier: tier, lv: lv, target: tgt[0], targetName: tgt[1], targetM: target, p4: p4, p24: p24, eta: eta, gap: gap, conf: conf, parts: parts,
+    if (dry) { p4 = Math.min(p4, tr.level); p24 = Math.min(p24, tr.level); }
+    return { tier: tier, dry: dry, lv: lv, target: tgt[0], targetName: tgt[1], targetM: target, p4: p4, p24: p24, eta: dry ? null : eta, gap: gap, conf: conf, parts: parts,
       rain24: rain24, upRising: ups.length ? ups.filter(function (x) { return x.rate !== null && x.rate > 0.01; }).length : null, upN: ups.length, glofas: ctx.glofas };
   }
   /* the early flood warnings: projected to reach the next level within 4 or 24 hours. Only those at >= minConf ring;
@@ -285,34 +298,42 @@
     return part('weather', L('Risiko cuaca'), s, why);
   }
   /* o: { stations: [{ name, level, alert, warning, danger, status }], trends: { id: trend }, lead (days ahead), glofas (ratio) } */
+  /* River risk = the risk of a FLOOD from the river. JPS levels: Waspada = well above normal, Amaran = close to flooding
+     (get ready), Bahaya = flooding. So the score only gets high when a river is near or at Bahaya, or on course for it:
+       Normal 0 · Waspada 5 · Amaran 45 · within 0.25 m of Bahaya 70 · Bahaya 90 (+10 rising, -10 falling, at Amaran or more)
+       expected to reach Bahaya: within 4 h up to 75, within 24 h up to 55 (times the confidence); to Amaran: 20; to Waspada: 5 */
   function riverPart(o) {
     var why = [], s = 0, near = o.leadH === undefined ? 1 : o.leadH < 48 ? 1 : o.leadH < 96 ? 0.6 : 0.3;
     var R = { normal: 0, alert: 1, warning: 2, danger: 3 };
+    var MEANS = ['', L('naik ketara, belum banjir'), L('kemungkinan kecil akan banjir'), L('banjir')];
     (o.stations || []).forEach(function (st) {
       var v = num(st.level);
       if (v === null || st.stale) return;
       var lv = st.status && R[st.status] !== undefined ? R[st.status] : num(st.danger) !== null && v >= st.danger ? 3 : num(st.warning) !== null && v >= st.warning ? 2 : num(st.alert) !== null && v >= st.alert ? 1 : 0;
-      var x = [0, 55, 75, 95][lv], tr = o.trends && o.trends[st.name];
-      if (lv === 0 && num(st.alert) !== null && st.alert - v <= 0.3) x = 30;
-      var pr = tr && tr.proj;
-      if (tr) {
-        if (pr && pr.tier) x = Math.max(x, (pr.tier === 4 ? 65 : 45) * (0.6 + 0.4 * pr.conf / 100) + (pr.target === 'danger' ? 10 : 0));
-        if (tr.rising && lv >= 1) x += 10;
-        if (tr.falling && lv >= 1) x -= 10;
+      var x = [0, 5, 45, 90][lv], tr = o.trends && o.trends[st.name], pr = tr && tr.proj;
+      var nearDanger = lv === 2 && num(st.danger) !== null && st.danger - v <= 0.25;
+      if (nearDanger) x = 70;
+      if (pr && pr.tier) {
+        var c = 0.6 + 0.4 * pr.conf / 100;
+        x = Math.max(x, pr.target === 'danger' ? (pr.tier === 4 ? 75 : 55) * c : pr.target === 'warning' ? 20 : 5);
       }
-      x *= near;
+      if (tr && tr.rising && lv >= 2) x += 10;
+      if (tr && tr.falling && lv >= 1) x -= 10;
+      x = Math.max(0, x) * near;
       if (x > s) s = x;
-      if (lv >= 1) why.push(L('{n}: {l} ({v} m){t}.', { n: st.name, l: L(['Normal', 'Waspada', 'Amaran', 'Bahaya'][lv]), v: r2(v), t: tr && tr.rising ? L(', naik {r} m/jam', { r: r2(tr.rate) }) : tr && tr.falling ? L(', turun') : '' }));
-      else if (pr && pr.tier) why.push(L('{n}: {v} m, dijangka capai {l} dalam {h} jam (keyakinan {c}%).', { n: st.name, v: r2(v), l: L(pr.targetName), h: pr.tier, c: pr.conf }));
-      else if (x >= 30) why.push(L('{n} hampir Waspada ({v} m, Waspada {a} m).', { n: st.name, v: r2(v), a: r1(num(st.alert)) }));
+      var mv = tr && tr.rising ? L(', naik {r} m/jam', { r: r2(tr.rate) }) : tr && tr.falling ? L(', turun') : '';
+      if (lv >= 1) why.push(L('{n}: {l} ({v} m) - {m}{t}.', { n: st.name, l: L(['Normal', 'Waspada', 'Amaran', 'Bahaya'][lv]), v: r2(v), m: nearDanger ? L('hampir Bahaya ({d} m)', { d: r2(num(st.danger)) }) : MEANS[lv], t: mv }));
+      else if (pr && pr.tier && pr.target !== 'alert') why.push(L('{n}: {v} m, dijangka capai {l} dalam {h} jam (keyakinan {c}%).', { n: st.name, v: r2(v), l: L(pr.targetName), h: pr.tier, c: pr.conf }));
     });
+    /* order: the most serious first */
+    why.sort(function (a, b) { var k = function (t) { return /Bahaya|Danger/.test(t) ? 0 : /Amaran|Warning/.test(t) ? 1 : 2; }; return k(a) - k(b); });
     if (o.glofas !== null && o.glofas !== undefined) {
-      var g = ramp(o.glofas, [[1, 0], [1.5, 30], [2, 50], [3, 75], [5, 100]]);
+      var g = ramp(o.glofas, [[1, 0], [1.5, 15], [2, 30], [3, 50], [5, 75]]);
       if (g >= 30) why.push(L('GloFAS: aliran sungai ~{x}× biasa.', { x: r1(o.glofas) }));
       if (g > s) s = g;
     }
     if (!(o.stations || []).length) why.push(L('Tiada stesen paras air JPS untuk kawasan ini.'));
-    else if (!why.length) why.push(L('Paras sungai normal.'));
+    else if (!why.length) why.push(L('Tiada sungai menghampiri paras Bahaya.'));
     return part('river', L('Risiko sungai'), s, why);
   }
   /* o: { coastal, tide (high tide in block {t, sea}), top (highest tide in the table), sea: max sea level (m) in block, seaTop,
@@ -338,7 +359,14 @@
     if (!why.length) why.push(L('Air pasang & ombak biasa.'));
     return part('coastal', L('Risiko pantai'), s, why);
   }
-  function landScore(w, r, c) { var x = combine([w, r, c]); x.parts = [w, r, c]; return x; }
+  /* Flood Risk Score: the river is the base. Heavy rain or a high tide alone is at most 45 (Rendah);
+     they raise the score one level only when the river is already at Amaran (river >= 45) and they are >= 50 */
+  function landScore(w, r, c) {
+    var other = Math.max(w.score, c.score), boost = r.score >= 45 && other >= 50;
+    var s = Math.round(boost ? bump(r.score) : Math.max(r.score, Math.min(other, 45)));
+    var lv = level(s);
+    return { score: s, level: lv, label: L(LEVELS[lv]), boost: boost, parts: [w, r, c] };
+  }
 
   /* -------------------------------------------------------- offshore parts */
   /* v: { w, g (kt), h, sw (m), tp (s), thunder (share), lightning (bool), vis (km), rain (mm), met: [warnings] } */
@@ -441,7 +469,7 @@
     return out;
   }
 
-  return { LEVELS: LEVELS, level: level, combine: combine, ramp: ramp, seriesUrl: seriesUrl, rainUrl: rainUrl, histPoints: histPoints, slope: slope, fit: fit, trend: trend, project: project, earlyFlood: earlyFlood,
+  return { LEVELS: LEVELS, level: level, bump: bump, combine: combine, ramp: ramp, seriesUrl: seriesUrl, rainUrl: rainUrl, histPoints: histPoints, slope: slope, fit: fit, trend: trend, project: project, earlyFlood: earlyFlood,
     KEMAMAN_RIVERS: KEMAMAN_RIVERS, parseRivers: parseRivers, rainAhead: rainAhead, obsRain: obsRain, riverFor: riverFor, isTidal: isTidal, EW_W: EW_W,
     rainScore: rainScore, weatherPart: weatherPart, riverPart: riverPart, coastalPart: coastalPart, landScore: landScore,
     windPart: windPart, seaPart: seaPart, weatherOffPart: weatherOffPart, offScore: offScore, offValues: offValues, earlyOffshore: earlyOffshore, windows: windows, when: when };
