@@ -1835,6 +1835,8 @@
             if (!w.length) throw new Error(L('Jadual tiada dalam jawapan'));
             raw[k] = { ok: true, live: true, at: Date.now(), ms: Date.now() - t0,
               data: { state: s.jpsState, at: iso, water: w, rain: r, waterAt: iso, rainAt: r.stations.length ? iso : null, waterUrl: wu, rainUrl: ru, errors: {} } };
+            /* read live: the GitHub backup gets the same readings (the relay asks GitHub to run the mirror, at most every 10 minutes) */
+            try { C.pokeMirror(s, localStorage); } catch (e) { /* */ }
           }).catch(function () { return getMirror(k); }));
         } else if (k === 'tideMirror') {
           var tu = 'https://www.tide-forecast.com/locations/Cukai/tides/latest';

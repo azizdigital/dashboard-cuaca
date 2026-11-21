@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.5.1';
+  var VERSION = '4.5.2';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -234,6 +234,16 @@
     return 'http';
   }
   /* https://zoom.earth/places/x/#map=radar -> https://relay/KEY/https/zoom.earth/places/x/#map=radar */
+  /* GitHub backup through the relay (v4): the relay asks GitHub to run the mirror now, at most every 10 minutes.
+     The app asks at most every 10 minutes too, after reading JPS live; the answer is kept in localStorage "mc_poke". */
+  function relayMirrorUrl(s) { return relayReady(s) ? s.relayUrl + '/' + s.relayKey + '/mirror' : ''; }
+  function pokeMirror(s, store) {
+    var u = relayMirrorUrl(s), now = Date.now(), last = null;
+    try { last = JSON.parse(store.getItem('mc_poke') || 'null'); } catch (e) { last = null; }
+    if (!u || (last && now - last.at < 10 * 60000)) return Promise.resolve(last);
+    var keep = function (r) { r.at = now; try { store.setItem('mc_poke', JSON.stringify(r)); } catch (e) { /* */ } return r; };
+    return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(keep, function () { return keep({ ok: false, reason: 'relay' }); });
+  }
   function relayUrlFor(url, s) {
     if (!relayReady(s)) return '';
     try {
@@ -1148,7 +1158,7 @@
   }
 
   return {
-    siteBlocked: siteBlocked, altFor: altFor, ALT: ALT, adHosts: adHosts, relayHosts: relayHosts, relayReady: relayReady, relayFor: relayFor, malaysiaOnly: malaysiaOnly, relayAdsFor: relayAdsFor, relayVerdict: relayVerdict, relayUrlFor: relayUrlFor, relayCode: relayCode, parseMetText: parseMetText, metType: metType, metSummary: metSummary, metShort: metShort, metWhen: metWhen, metRange: metRange, windText: windText, metDate: metDate,
+    siteBlocked: siteBlocked, altFor: altFor, ALT: ALT, adHosts: adHosts, relayHosts: relayHosts, relayReady: relayReady, relayFor: relayFor, malaysiaOnly: malaysiaOnly, relayAdsFor: relayAdsFor, relayVerdict: relayVerdict, relayUrlFor: relayUrlFor, relayMirrorUrl: relayMirrorUrl, pokeMirror: pokeMirror, relayCode: relayCode, parseMetText: parseMetText, metType: metType, metSummary: metSummary, metShort: metShort, metWhen: metWhen, metRange: metRange, windText: windText, metDate: metDate,
     VERSION: VERSION, CATEGORIES: CATEGORIES, SITES: SITES, siteById: siteById, siteUrl: siteUrl, hostOf: hostOf, certAllowed: certAllowed, CERT_ALLOW: CERT_ALLOW,
     DEFAULTS: DEFAULTS, REFRESH_CHOICES: REFRESH_CHOICES, cleanSettings: cleanSettings, urls: urls, SCRAPE: SCRAPE, jpsUrls: jpsUrls, mirrorBase: mirrorBase, mirrorUrls: mirrorUrls, fromMirror: fromMirror, parseOutlook: parseOutlook, parseTideMirror: parseTideMirror, parseRiver: parseRiver, parseJps: parseJps, htmlRows: htmlRows, htmlText: htmlText, JPS_STATES: JPS_STATES,
     PROFILE_KEYS: PROFILE_KEYS, DEFAULT_PROFILES: DEFAULT_PROFILES, OFFSHORE_BASE: OFFSHORE_BASE, cleanProfile: cleanProfile, profileSettings: profileSettings,

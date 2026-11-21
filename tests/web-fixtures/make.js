@@ -96,7 +96,9 @@ function offshore(url, now) {
   /* advisor (land): rain only, several places in one request -> one answer per place; heavy rain on day 2 afternoon */
   if (u.searchParams.get('hourly') === 'precipitation') {
     const lats = (u.searchParams.get('latitude') || '').split(','), [off] = OFF_W[model] || [0];
-    const one = k => ({ utc_offset_seconds: 28800, hourly: { time: H.time, precipitation: H.time.map((t, i) => i >= 24 + 12 && i < 24 + 18 ? Math.max(0, 14 + off * 3 - k) : i % 24 === 15 ? 1.5 : 0) } });
+    /* plus some rain 3 to 8 hours from now, so the next 24 hours are never dry whatever the time of day */
+    const soon = i => { const h = (start + i * 3600000 - now) / 3600000; return h >= 3 && h < 8 ? 3 : 0; };
+    const one = k => ({ utc_offset_seconds: 28800, hourly: { time: H.time, precipitation: H.time.map((t, i) => i >= 24 + 12 && i < 24 + 18 ? Math.max(0, 14 + off * 3 - k) : i % 24 === 15 ? 1.5 : soon(i)) } });
     const list = lats.map((x, k) => one(k));
     return list.length > 1 ? list : list[0];
   }

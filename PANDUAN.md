@@ -210,6 +210,19 @@ memaparkannya dalam pelayar sendiri; Safari di iPad tidak boleh. Dua cara, kedua
   Infobanjir Map; MET Peninsular Radar → radar hujan Windy (data radar MET Malaysia); Met Malaysia → kad MET di Dashboard;
   VesselFinder → peta embed rasmi VesselFinder. Ganti Windy dan VesselFinder berfungsi walaupun tanpa relay.
 
+- **Sandaran GitHub melalui relay (4.5.2):** jadual GitHub untuk akaun percuma sering dilangkau, jadi salinan JPS di GitHub boleh
+  jadi lama. Dengan skrip relay v4 + token, setiap kali app baca JPS langsung, relay minta GitHub jalankan mirror (paling kerap
+  setiap 10 minit). Sekali sahaja:
+  1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → *Generate new token*.
+     Nama: `dashboard-cuaca-relay`; Expiration: pilih (contoh 1 tahun); Repository access: **Only select repositories** →
+     `dashboard-cuaca`; Permissions → Repository permissions → **Actions: Read and write**. *Generate* → salin token (`github_pat_…`).
+  2. Cloudflare → Workers & Pages → worker relay awak → **Settings → Variables and Secrets → Add** → Type **Secret**,
+     Name `GH_TOKEN`, Value = token tadi → *Deploy*.
+  3. App → Tetapan › Relay laman → **Salin skrip** → Cloudflare → worker → *Edit code* → tampal ganti semua → *Deploy*
+     (laman relay tunjuk "relay v4").
+  Semak: buka halaman Water Level Kemaman → ⚡ Paksa kemas kini → mesej tunjuk "sandaran GitHub ✓".
+  Token ini hanya boleh menjalankan Actions repo `dashboard-cuaca`; ia disimpan dalam Cloudflare, bukan dalam app.
+
 ## 10. Fail data
 
 `%APPDATA%\Dashboard Cuaca Aziz` (Fail › Buka folder data):

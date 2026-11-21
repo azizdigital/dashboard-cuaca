@@ -388,7 +388,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · Versi 4\.5\.1/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.5\.2/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
@@ -399,4 +399,36 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.screenshot({ path: '/tmp/kmshots/app-wall.png' });
   await page.locator('.rbtn[data-view="dashboard"]').click();
   expect(await page.locator('#cardWater').innerHTML()).toBe(cardWater);
+});
+
+test('Kemaman page with the relay: the last hours read live through the relay every time, GitHub copy for the rest; the relay is asked to back up to GitHub', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  const now = Date.now(), K = F.kemaman(now), asked = [], poked = [];
+  const json = (r, b) => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: typeof b === 'string' ? b : JSON.stringify(b) });
+  await page.route(/^https:\/\/raw\.githubusercontent\.com\/.*\/kemaman\/(.+?\.json)/, r => { const f = /kemaman\/(.+?\.json)/.exec(r.request().url())[1]; return f === 'now.json' ? json(r, K.now) : K.files[f] ? json(r, K.files[f]) : r.fulfill({ status: 404, body: '' }); });
+  await page.route(/^https:\/\/api\.open-meteo\.com\//, r => r.fulfill({ status: 503, body: '' }));
+  await page.route(/tile\.openstreetmap\.org/, r => r.fulfill({ status: 404, body: '' }));
+  const dt = t => { const d = new Date(t + 8 * 3600000), p = n => String(n).padStart(2, '0'); return p(d.getUTCDate()) + '/' + p(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear() + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()); };
+  await page.route(/^https:\/\/relay\.test\//, r => {
+    const u = r.request().url();
+    if (/\/k1\/mirror$/.test(u)) { poked.push(u); return json(r, { ok: true, started: new Date().toISOString() }); }
+    const q = new URL(u).searchParams, gid = q.get('station'), rain = /rainfall/.test(u); asked.push((rain ? 'rf' : 'wl') + gid);
+    const f = s => { const m = /(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/.exec(s); return Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 8, +m[5]); };
+    const values = []; let y = 100;
+    for (let t = Math.ceil(f(q.get('from')) / 300000) * 300000; t <= f(q.get('to')); t += 300000) { y += 1; values.push(rain ? { dt: dt(t), clean: 12, cyearly: y } : { dt: dt(t), final: /4131001/.test(gid) ? '18.55' : '1.00' }); }
+    return json(r, '<style>x</style>' + JSON.stringify({ info: { name: gid }, values }));
+  });
+  await page.addInitScript(() => { localStorage.setItem('mc_lang', 'ms'); localStorage.setItem('mc_settings', JSON.stringify({ relayUrl: 'https://relay.test', relayKey: 'k1' })); });
+  await page.goto(baseURL + 'kemaman.html?tab=water');
+  await expect(page.locator('.km-badge')).toContainText('Langsung (relay)');
+  await expect(page.locator('.km-st', { hasText: 'Jambatan Ban Ho' }).locator('.v b')).toHaveText('18.55');
+  expect(new Set(asked).size).toBe(25);
+  await expect.poll(() => poked.length).toBe(1);
+  /* rain: 1 mm in every 5 minutes for the last hour = 12 mm, counted from the year counter (clean = moving 60-minute total) */
+  await page.goto(baseURL + 'kemaman.html?tab=rain');
+  await expect(page.locator('tr[data-rf]').first().locator('td').nth(1)).toHaveText('12.0');
+  /* force update: live again; the backup is not asked again within 10 minutes */
+  await page.locator('[data-act="refresh"]').click();
+  await expect(page.locator('#kmNote')).toContainText(/JPS langsung 25\/25 stesen/);
+  expect(poked.length).toBe(1);
 });

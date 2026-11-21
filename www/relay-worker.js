@@ -11,12 +11,17 @@
    Ads: ad scripts, ad frames and ad boxes are removed from the pages that come through (relay v2).
 
    Address form:  https://<your-relay>.workers.dev/<KEY>/<https|http>/<host>/<path>?<query>
+
+   GitHub backup (relay v4, optional): https://<your-relay>.workers.dev/<KEY>/mirror asks GitHub to run the app's mirror now
+   (it reads JPS & tides and saves the copy in the branch "data"), at most once every 10 minutes. The app calls it each time it
+   reads JPS live through this relay. Needs a Worker secret GH_TOKEN: a GitHub fine-grained token for the dashboard-cuaca
+   repository only, permission "Actions: Read and write". Optional variable GH_REPO (default azizdigital/dashboard-cuaca).
    Relative and "/"-addresses inside the page come back through the relay by themselves (page path, or the Referer). */
 
 const KEY = '__KEY__';
 const HOSTS = __HOSTS__;
 
-const VERSION = 3;
+const VERSION = 4;
 /* small per-site fixes (e.g. JPS: open with your district chosen), kept in the web app on GitHub so they can change
    without pasting this script again */
 const TWEAKS = '__TWEAKS__';
@@ -109,9 +114,33 @@ function rewriteText(text, origin, proto) {
   return text.replace(re, (all, pre, p, host) => pre + origin + '/' + KEY + '/' + (p ? p.replace(':', '') : (proto || 'https')) + '/' + host);
 }
 
+/* GitHub backup: run the mirror workflow, not more than once in MIRROR_GAP (also checked on GitHub, since a Worker forgets) */
+const MIRROR_GAP = 10 * 60000;
+let lastPoke = 0;
+const json = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'cache-control': 'no-store' } });
+async function pokeMirror(env, now) {
+  const token = env && env.GH_TOKEN, repo = (env && env.GH_REPO) || 'azizdigital/dashboard-cuaca';
+  if (!token) return json({ ok: false, reason: 'no-token' });
+  if (now - lastPoke < MIRROR_GAP) return json({ ok: true, skipped: 'recent', next: lastPoke + MIRROR_GAP });
+  const gh = (path, opt) => fetch('https://api.github.com/repos/' + repo + '/actions/workflows/mirror.yml' + path, Object.assign({
+    headers: { authorization: 'Bearer ' + token, accept: 'application/vnd.github+json', 'user-agent': 'dashboard-cuaca-relay', 'x-github-api-version': '2022-11-28', 'content-type': 'application/json' } }, opt || {}));
+  try {
+    const runs = await gh('/runs?per_page=1');
+    if (runs.status === 401 || runs.status === 403 || runs.status === 404) return json({ ok: false, reason: 'token', status: runs.status });
+    const last = runs.ok ? ((await runs.json()).workflow_runs || [])[0] : null;
+    const t = last ? Date.parse(last.created_at) : 0;
+    if (last && (last.status !== 'completed' || now - t < MIRROR_GAP)) { lastPoke = Math.max(lastPoke, t); return json({ ok: true, skipped: last.status !== 'completed' ? 'running' : 'recent', last: last.created_at }); }
+    const r = await gh('/dispatches', { method: 'POST', body: JSON.stringify({ ref: 'main' }) });
+    if (r.status !== 204) return json({ ok: false, reason: 'github', status: r.status });
+    lastPoke = now;
+    return json({ ok: true, started: new Date(now).toISOString() });
+  } catch (e) { return json({ ok: false, reason: 'github', error: String(e && e.message || e) }); }
+}
+
 async function handle(request, env) {
   const url = new URL(request.url);
   const origin = url.origin;
+  if (url.pathname === '/' + KEY + '/mirror') return pokeMirror(env, Date.now());
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, HEAD, POST', 'access-control-allow-headers': '*', 'access-control-max-age': '86400' } });
   }

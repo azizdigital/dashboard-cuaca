@@ -253,10 +253,80 @@
       var rivers = R ? R.parseRivers(upstream()) : [];
       j.water.forEach(function (st) { st.list = pts({ s: st.s, end: j.end, step: j.step }); st.short = shortName(st.name); place(st); if (st.tidal === undefined && R) st.tidal = R.isTidal(rivers, st); });
       j.rain.forEach(place);
-      j.rain.forEach(function (st) { st.hourly = (st.h || []).map(function (v, i, a) { return { t: j.end - (a.length - 1 - i) * HOUR - HOUR / 2, v: v || 0 }; }); });
-      S.data = j; S.err = null; S.at = Date.now();
+      j.endRain = j.end; j.mirrorEnd = j.end;
+      return live(j).then(function () {
+        j.rain.forEach(function (st) { st.hourly = (st.h || []).map(function (v, i, a) { return { t: j.endRain - (a.length - 1 - i) * HOUR - HOUR / 2, v: v || 0 }; }); });
+        S.data = j; S.err = null; S.at = Date.now();
+      });
     }).catch(function (e) { S.err = e.message || String(e); });
   }
+
+  /* ---------- live readings through the user's relay (Tetapan › Relay laman), like the dashboard: the last hours of every gauge,
+     read again each time (every 3 minutes while shown). The GitHub copy gives the older part and is used alone without a relay. */
+  function appSettings() { return load('mc_settings', null) || {}; }
+  function relayOn() { return !!(C.relayReady && C.relayReady(appSettings()) && root.MCParse && R && R.seriesUrl); }
+  function viaRelay(u) {
+    var ac = root.AbortController ? new AbortController() : null, t = ac ? setTimeout(function () { ac.abort(); }, 30000) : null;
+    return fetch(C.relayUrlFor(u, appSettings()), { cache: 'no-store', signal: ac ? ac.signal : undefined }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (x) { clearTimeout(t); return x; }, function (e) { clearTimeout(t); throw e; });
+  }
+  function pool(items, n, fn) {
+    var i = 0, out = [];
+    function next() { if (i >= items.length) return Promise.resolve(); var k = i++; return Promise.resolve(fn(items[k])).then(function (v) { out[k] = v; }, function () { out[k] = null; }).then(next); }
+    var w = []; for (var x = 0; x < n; x++) w.push(next());
+    return Promise.all(w).then(function () { return out; });
+  }
+  function live(j) {
+    j.live = null;
+    if (!relayOn()) return Promise.resolve();
+    var now = Date.now(), P = root.MCParse;
+    /* rain: whole hours on a grid that continues the copy's hours; from an hour boundary at least 1 hour before the copy ends */
+    var endRain = now > j.end ? j.end + Math.ceil((now - j.end) / HOUR) * HOUR : j.end;
+    var from = endRain - Math.max(3, Math.ceil((endRain - (j.end - HOUR)) / HOUR)) * HOUR;
+    if (now - from > 26 * HOUR) from = endRain - 26 * HOUR;
+    var hours = (now - from) / HOUR + 0.5;   /* a reading before "from": the first rain step */
+    var jobs = j.water.filter(function (st) { return st.gid; }).map(function (st) { return ['wl', st]; }).concat(j.rain.filter(function (st) { return st.gid; }).map(function (st) { return ['rf', st]; }));
+    return pool(jobs, 5, function (x) {
+      return viaRelay(x[0] === 'wl' ? R.seriesUrl(x[1].gid, now, hours) : R.rainUrl(x[1].gid, now, hours)).then(function (txt) { return x[0] === 'wl' ? P.wlSeries(txt) : P.rfReadings(txt); });
+    }).then(function (res) {
+      var ok = 0, newest = 0;
+      res.forEach(function (pts2, k) {
+        var kind = jobs[k][0], st = jobs[k][1];
+        if (!pts2 || !pts2.length) return;
+        ok++;
+        if (kind === 'wl') {
+          var fresh = pts2.filter(function (p) { return p.t >= from; });
+          if (!fresh.length) return;
+          st.list = st.list.filter(function (p) { return p.t < fresh[0].t; }).concat(fresh);
+          var last = fresh[fresh.length - 1];
+          st.level = Math.round(last.v * 100) / 100; st.updated = isoMyt(last.t); st.liveFrom = fresh[0].t; newest = Math.max(newest, last.t);
+        } else {
+          var rs = pts2.filter(function (p) { return p.t > from && p.v !== null; });
+          var old = st.h || [], shift = Math.round((endRain - j.end) / HOUR), h = [];
+          for (var b = 0; b < 168; b++) {
+            var a0 = endRain - (168 - b) * HOUR;
+            if (a0 >= from) { var sum = null; rs.forEach(function (p) { if (p.t > a0 && p.t <= a0 + HOUR) sum = (sum || 0) + p.v; }); h.push(sum === null ? null : Math.round(sum * 10) / 10); }
+            else h.push(old[b + shift] === undefined ? null : old[b + shift]);
+          }
+          var e5 = Math.floor(now / (5 * MIN)) * 5 * MIN, m = []; for (var c = 0; c < 36; c++) m.push(null);
+          rs.forEach(function (p) { var i = 35 - Math.round((e5 - p.t) / (5 * MIN)); if (i >= 0 && i < 36) m[i] = (m[i] || 0) + p.v; });
+          st.h = h; st.m = m; st.live = rs; st.liveFrom = from;
+          if (pts2.length) { st.updated = isoMyt(pts2[pts2.length - 1].t); newest = Math.max(newest, pts2[pts2.length - 1].t); }
+        }
+      });
+      if (ok) { j.endRain = endRain; j.end = Math.max(j.end, Math.floor(now / (5 * MIN)) * 5 * MIN); }
+      j.live = { ok: ok, n: jobs.length, newest: newest || null, at: now };
+      /* the same readings into the GitHub backup: the relay asks GitHub to run the mirror (at most every 10 minutes) */
+      if (ok && C.pokeMirror) { try { C.pokeMirror(appSettings(), localStorage).then(function (r) { S.poke = r; }); } catch (e) { /* */ } }
+    });
+  }
+  /* the GitHub backup, as the relay answered */
+  function pokeText() {
+    var p = S.poke; if (!p) return '';
+    if (p.ok) return ' · ' + L('sandaran GitHub ✓');
+    return ' · ' + (p.reason === 'no-token' ? L('sandaran GitHub: perlu token dalam Cloudflare') : p.reason === 'token' ? L('sandaran GitHub: token salah') : p.reason === 'relay' ? L('sandaran GitHub: skrip relay lama (v4 perlu)') : L('sandaran GitHub gagal'));
+  }
+  function isoMyt(t) { var p = C.myt(t); return p.y + '-' + pad(p.mo) + '-' + pad(p.d) + 'T' + pad(p.h) + ':' + pad(p.mi) + ':00+08:00'; }
   function loadFile(kind, gid) {
     var k = kind + '-' + gid, c = S.files[k];
     if (c && Date.now() - c.at < 10 * MIN) return Promise.resolve(c.data);
@@ -285,8 +355,11 @@
 
   /* ------------------------------------------------------------------ page */
   function head(title, sub) {
-    var d = S.data, now = Date.now(), age = d ? (now - Date.parse(d.at)) / MIN : null;
-    var fresh = age === null ? '' : age > 60 ? '<span class="km-badge bad">⚠️ ' + esc(L('Data lama: {m} minit', { m: Math.round(age) })) + '</span>' : '<span class="km-badge ok">● ' + esc(L('Langsung · {t}', { t: hm(Date.parse(d.at)) })) + '</span>';
+    var d = S.data, now = Date.now(), lv = d && d.live && d.live.ok ? d.live : null;
+    var newest = lv && lv.newest ? lv.newest : d ? Date.parse(d.at) : null, age = newest ? (now - newest) / MIN : null;
+    var src = lv ? L('Langsung (relay)') : relayOn() ? L('Mirror GitHub (relay gagal)') : L('Mirror GitHub');
+    var fresh = age === null ? '' : age > 60 ? '<span class="km-badge bad" title="' + esc(src) + '">⚠️ ' + esc(L('Data lama: {m} minit', { m: Math.round(age) })) + ' · ' + esc(src) + '</span>'
+      : '<span class="km-badge ok" title="' + esc(src) + '">● ' + esc(src) + ' · ' + esc(hm(newest)) + '</span>';
     return '<header class="km-head"><div><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div><div class="km-act">' + fresh +
       '<button type="button" class="km-btn force" data-act="refresh" title="' + esc(L('Baca semula semua data sekarang, tanpa cache')) + '">⚡ ' + esc(L('Paksa kemas kini')) + '</button>' +
       '<button type="button" class="km-btn" data-act="pdf">🖨️ ' + esc(L('PDF')) + '</button>' +
@@ -316,7 +389,7 @@
     var near = W.filter(function (st) { return info[st.name].pct !== null; }).sort(function (a, b) { return info[b.name].pct - info[a.name].pct; });
     var fast = W.filter(function (st) { return !st.tidal && info[st.name].r1 !== null; }).sort(function (a, b) { return info[b.name].r1 - info[a.name].r1; })[0];
     var top = near[0], ti = top && info[top.name];
-    var h = head(L('Paras Air Kemaman'), L('{n} stesen JPS · bacaan setiap 5 minit · mirror GitHub', { n: W.length }));
+    var h = head(L('Paras Air Kemaman'), L('{n} stesen JPS · bacaan setiap 5 minit', { n: W.length }));
     h += '<section class="km-sum">' + LV.map(function (k) { return '<div class="km-cnt ' + k + '"><b>' + cnt[k] + '</b><span>' + esc(L(LV_NAME[k])) + '</span></div>'; }).join('') +
       (top ? '<button type="button" class="km-hi" data-wl="' + esc(top.name) + '"><span>' + esc(L('Paling hampir Bahaya')) + '</span><b>' + esc(top.short.place) + '</b><em>' + esc(L('{m} m lagi · {p}% ke Bahaya', { m: f(ti.toDanger), p: Math.round(ti.pct) })) + '</em></button>' : '') +
       (fast ? '<button type="button" class="km-hi" data-wl="' + esc(fast.name) + '"><span>' + esc(L('Paling laju naik')) + '</span><b>' + esc(fast.short.place) + '</b><em>' + esc(sgn(info[fast.name].r1) + ' m/j · ' + L('{r} m dalam 4 jam', { r: sgn(info[fast.name].r4) })) + '</em></button>' : '') + '</section>';
@@ -339,7 +412,7 @@
         '<div class="f">' + (i.next ? esc(L('{m} m ke {l}', { m: f(i.toNext), l: L(LV_NAME[i.next]) })) + ' · ' : '') + esc(L('Bahaya {d} m', { d: f(st.danger) })) + '</div>' +
         (old ? '<div class="km-old">⚠️ ' + esc(L('Bacaan {m} minit lalu', { m: Math.round(i.age) })) + '</div>' : '') + '</button>';
     }).join('') + '</section>';
-    h += '<p class="km-note">' + esc(L('Sumber: JPS Public Infobanjir (paras air 5 minit) melalui mirror GitHub, dikemas kini ~15 minit. Ambang: Waspada = naik ketara, belum banjir · Amaran = kemungkinan kecil akan banjir · Bahaya = banjir. Kedudukan stesen: koordinat JPS, atau kampung / jambatan stesen di sungai dalam OpenStreetMap (anggaran, garis putus-putus). Sungai: © OpenStreetMap.')) + '</p>';
+    h += '<p class="km-note">' + esc(L('Sumber: JPS Public Infobanjir (paras air 5 minit): langsung melalui relay awak setiap 3 minit, dengan salinan GitHub (mirror) untuk data lama dan bila relay gagal. Ambang: Waspada = naik ketara, belum banjir · Amaran = kemungkinan kecil akan banjir · Bahaya = banjir. Kedudukan stesen: koordinat JPS, atau kampung / jambatan stesen di sungai dalam OpenStreetMap (anggaran, garis putus-putus). Sungai: © OpenStreetMap.')) + '</p>';
     return h;
   }
   function afterWater() {
@@ -457,7 +530,7 @@
     var by = function (h) { return R0.slice().sort(function (a, b) { return rainSum(b, h) - rainSum(a, h); })[0]; };
     var m1 = by(1), m24 = by(24), m7 = by(168);
     var avg24 = R0.reduce(function (a, st) { return a + rainSum(st, 24); }, 0) / Math.max(1, R0.length);
-    var h = head(L('Hujan Kemaman'), L('{n} stesen hujan JPS · 5 minit · mirror GitHub', { n: R0.length }));
+    var h = head(L('Hujan Kemaman'), L('{n} stesen hujan JPS · bacaan setiap 5 minit', { n: R0.length }));
     var tile = function (k, st, hh, unit) { return '<button type="button" class="km-hi" data-rf="' + esc(st ? st.name : '') + '"><span>' + esc(k) + '</span><b>' + f(st ? rainSum(st, hh) : null, 1) + ' <small>' + unit + '</small></b><em>' + esc(st ? st.name : '-') + '</em></button>'; };
     h += '<section class="km-sum rain"><div class="km-cnt rain"><b>' + raining.length + '</b><span>' + esc(L('stesen sedang hujan')) + '</span></div>' +
       tile(L('Tertinggi 1 jam'), m1, 1, 'mm') + tile(L('Tertinggi 24 jam'), m24, 24, 'mm') + tile(L('Tertinggi 7 hari'), m7, 168, 'mm') +
@@ -476,12 +549,12 @@
     h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Hujan setiap jam · stesen × jam')) + '</h2><div class="km-seg">' + [[24, '24 jam'], [168, '7 hari']].map(function (x) { return '<button type="button" data-hs="' + x[0] + '" aria-pressed="' + (hs === x[0]) + '">' + esc(L(x[1])) + '</button>'; }).join('') + '</div></div>' +
       heatmap(hs) + '<div class="km-legend">' + rampLegend() + '<span class="muted">' + esc(L('mm sejam · tekan petak / nama stesen')) + '</span></div></section>';
     h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Hujan sebenar vs ramalan 5 model')) + '</h2><span class="muted" id="kmModelAt"></span></div><div class="km-mgrid"><div id="kmModel" class="km-chart"></div><div id="kmModelTbl"></div></div></section>';
-    h += '<p class="km-note">' + esc(L('Sumber: JPS Public Infobanjir (hujan 5 minit) melalui mirror GitHub, ~15 minit. Ramalan: Open-Meteo (ECMWF, GFS, ICON, JMA, UKMO). Kelas hujan sejam JPS: ringan 1–10, sederhana 11–30, lebat 31–60, sangat lebat > 60 mm. Kedudukan stesen: koordinat JPS, atau kampung / jambatan stesen dalam OpenStreetMap (anggaran, garis putus-putus).')) + '</p>';
+    h += '<p class="km-note">' + esc(L('Sumber: JPS Public Infobanjir (hujan 5 minit): langsung melalui relay awak setiap 3 minit, dengan salinan GitHub (mirror) untuk data lama. Ramalan: Open-Meteo (ECMWF, GFS, ICON, JMA, UKMO). Kelas hujan sejam JPS: ringan 1–10, sederhana 11–30, lebat 31–60, sangat lebat > 60 mm. Kedudukan stesen: koordinat JPS, atau kampung / jambatan stesen dalam OpenStreetMap (anggaran, garis putus-putus).')) + '</p>';
     return h;
   }
   function rampLegend() { return '<span class="km-ramp">' + RAIN_BINS.map(function (v, i) { return '<i class="b' + i + '" title="≥ ' + v + ' mm"></i>'; }).join('') + '</span><span class="muted">0.1 → 60+ mm</span>'; }
   function heatmap(hours) {
-    var d = S.data, end = d.end, step = hours <= 24 ? 1 : 3, cols = Math.ceil(hours / step);
+    var d = S.data, end = d.endRain || d.end, step = hours <= 24 ? 1 : 3, cols = Math.ceil(hours / step);
     var list = d.rain.slice().sort(function (a, b) { return rainSum(b, hours) - rainSum(a, hours); });
     var head2 = '', h = '<div class="km-heat" style="--cols:' + cols + '"><div class="hm-row hm-head"><span></span>';
     for (var c = 0; c < cols; c++) { var t = end - (cols - c) * step * HOUR + step * HOUR; var p = C.myt(t); head2 += '<span>' + (hours <= 24 ? (c % 3 === 0 ? pad(p.h) : '') : (p.h < step ? dm(t) : '')) + '</span>'; }
@@ -503,7 +576,7 @@
   }
   /* gauges (average of the basin's stations, hourly) vs each model (average of the 4 points): yesterday, then the next 24 h */
   function drawModels(m) {
-    var d = S.data, end = d.end, t0 = end - DAY, t1 = end + DAY, host = $('kmModel');
+    var d = S.data, end = d.endRain || d.end, t0 = end - DAY, t1 = end + DAY, host = $('kmModel');
     if (!m) { host.innerHTML = '<div class="km-loading">' + esc(L('Ramalan model tidak dapat dibaca')) + '</div>'; return; }
     var obsH = []; for (var i = 24; i >= 1; i--) { var a = 0, n = 0; d.rain.forEach(function (st) { var hh = st.h || []; var v = hh[hh.length - i]; if (v !== undefined && v !== null) { a += v; n++; } }); obsH.push({ t: end - i * HOUR, v: n ? a / n : 0 }); }
     var cum = function (list) { var s = 0; return list.map(function (p) { s += p.v || 0; return { t: p.t + HOUR, v: s }; }); };
@@ -559,7 +632,7 @@
     h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Ramalan & anggaran')) + '</h2></div><div id="kmProj" class="km-proj"><div class="km-loading">' + esc(L('Membaca 5 model…')) + '</div></div></section>';
     sheet(h);
     loadFile('wl', st.gid).then(function (j) {
-      var all = pts(j); st.full = all;
+      var all = pts(j), lf = st.liveFrom; if (lf) all = all.filter(function (p) { return p.t < lf; }).concat(st.list.filter(function (p) { return p.t >= lf; })); st.full = all;
       var m7 = maxIn(all, now - 7 * DAY), b = $('kmMax7'); if (b && m7) b.innerHTML = '<span>' + esc(L('Tertinggi 7 hari')) + '</span><b>' + f(m7.v) + '<small> m</small></b><em>' + esc(dmhm(m7.t)) + '</em>';
       drawHydro(st, rn ? rn.st : null);
     }).catch(function () { st.full = st.list; var b = $('kmMax7'); if (b) b.innerHTML = '<span>' + esc(L('Tertinggi 7 hari')) + '</span><b>-</b><em>' + esc(L('data 30 hari belum ada')) + '</em>'; drawHydro(st, rn ? rn.st : null); });
@@ -625,8 +698,8 @@
       (wn ? '<p class="muted km-tipline">' + esc(L('Paras air berdekatan: {n} ({k} km)', { n: wn.st.short.place, k: f(wn.km, 1) })) + ' · <a href="#" data-wl="' + esc(wn.st.name) + '">' + esc(L('buka')) + ' →</a></p>' : '') + '</section>';
     h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Ramalan 5 model di sini')) + '</h2></div><div id="kmRfProj" class="km-proj"><div class="km-loading">' + esc(L('Membaca 5 model…')) + '</div></div></section>';
     sheet(h);
-    Promise.all([loadFile('rf', st.gid).then(function (j) { st.full = pts(j); }).catch(function () { st.full = null; }),
-      wn ? loadFile('wl', wn.st.gid).then(function (j) { wn.st.full = pts(j); }).catch(function () { }) : null]).then(function () { if (S.sel && S.sel.name === name) drawRain(st, wn ? wn.st : null); });
+    Promise.all([loadFile('rf', st.gid).then(function (j) { var a = pts(j); if (st.live) a = a.filter(function (p) { return p.t <= st.liveFrom; }).concat(st.live); st.full = a; }).catch(function () { st.full = st.live || null; }),
+      wn ? loadFile('wl', wn.st.gid).then(function (j) { var a = pts(j), lf = wn.st.liveFrom; if (lf) a = a.filter(function (p) { return p.t < lf; }).concat(wn.st.list.filter(function (p) { return p.t >= lf; })); wn.st.full = a; }).catch(function () { }) : null]).then(function () { if (S.sel && S.sel.name === name) drawRain(st, wn ? wn.st : null); });
     loadModels().then(function (m) { if (S.sel && S.sel.name === name) drawRainProj(st, m); });
   }
   function drawRain(st, wst) {
@@ -748,7 +821,7 @@
   function refresh(force) {
     if (!force && document.hidden) return;
     var keep = S.sel;
-    loadNow().then(function () { render(); if (keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name); });
+    loadNow().then(function () { var y = root.scrollY; render(); if (force && keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name); else root.scrollTo(0, y); });
   }
   /* "Paksa kemas kini": everything again now (mirror files, 30-day files, 5 models), then the version and the data times */
   function force() {
@@ -759,7 +832,7 @@
       render(); if (keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name);
       if (S.tab === 'water') loadModels();
       note(S.err ? '⚠️ ' + L('Tidak dapat membaca data mirror: {e}', { e: S.err }) :
-        '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + L('mirror JPS {m}', { m: hm(Date.parse(S.data.at)) }) + ' · ' + L('Versi {v}', { v: C.VERSION }), 6000);
+        '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + (S.data.live && S.data.live.ok ? L('JPS langsung {n}/{m} stesen, bacaan {t}', { n: S.data.live.ok, m: S.data.live.n, t: hm(S.data.live.newest || Date.now()) }) : L('mirror JPS {m}', { m: hm(Date.parse(S.data.at)) }) + (relayOn() ? ' · ' + L('relay gagal') : ' · ' + L('tiada relay'))) + pokeText() + ' · ' + L('Versi {v}', { v: C.VERSION }), 7000);
       S.bust = 0;
     });
   }
@@ -769,8 +842,8 @@
   }
   root.MCKemaman = { S: S, refresh: refresh, force: force, idx: idx, pct: pct, intensity: intensity, rainBin: rainBin, shortName: shortName, pts: pts, setTab: function (t) { S.tab = t === 'rain' ? 'rain' : 'water'; closeSheet(); render(); } };
   window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data) return; if (e.data.kmTab) root.MCKemaman.setTab(e.data.kmTab); if (e.data.kmForce) force(); });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.at > 5 * MIN) refresh(); });
-  setInterval(function () { refresh(false); }, 5 * MIN);
-  setInterval(function () { if (S.data && !S.sel) { var b = document.querySelector('.km-badge'); if (b) { var age = (Date.now() - Date.parse(S.data.at)) / MIN; if (age > 60 && !b.classList.contains('bad')) render(); } } }, MIN);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.at > 3 * MIN) refresh(); });
+  setInterval(function () { refresh(false); }, 3 * MIN);
+  setInterval(function () { if (S.data && !S.sel) { var b = document.querySelector('.km-badge'); if (b) { var lv = S.data.live, nw = lv && lv.ok && lv.newest ? lv.newest : Date.parse(S.data.at), age = (Date.now() - nw) / MIN; if (age > 60 && !b.classList.contains('bad')) render(); } } }, MIN);
   refresh(true);
 })(window);

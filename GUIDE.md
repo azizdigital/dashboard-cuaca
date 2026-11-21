@@ -182,6 +182,13 @@ own browser; Safari on the iPad cannot. Two ways, both without the PC:
   (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). The PC app
   keeps the real infobanjir site.
 
+- **GitHub backup through the relay (4.5.2):** GitHub often skips the scheduled runs of free accounts, so the JPS copy on GitHub can
+  get old. With relay script v4 + a token, each time the app reads JPS live the relay asks GitHub to run the mirror (at most every
+  10 minutes). Once: (1) GitHub › Settings › Developer settings › Fine-grained tokens › Generate: only the `dashboard-cuaca`
+  repository, permission **Actions: Read and write**; (2) Cloudflare › your relay worker › Settings › Variables and Secrets › Add
+  Secret `GH_TOKEN` = the token › Deploy; (3) app › Settings › Site relay › **Copy script** › paste over the worker's code › Deploy
+  ("relay v4"). Check: Water Level Kemaman › ⚡ Force update shows "GitHub backup ✓".
+
 ## 10. Data files
 
 `%APPDATA%\Dashboard Cuaca Aziz` (File › Open data folder):

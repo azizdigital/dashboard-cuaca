@@ -306,6 +306,37 @@ test('ad blocker: daily update builds a new engine in a worker, keeps it, uses i
 });
 
 /* ------------------------------------------------- site relay (Cloudflare Worker) */
+test('relay worker v4: /KEY/mirror asks GitHub to run the mirror (GitHub backup), at most every 10 minutes; no token = says so', async () => {
+  const W = await require('./relay-harness').loadWorker('k3y', ['publicinfobanjir.water.gov.my']);
+  assert.strictEqual(W.VERSION, 4);
+  const ask = env => W.handle(new Request('https://relay.test/k3y/mirror'), env).then(r => r.json());
+  assert.deepStrictEqual(await ask({}), { ok: false, reason: 'no-token' });
+  const real = globalThis.fetch, calls = [];
+  let lastRun = { status: 'completed', created_at: new Date(Date.now() - 30 * 60000).toISOString() };
+  globalThis.fetch = async (u, o) => {
+    calls.push({ u: String(u), m: (o && o.method) || 'GET', auth: o && o.headers && o.headers.authorization, body: o && o.body });
+    if (/\/runs\?/.test(u)) return new Response(JSON.stringify({ workflow_runs: [lastRun] }), { status: 200 });
+    if (/\/dispatches$/.test(u)) return new Response(null, { status: 204 });
+    return new Response('?', { status: 500 });
+  };
+  try {
+    const a = await ask({ GH_TOKEN: 'ghp_x' });
+    assert.ok(a.ok && a.started, JSON.stringify(a));
+    assert.strictEqual(calls[1].u, 'https://api.github.com/repos/azizdigital/dashboard-cuaca/actions/workflows/mirror.yml/dispatches');
+    assert.strictEqual(calls[1].m, 'POST'); assert.strictEqual(calls[1].auth, 'Bearer ghp_x'); assert.deepStrictEqual(JSON.parse(calls[1].body), { ref: 'main' });
+    /* right after: not again */
+    const b = await ask({ GH_TOKEN: 'ghp_x' });
+    assert.strictEqual(b.skipped, 'recent'); assert.strictEqual(calls.length, 2);
+    /* a wrong token is reported */
+    const W2 = await require('./relay-harness').loadWorker('k3y', ['x']);
+    globalThis.fetch = async () => new Response('{}', { status: 401 });
+    assert.deepStrictEqual(await W2.handle(new Request('https://relay.test/k3y/mirror'), { GH_TOKEN: 'bad' }).then(r => r.json()), { ok: false, reason: 'token', status: 401 });
+    /* the wrong key is not the mirror */
+    const W3 = await require('./relay-harness').loadWorker('k3y', ['x']);
+    assert.strictEqual((await W3.handle(new Request('https://relay.test/nope/mirror'), { GH_TOKEN: 'x' })).status, 404);
+  } finally { globalThis.fetch = real; }
+});
+
 test('relay worker: removes the framing refusal, keeps the page working, refuses other sites and wrong keys', async () => {
   const R = await require('./relay-harness').start('k3y-test');
   try {
@@ -579,7 +610,7 @@ test('relay v2 removes ads; ad-heavy sites go through the relay when wanted', as
   assert.ok(out.includes('var keep=1') && out.includes('/app.js') && out.includes('<p>Tides</p>'));
   assert.ok(/<head><style>/.test(out), 'guard goes first in <head>');
   const root = await w.handle(new Request('https://relay.test/'));
-  assert.ok(/relay v3/.test(await root.text()));
+  assert.ok(/relay v4/.test(await root.text()));
   const s = core.cleanSettings({ relayUrl: 'https://r.workers.dev', relayKey: 'abcdefgh123' });
   assert.strictEqual(core.relayAdsFor(core.siteById('tideforecast'), s), true);
   assert.strictEqual(core.relayAdsFor(core.siteById('windy'), s), false);

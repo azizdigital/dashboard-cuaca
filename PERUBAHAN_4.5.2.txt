@@ -1,0 +1,9 @@
+Dashboard Cuaca Aziz 4.5.2
+
+- Halaman Water Level / Rainfall Kemaman baca JPS LANGSUNG melalui relay awak (Tetapan › Relay laman), sama macam Dashboard:
+  bacaan 5 minit beberapa jam terakhir setiap stesen, setiap 3 minit selagi halaman dibuka. Salinan GitHub (mirror) untuk
+  data lebih lama (30 hari) dan bila relay gagal. Lencana atas: "Langsung (relay) · 00:15" atau "Mirror GitHub".
+- Sandaran GitHub: setiap kali app baca JPS langsung (Dashboard atau halaman Kemaman), relay minta GitHub jalankan mirror
+  (paling kerap sekali setiap 10 minit), jadi salinan di GitHub sentiasa baru walaupun jadual GitHub sendiri dilangkau.
+  Perlu skrip relay v4 dan token GitHub dalam Cloudflare (sekali sahaja) - langkah dalam PANDUAN.md › "Sandaran GitHub".
+- Peta OpenStreetMap; butang ⚡ Paksa kemas kini (4.5.1).
