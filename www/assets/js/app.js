@@ -1506,7 +1506,7 @@
   var Sound = {
     ctx: null,
     /* only the levels chosen in Tetapan › Bunyi untuk (default: critical only); "test" always rings */
-    rings: function (level) { var min = { critical: 3, warning: 2, all: 1 }[state.settings.soundLevel] || 3; return (C.LEVEL_RANK[level] || 1) >= min; },
+    rings: function (level) { var min = { critical: 3, warning: 2, all: 1, none: 99 }[state.settings.soundLevel] || 3; return (C.LEVEL_RANK[level] || 1) >= min; },
     play: function (level, test) {
       if (!state.settings.sound || Date.now() < state.mutedUntil) return;
       if (!test && !this.rings(level)) return;
@@ -2479,6 +2479,33 @@
   /* the saved settings may already ask for the other language */
   if (state.settings.lang && state.settings.lang !== I18N.lang() && load('mc_settings', null)) { I18N.setLang(state.settings.lang); location.reload(); return; }
   if (load('mc_side_off', false) && window.innerWidth > 820) $('app').classList.add('side-off');
+  /* "Senyap semua": a reminder each time the app is opened (or comes back after 10 minutes), with a button to turn the sound on */
+  var MuteNote = {
+    hiddenAt: 0,
+    check: function () {
+      var old = $('muteNote'); if (old) old.remove();
+      if (state.settings.soundLevel !== 'none') return;
+      var t = document.createElement('div');
+      t.className = 'toast warning mute'; t.id = 'muteNote'; t.setAttribute('role', 'alert');
+      t.innerHTML = '<b>🔕 ' + esc(L('Semua bunyi alert disenyapkan')) + '</b>' + esc(L('Alert tetap dipapar, tapi tiada bunyi.')) +
+        '<div class="row"><button class="btn sm pri" type="button" data-mute="on">🔔 ' + esc(L('Hidupkan bunyi')) + '</button><button class="btn sm" type="button" data-mute="close">' + esc(L('Biar senyap')) + '</button></div>';
+      t.addEventListener('click', function (e) {
+        var a = e.target.getAttribute('data-mute'); if (!a) return;
+        t.remove();
+        if (a === 'on') Data.saveSettings(Object.assign({}, state.settings, { soundLevel: 'critical', profileName: state.settings.locationName })).then(function () {
+          if (state.view === 'settings') Settings.fill();
+          toast('🔔 ' + L('Bunyi dihidupkan'), L('Kritikal / Bahaya sahaja - tukar di Tetapan'));
+        });
+      });
+      $('toasts').appendChild(t);
+      setTimeout(function () { t.remove(); }, 60000);
+    }
+  };
+  setTimeout(MuteNote.check, 2500);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) MuteNote.hiddenAt = Date.now();
+    else if (MuteNote.hiddenAt && Date.now() - MuteNote.hiddenAt > 10 * 60000) MuteNote.check();
+  });
   $('verFoot').textContent = 'v' + C.VERSION;
   if (isDesktop) { try { var info = D.info(); $('verFoot').textContent = 'v' + (info.version || C.VERSION); } catch (e) { /* */ } }
   document.documentElement.setAttribute('data-kind', state.settings.kind);

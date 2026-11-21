@@ -379,7 +379,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await fr.locator('[data-act="close"]').click();
   /* sound: only the chosen levels ring (default critical); the test button always rings */
   expect(await page.evaluate(() => MC.state.settings.soundLevel)).toBe('critical');
-  await expect(page.locator('#f_soundLevel option')).toHaveCount(3);
+  await expect(page.locator('#f_soundLevel option')).toHaveCount(4);
   await page.locator('[data-site="rainfall"]').first().click();
   await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=rain/);
   const fr2 = page.frameLocator('#siteHost .frame.on iframe');
@@ -434,4 +434,18 @@ test('Kemaman page with the relay: the last hours read live through the relay ev
   await page.locator('[data-act="refresh"]').click();
   await expect(page.locator('#kmNote')).toContainText(/JPS langsung 25\/25 stesen/);
   expect(poked.length).toBe(1);
+});
+
+test('"Senyap semua": no sound, a reminder on opening the app with a button to turn the sound on', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.addInitScript(() => { if (!sessionStorage.getItem('done')) { localStorage.setItem('mc_lang', 'ms'); localStorage.setItem('mc_settings', JSON.stringify({ soundLevel: 'none' })); sessionStorage.setItem('done', '1'); } });
+  await open(page, baseURL);
+  expect(await page.evaluate(() => MC.state.settings.soundLevel)).toBe('none');
+  await expect(page.locator('#muteNote')).toContainText(/Semua bunyi alert disenyapkan|All alert sounds are off/);
+  await page.locator('#muteNote [data-mute="on"]').click();
+  await expect(page.locator('#muteNote')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => MC.state.settings.soundLevel)).toBe('critical');
+  await page.reload();
+  await page.waitForTimeout(3000);
+  await expect(page.locator('#muteNote')).toHaveCount(0);
 });
