@@ -1,18 +1,22 @@
-== rf14 60 420796
+== dg-kemaman 0
 
-{"info": {
-                        "name": "Sg. Terengganu di Stewong Jatuh (F1)",
-                        "light": "10",
-                        "moderate": "30",
-                        "heavy": "60",
-                        "veryheavy": "90","count":4005},"values":[{"dt":"07/11/2026 18:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:05","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:10","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:15","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:20","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:25","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},
-6 15:50","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 15:55","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 16:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0}]}
-== rf14 15 420796
+== dg-trg 0
 
-{"info": {
-                        "name": "Sg. Terengganu di Stewong Jatuh (F1)",
-                        "light": "10",
-                        "moderate": "30",
-                        "heavy": "60",
-                        "veryheavy": "90","count":4005},"values":[{"dt":"07/11/2026 18:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:05","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:10","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:15","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:20","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:25","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},
-6 15:50","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 15:55","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 16:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0}]}
+curl: (7) Failed to connect to overpass-api.de port 443 after 211 ms: Could not connect to server
+./check.sh: line 13: osm-rivers.json: No such file or directory
+== osm-rivers 
+head: cannot open 'osm-rivers.json' for reading: No such file or directory
+
+curl: (7) Failed to connect to overpass-api.de port 443 after 212 ms: Could not connect to server
+./check.sh: line 16: osm-places.json: No such file or directory
+== osm-places 
+head: cannot open 'osm-places.json' for reading: No such file or directory
+
+curl: (7) Failed to connect to overpass-api.de port 443 after 210 ms: Could not connect to server
+./check.sh: line 19: osm-bridges.json: No such file or directory
+== osm-bridges 
+head: cannot open 'osm-bridges.json' for reading: No such file or directory
+
+curl: (7) Failed to connect to overpass-api.de port 443 after 217 ms: Could not connect to server
+./check.sh: line 22: osm-coast.json: No such file or directory
+== osm-coast 
