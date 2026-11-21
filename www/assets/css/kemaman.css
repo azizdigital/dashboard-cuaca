@@ -60,6 +60,7 @@ body.km.sheet-on { overflow: hidden; }
 
 /* leaflet markers */
 .leaflet-container { background: var(--fill); font: 12px var(--font); }
+html:not([data-theme="light"]) .km-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.95) contrast(.85) saturate(.7); }
 .km-mk { stroke: var(--surface); }
 .km-mk.normal { fill: var(--st-normal); } .km-mk.alert { fill: var(--st-alert); } .km-mk.warning { fill: var(--st-warning); } .km-mk.danger { fill: var(--st-danger); animation: kmPulse 1.2s ease-in-out infinite; }
 @keyframes kmPulse { 50% { stroke-width: 9; stroke: rgba(239, 68, 68, .45); } }

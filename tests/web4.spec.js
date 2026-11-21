@@ -27,7 +27,7 @@ async function sources(page, opts = {}) {
     if (k) return k[1] === 'now.json' ? json(r, K.now) : K.files[k[1]] ? json(r, K.files[k[1]]) : json(r, {}, 404);
     return /jps-TRG/.test(u) ? json(r, m.jps) : /tide-cukai/.test(u) ? json(r, m.tide) : json(r, {}, 404);
   });
-  await page.route(/basemaps\.cartocdn\.com/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }));
+  await page.route(/tile\.openstreetmap\.org/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }));
   await page.route(/^https:\/\/(embed\.windy\.com|www\.rainviewer\.com|webcams\.windy\.com)\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: '<h1 id=h>' + new URL(r.request().url()).hostname + '</h1>' }));
 }
 async function open(page, baseURL, opts) {

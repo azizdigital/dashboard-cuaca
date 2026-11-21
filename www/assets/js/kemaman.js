@@ -355,12 +355,13 @@
     drawMap(null);
   }
 
-  /* ---------- the map: Leaflet + CARTO / OpenStreetMap tiles, or the river schema */
+  /* ---------- the map: Leaflet + OpenStreetMap tiles, or the river schema */
   var MAP = null;
   /* label side on the map, so close gauges near Chukai do not cover each other */
   var TT_DIR = { 'Paya Paman': 'bottom', 'Geliga': 'right', 'Yak Yah': 'right', 'Rantau Panjang': 'bottom', 'Ban Ho': 'bottom', 'Air Putih': 'left', 'Sg. Mas di': 'top', 'Kemasik': 'left' };
   function destroyMap() { if (MAP) { try { MAP.map.remove(); } catch (e) { /* */ } MAP = null; } stopReplay(); }
-  function tileUrl() { var light = document.documentElement.getAttribute('data-theme') === 'light'; return 'https://{s}.basemaps.cartocdn.com/' + (light ? 'light_all' : 'dark_all') + '/{z}/{x}/{y}{r}.png'; }
+  /* OpenStreetMap's own tiles: free, no key (CARTO now wants one); dark theme = the same tiles darkened in CSS */
+  function tileUrl() { return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'; }
   function drawMap(frameT) {
     var host = $('kmMap'); if (!host) return;
     if (S.tab === 'water' && S.mapMode === 'schema') { host.innerHTML = schema(frameT); return; }
@@ -368,7 +369,7 @@
     var LL = root.L;
     if (!MAP) {
       var map = LL.map(host, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, tap: true }).setView([4.26, 103.3], 10);
-      LL.tileLayer(tileUrl(), { maxZoom: 16, subdomains: 'abcd', attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+      LL.tileLayer(tileUrl(), { maxZoom: 17, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map);
       MAP = { map: map, layer: LL.layerGroup().addTo(map) };
       setTimeout(function () { try { map.invalidateSize(); } catch (e) { /* */ } }, 60);
     }
