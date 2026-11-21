@@ -1145,7 +1145,8 @@
       var metW = A.metActive(snap, now, t1, { kind: 'district', name: s.waterDistrict || s.locationName }, true).map(A.metForLand);
       var weather = R.weatherPart({ rain: rain, hours: 24, wet: obs, met: metW });
       var gl = Math.max(A.riverRatio(snap, C.dateKey(now)) || 0, A.riverRatio(snap, C.dateKey(now + 86400000)) || 0) || null;
-      var river = R.riverPart({ stations: snap.stations || [], trends: snap.trends || {}, leadH: 0, glofas: gl });
+      /* only fresh readings (an old one from a second source must not set the score) */
+      var river = R.riverPart({ stations: (snap.stations || []).filter(function (x) { return !x.stale && x.level !== null; }), trends: snap.trends || {}, leadH: 0, glofas: gl });
       var coastal = R.coastalPart(Object.assign({ coastal: s.coastal !== false }, A.coastFor(snap, now, t1)));
       var sc2 = R.landScore(weather, river, coastal), early2 = snap.early || [];
       var tr = snap.trends || {}, sts = (snap.stations || []).filter(function (x) { return !x.stale && tr[x.name]; });

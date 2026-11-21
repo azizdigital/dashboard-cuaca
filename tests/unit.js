@@ -837,6 +837,7 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   assert.strictEqual(R.weatherPart({ rain: 2, hours: 24, met: [{ severity: 'warning', title: 'Hujan berterusan' }] }).score, 55);
   const rp = R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 0 });
   assert.strictEqual(rp.score, 55); assert.ok(/Waspada/.test(rp.why[0]));
+  assert.strictEqual(R.riverPart({ stations: [Object.assign({}, st, { level: 16.2, stale: true })], trends: {}, leadH: 0 }).score, 0);   /* an old reading does not count */
   assert.ok(R.riverPart({ stations: [pp], trends, leadH: 0 }).score >= 40);   /* early warning counts */
   assert.ok(R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 100 }).score < 20);   /* days ahead: fades */
   const cp = R.coastalPart({ coastal: true, tide: { t: now, sea: 2.9 }, top: 2.95, wave: 2.6, waveDir: 45 });

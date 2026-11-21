@@ -101,7 +101,7 @@
     if (v === null) return null;
     return st.danger !== undefined && v >= st.danger ? 3 : st.warning !== undefined && v >= st.warning ? 2 : st.alert !== undefined && v >= st.alert ? 1 : 0;
   }
-  function waterList(snap) { return (snap && snap.jps && snap.jps.water && snap.jps.water.length) ? snap.jps.water : (snap && snap.stations) || []; }
+  function waterList(snap) { return ((snap && snap.jps && snap.jps.water && snap.jps.water.length) ? snap.jps.water : (snap && snap.stations) || []).filter(function (x) { return !x.stale; }); }
   function rainList(snap) { return (snap && snap.jps && snap.jps.rain && snap.jps.rain.stations && snap.jps.rain.stations.length) ? snap.jps.rain.stations : (snap && snap.rainStations) || []; }
   /* the rain gauge at the same place as a river gauge: "Sg. X di Kg. Y (F1)" <-> "Kg. Y (F1)" */
   function rainFor(st, rains) {

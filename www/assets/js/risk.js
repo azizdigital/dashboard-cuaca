@@ -290,7 +290,7 @@
     var R = { normal: 0, alert: 1, warning: 2, danger: 3 };
     (o.stations || []).forEach(function (st) {
       var v = num(st.level);
-      if (v === null) return;
+      if (v === null || st.stale) return;
       var lv = st.status && R[st.status] !== undefined ? R[st.status] : num(st.danger) !== null && v >= st.danger ? 3 : num(st.warning) !== null && v >= st.warning ? 2 : num(st.alert) !== null && v >= st.alert ? 1 : 0;
       var x = [0, 55, 75, 95][lv], tr = o.trends && o.trends[st.name];
       if (lv === 0 && num(st.alert) !== null && st.alert - v <= 0.3) x = 30;
