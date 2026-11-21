@@ -1,0 +1,11 @@
+Dashboard Cuaca Aziz 4.5.4
+
+App PC (Electron): halaman Water Level Kemaman & Rainfall Kemaman sama seperti versi web / iPad
+- Tab Water Level Kemaman dan Rainfall Kemaman di PC kini buka halaman app (paras air, hujan, peta, skema sungai,
+  graf, PDF, Gambar), bukan laman infobanjir terus.
+- Data di PC: bacaan 5 minit JPS dibaca terus oleh PC setiap 3 minit (tiada relay); data 30 hari dari salinan GitHub;
+  kalau JPS gagal, salinan GitHub. Lencana: "Langsung (JPS) · jam". Ramalan 5 model melalui PC (had harian Open-Meteo PC).
+- Butang "Laman asal" di PC: laman infobanjir sebenar dibuka dalam tab yang sama, dengan bar "← Halaman app" untuk kembali.
+  Pilihan diingat bagi setiap tab dan setiap pane Mod dinding (pane boleh tunjuk halaman app atau laman asal).
+- Bar "← Halaman app" kekal kelihatan walaupun laman asal gagal dimuat.
+- Peta OpenStreetMap dibenarkan dalam app PC (hanya gambar peta).

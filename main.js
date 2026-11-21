@@ -277,7 +277,8 @@ function prepareSessions() {
     const u = d.url;
     if (/^(devtools|data|blob|about|chrome-extension):/.test(u)) return cb({});
     let o = ''; try { o = new URL(u).origin; } catch (e) { /* */ }
-    cb({ cancel: o !== origin });
+    /* the app's own pages only talk to the app's server; map pictures (OpenStreetMap tiles) for the Kemaman map are the one exception */
+    cb({ cancel: o !== origin && !(o === 'https://tile.openstreetmap.org' && d.resourceType === 'image') });
   });
   const ALLOWED = ['clipboard-sanitized-write', 'notifications', 'fullscreen'];
   def.setPermissionRequestHandler((wc, perm, cb) => cb(ALLOWED.includes(perm)));

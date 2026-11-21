@@ -179,8 +179,8 @@ own browser; Safari on the iPad cannot. Two ways, both without the PC:
   readings of the 8 water level and 17 rain gauges of Kemaman, 30 days, read by the GitHub mirror every ~15 minutes (folder `kemaman/`
   of the branch `data`). Map (OpenStreetMap) or the real river schema with a 24-hour replay, all gauges against their thresholds,
   % to Danger, rain bubbles, gauge × hour heatmap, measured rain vs the 5 models; tap a gauge for big numbers, a 1–30 day hydrograph
-  (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). The PC app
-  keeps the real infobanjir site.
+  (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). PC app (4.5.4):
+  the same page, JPS read straight from the PC every 3 minutes; **Original site** = the infobanjir site in the same tab, **← App page** back.
 
 - **GitHub backup through the relay (4.5.2):** GitHub often skips the scheduled runs of free accounts, so the JPS copy on GitHub can
   get old. With relay script v4 + a token, each time the app reads JPS live the relay asks GitHub to run the mirror (at most every

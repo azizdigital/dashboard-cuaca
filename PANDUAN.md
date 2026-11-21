@@ -26,7 +26,8 @@ Rupa sama seperti app lama. Yang baru dalam 4.1:
   - Paras air: ringkasan status, peta (OpenStreetMap) atau skema sungai sebenar dengan main semula 24 jam, graf semua stesen berbanding ambang, % ke Bahaya, kad setiap stesen.
   - Hujan: peta gelembung, kedudukan & jumlah 1/3/6/24 jam & 7 hari, heatmap stesen × jam, hujan sebenar berbanding ramalan 5 model.
   - Tekan stesen: nombor besar, hidrograf 1–30 hari (seret untuk zoom), hujan berdekatan, ramalan 5 model dan anggaran paras 4 / 24 jam.
-  - Butang **PDF** (A4) dan **Gambar** (PNG untuk WhatsApp); boleh dipilih dalam Mod dinding. App PC kekal buka laman infobanjir sebenar.
+  - Butang **PDF** (A4) dan **Gambar** (PNG untuk WhatsApp); boleh dipilih dalam Mod dinding.
+  - **App PC (4.5.4):** halaman yang sama; PC baca JPS terus setiap 3 minit. **Laman asal** = laman infobanjir dalam tab yang sama, **← Halaman app** untuk kembali (diingat bagi setiap tab / pane Mod dinding).
   - Kedudukan stesen: koordinat JPS (data.gov.my) atau kampung / jambatan stesen di sungai OpenStreetMap (anggaran, bulatan putus-putus).
 - **Laman yang tidak benarkan dipaparkan dalam app lain:**
   - Kalau ada versi dari sumber yang sama, ia dibuka di dalam app dengan bar "Laman ganti" dan butang **Laman asal ↗**. Contoh: Windy (versi embed), RainViewer, dan kad JPS / MET / pasang surut di Dashboard.

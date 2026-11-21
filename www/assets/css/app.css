@@ -486,6 +486,7 @@ textarea.inp { width: 100%; min-height: 54px; resize: vertical; padding: 8px 10p
 .altbar { height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px; font-size: 12px; background: var(--soft-info, var(--fill)); color: var(--ink-2); border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; }
 .altbar span { overflow: hidden; text-overflow: ellipsis; }
 .altbar a { color: var(--brand-text); font-weight: 700; text-decoration: none; flex: none; }
+.origbar { position: relative; z-index: 5; height: 36px; } .origbar .btn { flex: none; } .frame.has-alt webview { height: calc(100% - 36px); } .frame.has-alt .fmsg { top: 36px; }
 .dot.alt { background: var(--st-normal); box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-normal) 30%, transparent); opacity: .75; }
 .card.flash { outline: 2px solid var(--brand-text); outline-offset: 2px; transition: outline-color .4s; }
 

@@ -179,6 +179,12 @@
       tip: old ? L('Laman ini hanya menunjukkan tarikh lama. Kamera / data mungkin sudah tidak dikemas kini oleh pemiliknya.') : L('Tarikh paling baru yang tertulis di laman ini.') };
   }
   /* one site inside a host element. Desktop: <webview>. Browser/phone: <iframe>, or a "blocked" card. */
+  /* the Kemaman page asks for its original site (PC): the frame whose page sent it switches to the real site */
+  window.addEventListener('message', function (e) {
+    if (e.origin !== location.origin || !e.data || !e.data.kmOrig) return;
+    var all = (Sites.frames ? Object.keys(Sites.frames).map(function (k) { return Sites.frames[k]; }) : []).concat(Wall.frames || []);
+    all.forEach(function (f) { if (f && f.showOrig && f.view && f.view.contentWindow === e.source) f.showOrig(true); });
+  });
   function makeFrame(site, host, onState) {
     var wrap = document.createElement('div'), altInfo = null;
     wrap.className = 'frame';
@@ -208,46 +214,83 @@
     var ownPage = !isDesktop ? C.altFor(site, state.settings) : null;
     if (!(ownPage && ownPage.page)) ownPage = null;
     if (isDesktop) {
-      var wv = document.createElement('webview');
-      wv.setAttribute('partition', 'persist:sites');
-      wv.setAttribute('allowpopups', '');
-      wv.setAttribute('src', startUrl);
-      wrap.appendChild(wv);
-      fr.view = wv;
-      wv.addEventListener('did-start-loading', function () { clearMsg(); progress(true); });
-      /* the same small per-site fixes as through the relay (e.g. JPS with the profile's district chosen) */
-      wv.addEventListener('dom-ready', function () {
-        if (!/publicinfobanjir\.water\.gov\.my/.test(wv.getURL ? wv.getURL() : '')) return;
-        fetch('relay-tweaks.js', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; })
-          .then(function (code) { if (code) wv.executeJavaScript(code).catch(function () { }); }).catch(function () { });
-      });
-      wv.addEventListener('did-stop-loading', function () {
-        fr.lastLoad = Date.now(); progress(false);
-        clearTimeout(fr.freshTimer);
-        fr.freshTimer = setTimeout(function () {
-          try {
-            wv.executeJavaScript('(document.body ? document.body.innerText : "").slice(0, 200000)').then(function (text) {
-              var at = C.newestDate(text, Date.now());
-              fr.fresh = at ? { at: at, checked: Date.now() } : null;
-              onState && onState(fr);
-            }).catch(function () { });
-          } catch (e) { /* page gone */ }
-        }, 3000);
-      });
-      wv.addEventListener('did-fail-load', function (e) {
-        if (!e.isMainFrame || e.errorCode === -3) return;
-        progress(false);
-        message('📡', L('Laman tidak dapat dibuka'), (NET_ERR[String(e.errorCode)] || e.errorDescription || L('Ralat')) + ' (' + e.errorCode + ')', true);
-      });
-      wv.addEventListener('did-navigate', function (e) { fr.url = e.url; onState && onState(fr); });
-      wv.addEventListener('did-navigate-in-page', function (e) { if (e.isMainFrame) { fr.url = e.url; onState && onState(fr); } });
-      wv.addEventListener('render-process-gone', function () { message('💥', L('Laman berhenti'), L('Paparan laman ini terhenti.'), true); });
-      fr.reload = function () { clearMsg(); try { if (noCache) wv.reloadIgnoringCache(); else wv.reload(); } catch (e) { wv.src = fr.url || startUrl; } };
-      fr.goto = function (u) { clearMsg(); fr.url = fr.baseUrl = u; try { wv.loadURL(u); } catch (e) { wv.src = u; } };
-      fr.back = function () { try { if (wv.canGoBack()) wv.goBack(); } catch (e) { /* */ } };
-      fr.fwd = function () { try { if (wv.canGoForward()) wv.goForward(); } catch (e) { /* */ } };
-      fr.home = function () { clearMsg(); fr.url = fr.baseUrl; try { wv.loadURL(fr.baseUrl); } catch (e) { wv.src = fr.baseUrl; } };
-      fr.setZoom = function (z) { fr.zoom = Math.max(-5, Math.min(5, z)); try { wv.setZoomLevel(fr.zoom); } catch (e) { /* */ } };
+      /* PC: the real site in a <webview>; Water Level / Rainfall Kemaman: the app's own page (JPS read straight from the PC),
+         with "Laman asal" = the real infobanjir site in the same tab and "← Halaman app" back (remembered per tab / wall pane) */
+      var deskOwn = C.ALT[site.id] && C.ALT[site.id].page ? C.ALT[site.id] : null;
+      var paneEl = host.closest ? host.closest('.pane') : null, paneSel = paneEl && paneEl.querySelector('select[data-pane]');
+      var origKey = site.id + ':' + (paneSel ? 'wall' + paneSel.getAttribute('data-pane') : 'tab');
+      var clearView = function () { if (fr.view && fr.view.parentNode) fr.view.parentNode.removeChild(fr.view); var b = wrap.querySelector('.origbar'); if (b) b.remove(); clearMsg(); };
+      var deskWebview = function () {
+        var wv = document.createElement('webview');
+        wv.setAttribute('partition', 'persist:sites');
+        wv.setAttribute('allowpopups', '');
+        wv.setAttribute('src', startUrl);
+        wrap.appendChild(wv);
+        fr.view = wv;
+        wv.addEventListener('did-start-loading', function () { clearMsg(); progress(true); });
+        /* the same small per-site fixes as through the relay (e.g. JPS with the profile's district chosen) */
+        wv.addEventListener('dom-ready', function () {
+          if (!/publicinfobanjir\.water\.gov\.my/.test(wv.getURL ? wv.getURL() : '')) return;
+          fetch('relay-tweaks.js', { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; })
+            .then(function (code) { if (code) wv.executeJavaScript(code).catch(function () { }); }).catch(function () { });
+        });
+        wv.addEventListener('did-stop-loading', function () {
+          fr.lastLoad = Date.now(); progress(false);
+          clearTimeout(fr.freshTimer);
+          fr.freshTimer = setTimeout(function () {
+            try {
+              wv.executeJavaScript('(document.body ? document.body.innerText : "").slice(0, 200000)').then(function (text) {
+                var at = C.newestDate(text, Date.now());
+                fr.fresh = at ? { at: at, checked: Date.now() } : null;
+                onState && onState(fr);
+              }).catch(function () { });
+            } catch (e) { /* page gone */ }
+          }, 3000);
+        });
+        wv.addEventListener('did-fail-load', function (e) {
+          if (!e.isMainFrame || e.errorCode === -3) return;
+          progress(false);
+          message('📡', L('Laman tidak dapat dibuka'), (NET_ERR[String(e.errorCode)] || e.errorDescription || L('Ralat')) + ' (' + e.errorCode + ')', true);
+        });
+        wv.addEventListener('did-navigate', function (e) { fr.url = e.url; onState && onState(fr); });
+        wv.addEventListener('did-navigate-in-page', function (e) { if (e.isMainFrame) { fr.url = e.url; onState && onState(fr); } });
+        wv.addEventListener('render-process-gone', function () { message('💥', L('Laman berhenti'), L('Paparan laman ini terhenti.'), true); });
+        fr.reload = function () { clearMsg(); try { if (noCache) wv.reloadIgnoringCache(); else wv.reload(); } catch (e) { wv.src = fr.url || startUrl; } };
+        fr.goto = function (u) { clearMsg(); fr.url = fr.baseUrl = u; try { wv.loadURL(u); } catch (e) { wv.src = u; } };
+        fr.back = function () { try { if (wv.canGoBack()) wv.goBack(); } catch (e) { /* */ } };
+        fr.fwd = function () { try { if (wv.canGoForward()) wv.goForward(); } catch (e) { /* */ } };
+        fr.home = function () { clearMsg(); fr.url = fr.baseUrl; try { wv.loadURL(fr.baseUrl); } catch (e) { wv.src = fr.baseUrl; } };
+        fr.setZoom = function (z) { fr.zoom = Math.max(-5, Math.min(5, z)); try { wv.setZoomLevel(fr.zoom); } catch (e) { /* */ } };
+      };
+      var deskOwnPage = function () {
+        var f = document.createElement('iframe');
+        f.setAttribute('allow', 'fullscreen');
+        f.src = deskOwn.url + '&pc=1';
+        wrap.appendChild(f);
+        fr.view = f; fr.own = true; fr.url = fr.baseUrl = startUrl;
+        progress(true);
+        f.addEventListener('load', function () { fr.lastLoad = Date.now(); progress(false); });
+        fr.reload = function () { clearMsg(); try { f.contentWindow.location.reload(); } catch (e) { f.src = f.src; } };
+        fr.back = fr.fwd = fr.setZoom = function () { };
+        fr.home = function () { fr.reload(); };
+        fr.goto = function (u) { fr.url = fr.baseUrl = u; };
+      };
+      var origPref = function () { var m = load('mc_orig', {}); return !!m[origKey]; };
+      fr.showOrig = function (on) {
+        var m = load('mc_orig', {}); if (on) m[origKey] = 1; else delete m[origKey]; save('mc_orig', m);
+        clearView(); fr.own = false;
+        if (on) {
+          deskWebview();
+          var bar = document.createElement('div'); bar.className = 'altbar origbar';
+          bar.innerHTML = '<span>🌐 ' + esc(L('Laman asal: infobanjir Terengganu')) + '</span><button class="btn sm" type="button">← ' + esc(L(site.id === 'rainfall' ? 'Halaman app (Hujan Kemaman)' : 'Halaman app (Paras Air Kemaman)')) + '</button>';
+          bar.querySelector('button').onclick = function () { fr.showOrig(false); };
+          wrap.insertBefore(bar, fr.view); wrap.classList.add('has-alt');
+        } else { wrap.classList.remove('has-alt'); deskOwnPage(); }
+        onState && onState(fr);
+      };
+      if (deskOwn && !origPref()) deskOwnPage();
+      else if (deskOwn) fr.showOrig(true);
+      else deskWebview();
     } else if (!ownPage && ((C.siteBlocked(site, health) && C.relayFor(site, state.settings)) || (!isDesktop && C.relayAdsFor(site, state.settings))) && C.relayUrlFor(startUrl, state.settings)) {
       /* the site refuses to be framed: show it through the user's relay (Cloudflare Worker), which removes only that refusal */
       var rf = document.createElement('iframe');

@@ -12,6 +12,9 @@
   var NS = 'http://www.w3.org/2000/svg', MIN = 60000, HOUR = 3600000, DAY = 86400000;
   var Q = new URLSearchParams(location.search);
   var MIRROR = Q.get('mirror') || (C ? C.mirrorBase(location) : '');
+  /* inside the PC app (?pc=1): everything through the app's own server (/api/fetch), which reads JPS, Open-Meteo and the GitHub copy */
+  var PC = Q.get('pc') === '1';
+  function viaPc(u) { return fetch('/api/fetch?url=' + encodeURIComponent(u), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); }
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var num = function (v) { return v === null || v === undefined || v === '' || !isFinite(+v) ? null : +v; };
@@ -242,7 +245,7 @@
 
   /* the river layout of the app's settings (Tetapan › Susunan sungai), else the default */
   function upstream() { var s = load('mc_settings', null); return (s && typeof s.ewUpstream === 'string' ? s.ewUpstream : null) || (C.DEFAULTS && C.DEFAULTS.ewUpstream) || ''; }
-  function getJson(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); }
+  function getJson(u) { if (PC) return viaPc(u); return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); }
   /* cache-buster: one per 5 minutes; a forced update: a new one now */
   function bust() { return S.bust ? 't=' + S.bust : 'm=' + Math.floor(Date.now() / (5 * MIN)); }
   function loadNow() {
@@ -265,6 +268,7 @@
      read again each time (every 3 minutes while shown). The GitHub copy gives the older part and is used alone without a relay. */
   function appSettings() { return load('mc_settings', null) || {}; }
   function relayOn() { return !!(C.relayReady && C.relayReady(appSettings()) && root.MCParse && R && R.seriesUrl); }
+  function liveOn() { return PC ? !!(root.MCParse && R && R.seriesUrl) : relayOn(); }
   function viaRelay(u) {
     var ac = root.AbortController ? new AbortController() : null, t = ac ? setTimeout(function () { ac.abort(); }, 30000) : null;
     return fetch(C.relayUrlFor(u, appSettings()), { cache: 'no-store', signal: ac ? ac.signal : undefined }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
@@ -278,7 +282,7 @@
   }
   function live(j) {
     j.live = null;
-    if (!relayOn()) return Promise.resolve();
+    if (!liveOn()) return Promise.resolve();
     var now = Date.now(), P = root.MCParse;
     /* rain: whole hours on a grid that continues the copy's hours; from an hour boundary at least 1 hour before the copy ends */
     var endRain = now > j.end ? j.end + Math.ceil((now - j.end) / HOUR) * HOUR : j.end;
@@ -287,7 +291,8 @@
     var hours = (now - from) / HOUR + 0.5;   /* a reading before "from": the first rain step */
     var jobs = j.water.filter(function (st) { return st.gid; }).map(function (st) { return ['wl', st]; }).concat(j.rain.filter(function (st) { return st.gid; }).map(function (st) { return ['rf', st]; }));
     return pool(jobs, 5, function (x) {
-      return viaRelay(x[0] === 'wl' ? R.seriesUrl(x[1].gid, now, hours) : R.rainUrl(x[1].gid, now, hours)).then(function (txt) { return x[0] === 'wl' ? P.wlSeries(txt) : P.rfReadings(txt); });
+      var u = x[0] === 'wl' ? R.seriesUrl(x[1].gid, now, hours) : R.rainUrl(x[1].gid, now, hours);
+      return (PC ? viaPc(u) : viaRelay(u)).then(function (txt) { return x[0] === 'wl' ? P.wlSeries(txt) : P.rfReadings(txt); });
     }).then(function (res) {
       var ok = 0, newest = 0;
       res.forEach(function (pts2, k) {
@@ -317,7 +322,7 @@
       if (ok) { j.endRain = endRain; j.end = Math.max(j.end, Math.floor(now / (5 * MIN)) * 5 * MIN); }
       j.live = { ok: ok, n: jobs.length, newest: newest || null, at: now };
       /* the same readings into the GitHub backup: the relay asks GitHub to run the mirror (at most every 10 minutes) */
-      if (ok && C.pokeMirror) { try { C.pokeMirror(appSettings(), localStorage).then(function (r) { S.poke = r; }); } catch (e) { /* */ } }
+      if (ok && !PC && C.pokeMirror) { try { C.pokeMirror(appSettings(), localStorage).then(function (r) { S.poke = r; }); } catch (e) { /* */ } }
     });
   }
   /* the GitHub backup, as the relay answered */
@@ -340,11 +345,12 @@
     var q = 'latitude=' + ZONES.map(function (z) { return z.lat; }).join(',') + '&longitude=' + ZONES.map(function (z) { return z.lon; }).join(',') + '&hourly=precipitation&timezone=Asia%2FKuala_Lumpur&past_days=1&forecast_days=2';
     var out = {};
     return Promise.all(MODELS.map(function (m) {
-      omCount(ZONES.length);
-      return fetch('https://api.open-meteo.com/v1/forecast?' + q + '&models=' + m.id).then(function (r) {
+      var om = 'https://api.open-meteo.com/v1/forecast?' + q + '&models=' + m.id;
+      if (!PC) omCount(ZONES.length);
+      return (PC ? viaPc(om) : fetch(om).then(function (r) {
         if (r.status === 429) { var b = load('mc_om', {}); b.block = Date.now() + HOUR; save('mc_om', b); }
         if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
-      }).then(function (j) {
+      })).then(function (j) {
         var list = Array.isArray(j) ? j : [j];
         out[m.id] = list.map(function (x) { var h = x.hourly || {}, off = x.utc_offset_seconds === undefined ? 28800 : x.utc_offset_seconds;
           return (h.time || []).map(function (t, i) { return { t: Date.parse(t + ':00Z') - off * 1000, v: h.precipitation ? h.precipitation[i] : null }; }); });
@@ -357,14 +363,14 @@
   function head(title, sub) {
     var d = S.data, now = Date.now(), lv = d && d.live && d.live.ok ? d.live : null;
     var newest = lv && lv.newest ? lv.newest : d ? Date.parse(d.at) : null, age = newest ? (now - newest) / MIN : null;
-    var src = lv ? L('Langsung (relay)') : relayOn() ? L('Mirror GitHub (relay gagal)') : L('Mirror GitHub');
+    var src = lv ? (PC ? L('Langsung (JPS)') : L('Langsung (relay)')) : PC ? L('Mirror GitHub (JPS gagal)') : relayOn() ? L('Mirror GitHub (relay gagal)') : L('Mirror GitHub');
     var fresh = age === null ? '' : age > 60 ? '<span class="km-badge bad" title="' + esc(src) + '">⚠️ ' + esc(L('Data lama: {m} minit', { m: Math.round(age) })) + ' · ' + esc(src) + '</span>'
       : '<span class="km-badge ok" title="' + esc(src) + '">● ' + esc(src) + ' · ' + esc(hm(newest)) + '</span>';
     return '<header class="km-head"><div><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div><div class="km-act">' + fresh +
       '<button type="button" class="km-btn force" data-act="refresh" title="' + esc(L('Baca semula semua data sekarang, tanpa cache')) + '">⚡ ' + esc(L('Paksa kemas kini')) + '</button>' +
       '<button type="button" class="km-btn" data-act="pdf">🖨️ ' + esc(L('PDF')) + '</button>' +
       '<button type="button" class="km-btn" data-act="img">🖼️ ' + esc(L('Gambar')) + '</button>' +
-      '<a class="km-btn ln" href="' + ORIG[S.tab] + '" target="_blank" rel="noopener">' + esc(L('Laman asal ↗')) + '</a></div></header>';
+      (PC ? '<button type="button" class="km-btn ln" data-act="orig">🌐 ' + esc(L('Laman asal')) + '</button>' : '<a class="km-btn ln" href="' + ORIG[S.tab] + '" target="_blank" rel="noopener">' + esc(L('Laman asal ↗')) + '</a>') + '</div></header>';
   }
   var ORIG = { water: 'https://infobanjir.terengganu.gov.my/WaterLevel/District/4', rain: 'https://infobanjir.terengganu.gov.my/Rainfall/District/4' };
   function render() {
@@ -754,6 +760,7 @@
     else if (a === 'play') togglePlay(t);
     else if (a === 'pdf') printPage();
     else if (a === 'img') saveImage();
+    else if (a === 'orig') { try { root.parent.postMessage({ kmOrig: true }, location.origin); } catch (e) { root.open(ORIG[S.tab], '_blank'); } }
   });
   document.addEventListener('input', function (e) { if (e.target.id === 'kmFrame') { stopReplay(); var b = document.querySelector('[data-act="play"]'); if (b) b.textContent = '▶'; setFrame(+e.target.value); } });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('g[data-wl]')) openWater(e.target.getAttribute('data-wl')); });
@@ -832,7 +839,7 @@
       render(); if (keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name);
       if (S.tab === 'water') loadModels();
       note(S.err ? '⚠️ ' + L('Tidak dapat membaca data mirror: {e}', { e: S.err }) :
-        '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + (S.data.live && S.data.live.ok ? L('JPS langsung {n}/{m} stesen, bacaan {t}', { n: S.data.live.ok, m: S.data.live.n, t: hm(S.data.live.newest || Date.now()) }) : L('mirror JPS {m}', { m: hm(Date.parse(S.data.at)) }) + (relayOn() ? ' · ' + L('relay gagal') : ' · ' + L('tiada relay'))) + pokeText() + ' · ' + L('Versi {v}', { v: C.VERSION }), 7000);
+        '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + (S.data.live && S.data.live.ok ? L('JPS langsung {n}/{m} stesen, bacaan {t}', { n: S.data.live.ok, m: S.data.live.n, t: hm(S.data.live.newest || Date.now()) }) : L('mirror JPS {m}', { m: hm(Date.parse(S.data.at)) }) + (PC ? ' · ' + L('JPS gagal') : relayOn() ? ' · ' + L('relay gagal') : ' · ' + L('tiada relay'))) + pokeText() + ' · ' + L('Versi {v}', { v: C.VERSION }), 7000);
       S.bust = 0;
     });
   }

@@ -432,3 +432,18 @@ test('AI suggestion through the PC: /api/fetch for the rain models & the JPS mir
   await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
   expect(problems).toEqual([]);
 });
+
+test('PC: the Kemaman page reads everything through the PC server (JPS straight, GitHub copy for 30 days), "Laman asal" asks the app', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  const ext = []; page.on('request', r => { if (!/^http:\/\/127\.0\.0\.1/.test(r.url()) && !/^data:/.test(r.url())) ext.push(r.url()); });
+  await page.goto('/kemaman.html?tab=water&pc=1');
+  await expect(page.locator('.km-st')).toHaveCount(8);
+  await expect(page.locator('.km-badge')).toContainText(/Live \(JPS\)|Langsung \(JPS\)/);
+  await expect(page.locator('[data-act="orig"]')).toHaveCount(1);
+  await page.locator('.km-st').first().click();
+  await expect(page.locator('#kmHyd svg')).toBeVisible();
+  /* nothing leaves the PC page except the map pictures */
+  expect(ext.filter(u => !/tile\.openstreetmap\.org/.test(u))).toEqual([]);
+  await page.goto('/kemaman.html?tab=rain&pc=1');
+  await expect(page.locator('.hm-row:not(.hm-head)')).toHaveCount(17);
+});
