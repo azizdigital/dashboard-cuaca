@@ -13,7 +13,8 @@
     "build-www": "node tools/build-precache.js",
     "test:unit": "node tests/unit.js",
     "test": "node tools/build-precache.js && node tests/unit.js && playwright test",
-    "dist": "node tools/build-precache.js && electron-builder --win portable --x64",
+    "dist": "node tools/build-precache.js && electron-builder --win portable nsis --x64",
+    "dist:portable": "node tools/build-precache.js && electron-builder --win portable --x64",
     "dist:setup": "node tools/build-precache.js && electron-builder --win nsis --x64",
     "adblock:build": "node tools/build-adblock.js",
     "fix-icon": "node tools/fix-icon.js"

@@ -20,8 +20,8 @@ Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes:
 
 The Electron app still works (`npm install` → `npm start`). It reads infobanjir Terengganu itself and has its own ad blocker.
 
-- `npm install` → `npm start` (run) → `npm run dist` (portable `.exe` in `dist/`)
-- `npm run dist:setup` → normal installer
+- `npm install` → `npm start` (run) → `npm run dist` (both in `dist/`: portable `Dashboard Cuaca Aziz <version>.exe` and installer `Dashboard Cuaca Aziz Setup <version>.exe`)
+- `npm run dist:portable` → portable only · `npm run dist:setup` → installer only
 - `npm run server` → server only, without Electron (http://127.0.0.1:30040)
 - `node server-only.js --mock` → made-up data, no internet needed (for demos / tests)
 - `npm run fix-icon` → Windows: clear the icon cache if the taskbar shows the Electron icon (restarts Explorer)

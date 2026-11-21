@@ -43,7 +43,7 @@ Rupa sama seperti app lama. Yang baru dalam 4.1:
 1. Pasang **Node.js 20 atau lebih baru** (sekali sahaja).
 2. Dalam folder projek: `npm install`
 3. Jalankan: `npm start`
-4. Bina `.exe` portable: `npm run dist` → `dist\Dashboard Cuaca Aziz 3.5.1.exe`
+4. Bina `.exe`: `npm run dist` → dalam `dist\`: `Dashboard Cuaca Aziz 4.4.1.exe` (portable) dan `Dashboard Cuaca Aziz Setup 4.4.1.exe` (installer)
 
 App ini guna port **30040–30042**, berbeza dari OIM Wazira (30030–30032), jadi kedua-dua boleh dibuka serentak.
 
