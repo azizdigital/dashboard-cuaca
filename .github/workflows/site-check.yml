@@ -14,6 +14,6 @@ jobs:
       - run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add -A s3 s4 s5 s6 frames.tsv log3.txt
+          git add -A s3 s4 s5 s6 s7 frames.tsv log3.txt
           git commit -m "Samples [skip ci]"
           git push
