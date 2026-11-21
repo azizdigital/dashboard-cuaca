@@ -1,75 +1,21 @@
-== scripts
-<script src="/wp-content/themes/enlighten/js/jquery-2.1.1.min.js">
-<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js">
-<script src="/wp-content/themes/enlighten/js/Chart.js">
-<script src="/wp-content/themes/enlighten/js/bootstrap-datetimepicker.js">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous">
-<script src="/wp-content/themes/enlighten/js/chartjs-plugin-annotation.min.js">
-<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/FileSaver/FileSaver.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/js-xlsx/xlsx.core.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/jsPDF/jspdf.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/tableExport.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/es6-promise/es6-promise.auto.min.js">
-<script type="text/javascript" src="/wp-content/themes/enlighten/libs/html2canvas/html2canvas.min.js">
-== forms
-<input type='hidden' id='language' value='my'>
-<input type="checkbox" class="dd-input" id="test">
-<select id="state" name="state" onChange="searchDistrict();" class="form-control input-md">
-<select id="district" name="district" onChange="searchStation(); " class="form-control input-md">
-<select id="station" name="station" class="form-control input-md" onchange="changeStationorDate();">
-<input type='text' class="form-control" id="datetimepicker-from" />
-<input type='text' class="form-control" id="datetimepicker-to" />
-<select id="datafreq" name="datafreq" class="form-control input-md">
-<input type="text" id="yaxismin">
-<input type="text" id="yaxismax">
-<input type="text" id="xaxisfreq">
-<button type="button" class="btn btn-default" onclick="searchResult();">
-== ajax-ish
-<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
-    $(document).ajaxStart(function() {
-    $(document).ajaxComplete(function() {
-        var url = "/wp-content/themes/enlighten/query/searchdistrictARI.php?name=" + name + "&language="+lang;
-        var url = "/wp-content/themes/enlighten/query/searchstationWL.php?name=" + name + "&language="+lang;
-        var url = "/wp-content/themes/enlighten/query/searchresultwaterleveldtlead.php?station=" + station + "&from=" + datefrom + "&to=" + dateto+ "&datafreq=" + datafreq;
-        var url = "/wp-content/themes/enlighten/query/getwaterlevellast7dayslead.php?extra="+extra+"&station=" + station;
-    $.getJSON(url, function(result) {
-    }); /* end getJSON */
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/js/jquery-2.1.1.min.js
-);return"string"!=typeof j||f||e[j]?f?!(i=j):void 0:(b.dataTypes.unshift(j),g(j),!1)}),i}return g(b.dataTypes[0])||!e["*"]&&g("*")}function tc(a,b){var c,d,e=n.ajaxSettings.flatOptions||{};for(c in b)void 0!==b[c]&&((e[c]?a:d||(d={}))[c]=b[c]);return d&&n.extend(!0,a,d),a}function uc(a,b,c){var d,e,f,g,h=a.contents,i=a.dataTypes;while("*"===i[0])i.shift(),void 0
-g(b)}catch(l){return{state:"parsererror",error:g?l:"No conversion from "+i+" to "+f}}}return{state:"success",data:b}}n.extend({active:0,lastModified:{},etag:{},ajaxSettings:{url:fc,type:"GET",isLocal:jc.test(ec[1]),global:!0,processData:!0,async:!0,contentType:"application/x-www-form-urlencoded; charset=UTF-8",accepts:{"*":pc,text:"text/plain",html:"text/html",x
-:"responseText",json:"responseJSON"},converters:{"* text":String,"text html":!0,"text json":n.parseJSON,"text xml":n.parseXML},flatOptions:{url:!0,context:!0}},ajaxSetup:function(a,b){return b?tc(tc(a,n.ajaxSettings),b):tc(n.ajaxSettings,a)},ajaxPrefilter:rc(nc),ajaxTransport:rc(oc),ajax:function(a,b){"object"==typeof a&&(b=a,a=void 0),b=b||{};var c,d,e,f,g,h,i,
-j,k=n.ajaxSetup({},b),l=k.context||k,m=k.context&&(l.nodeType||l.jquery)?n(l):n.event,o=n.Deferred(),p=n.Callbacks("once memory"),q=k.statusCode||{},r={},s={},t=0,u="canceled",v={readyState:0,getResponseHeader:
-data&&k.processData&&"string"!=typeof k.data&&(k.data=n.param(k.data,k.traditional)),sc(nc,k,b,v),2===t)return v;i=k.global,i&&0===n.active++&&n.event.trigger("ajaxStart"),k.type=k.type.toUpperCase(),k.hasContent=!kc.test(k.type),d=k.url,k.hasContent||(k.data&&(d=k.url+=(dc.test(d)?"&":"?")+k.data,delete k.data),k.cache===!1&&(k.url=hc.test(d)?d.replace(hc,"$1_=
-eforeSend.call(l,v,k)===!1||2===t))return v.abort();u="abort";for(j in{success:1,error:1,complete:1})v[j](k[j]);if(c=sc(oc,k,b,v)){v.readyState=1,i&&m.trigger("ajaxSend",[v,k]),k.async&&k.timeout>0&&(g=setTimeout(function(){v.abort("timeout")},k.timeout));try{t=1,c.send(r,x)}catch(w){if(!(2>t))throw w;x(-1,w)}}else x(-1,"No Transport");function x(a,b,f,h){var j,
-,(a||!x)&&(x="error",0>a&&(a=0))),v.status=a,v.statusText=(b||x)+"",j?o.resolveWith(l,[r,x,v]):o.rejectWith(l,[v,x,s]),v.statusCode(q),q=void 0,i&&m.trigger(j?"ajaxSuccess":"ajaxError",[v,k,j?r:s]),p.fireWith(l,[v,x]),i&&(m.trigger("ajaxComplete",[v,k]),--n.active||n.event.trigger("ajaxStop")))}return v},getJSON:function(a,b,c){return n.get(a,b,c,"json")},getScr
-t:function(a,b){return n.get(a,void 0,b,"script")}}),n.each(["get","post"],function(a,b){n[b]=function(a,c,d,e){return n.isFunction(c)&&(e=e||d,d=c,c=void 0),n.ajax({url:a,type:b,dataType:e,data:c,success:d})}}),n.each(["ajaxStart","ajaxStop","ajaxComplete","ajaxError","ajaxSuccess","ajaxSend"],function(a,b){n.fn[b]=function(a){return this.on(b,a)}}),n._evalUrl=
-function(a){return n.ajax({url:a,type:"GET",dataType:"script",async:!1,global:!1,"throws":!0})},n.fn.extend({wrapAll:function(a){var b;return n.isFunction(a)?this.each(function(b){n(this).wrapAll(a.call(this,b))}):(this[0]&&(
-am=function(a,b){var c,d=[],e=function(a,b){b=n.isFunction(b)?b():null==b?"":b,d[d.length]=encodeURIComponent(a)+"="+encodeURIComponent(b)};if(void 0===b&&(b=n.ajaxSettings&&n.ajaxSettings.traditional),n.isArray(a)||a.jquery&&!n.isPlainObject(a))n.each(a,function(){e(this.name,this.value)});else for(c in a)Bc(c,a[c],b,e);return d.join("&").replace(wc,"+")},n.fn.
-l();return null==c?null:n.isArray(c)?n.map(c,function(a){return{name:b.name,value:a.replace(yc,"\r\n")}}):{name:b.name,value:c.replace(yc,"\r\n")}}).get()}}),n.ajaxSettings.xhr=function(){try{return new XMLHttpRequest}catch(a){}};var Cc=0,Dc={},Ec={0:200,1223:204},Fc=n.ajaxSettings.xhr();a.ActiveXObject&&n(a).on("unload",function(){for(var a in Dc)Dc[a]()}),k.co
-rs=!!Fc&&"withCredentials"in Fc,k.ajax=Fc=!!Fc,n.ajaxTransport(function(a){var b;return k.cors||Fc&&!a.crossDomain?{send:function(c,d){var e,f=a.xhr(),g=++Cc;if(f.open(a.type,a.url,a.async,a.username,a.password),a.xhrFields)for(e in a.xhrFields)f[e]=a.x
-()))}},f.onload=b(),f.onerror=b("error"),b=Dc[g]=b("abort");try{f.send(a.hasContent&&a.data||null)}catch(h){if(b)throw h}},abort:function(){b&&b()}}:void 0}),n.ajaxSetup({accepts:{script:"text/javascript, application/javascript, application/ecmascript, application/x-ecmascript"},contents:{script:/(?:java|ecma)script/},converters:{"text script":function(a){return
- n.globalEval(a),a}}}),n.ajaxPrefilter("script",function(a){void 0===a.cache&&(a.cache=!1),a.crossDomain&&(a.type="GET")}),n.ajaxTransport("script",function(a){if(a.crossDomain){var b,c;return{send:function(d,e){b=n("<script>").prop({async:!0,charset:a.scriptCharset,src:a.url}).on("load error",c=function(a){b.remove(),c=null,a&
-&e("error"===a.type?404:200,a.type)}),l.head.appendChild(b[0])},abort:function(){c&&c()}}}});var Gc=[],Hc=/(=)\?(?=&|$)|\?\?/;n.ajaxSetup({jsonp:"callback",jsonpCallback:function(){var a=Gc.pop()||n.expando+"_"+cc++;return this[a]=!0,a}}),n.ajaxPrefilter("json jsonp",function(b,c,d){var e,f,g,h=b.jsonp!==!1&&(Hc.test(b.url)?"url":
-== JS https://publicinfobanjir.water.gov.my//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js
-	<link rel="pingback" href="https://publicinfobanjir.water.gov.my/xmlrpc.php">
-"https://publicinfobanjir.water.gov.my/wp-json/" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://publicinfobanjir.water.gov.my/xmlrpc.php?rsd" />
-<!--<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>-->
-                            <span tooltip=Tukar bahasa flow="down" class="title_location"><i class="fa fa-languages" aria-hidden="true" ></i><a href="/index.php?lang=my" style="color: white;" class="sf-with-ul">Melayu </a> / <a href="/index.php?lang=en" style="color: white;">English</a> </span>
-                                                        <a style="color: white;" href="/index.php/login/">LOG MASUK</a>
-itle_location"><i class="fa fa-languages" aria-hidden="true" style=" margin: 0px 10px;"></i><a href="https://publicinfobanjir.water.gov.my/cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js?lang=my"style="color: white; color: white;position: relative;font-size: 90%;font-family: inherit;">Melayu<a/> / <a href="https://publicinfobanjir.water.gov
-.my/cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js?lang=en"style="color: white;color: white;position: relative;font-size: 90%;font-family: inherit;">English</a> </span>
-                                                    <a style="color: white;" href="/index.php/login/">LOG MASUK</a>
-        $("#pp").load("/wp-content/themes/enlighten/userguide.php?lang="+lang+"");
-{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/export/upload/wordpress/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/enlighten/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/js/Chart.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/js/chartjs-plugin-annotation.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/FileSaver/FileSaver.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/js-xlsx/xlsx.core.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/jsPDF/jspdf.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/tableExport.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/es6-promise/es6-promise.auto.min.js
-== JS https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/libs/html2canvas/html2canvas.min.js
-== guess wl-graph/?stationid=25318&datefrom=2026-11-20&dateto=2026-11-21&interval=60 57201
+== last7 233901
+
+{"info": {
+                    "name": "Sg. Setiu di Kg. Besut (RHN)",
+                    "normal": "13.3",
+                    "alert": "16",
+                    "warning": "17",
+                    "danger": "17.5",
+                    "QueryCnt": "123","count":2225},"values":[{"dt":"14/11/2026 00:00","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:05","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:10","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:15","clean":"14.03","raw":"14.03","ecm":"14.03","final":"14.03","severity":"SL_NML"},{"dt":"14/11/2026 00:20","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:25","clean":"14","raw":"14","ecm":"14","final":"14","severity":"SL_NML"},{"dt":"14/11/2026 00:30","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:35","clean":"14","raw":"14","ecm":"14","final":"14","severity":"SL_NML"},{"dt":"14/11/2026 00:40","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:45","clean":"14.01","raw":"14.01","ecm":"14.01","final":"14.01","severity":"SL_NML"},{"dt":"14/11/2026 00:50","clean":"14.02","raw":"14.02","ecm":"14.02","final":"14.02","severity":"SL_NML"},{"dt":"14/11/2026 00:55","clean":"14","raw":"14","ecm":"14","final":"14","se
+content-type: text/html; charset=UTF-8
+x-content-type-options: nosniff
+x-content-type-options: nosniff
+== range 43370
+
+
+{"info": {
+                        "name": "Sg. Setiu di Kg. Besut (RHN)",
+                        "normal": "13.3",
+                        "alert": "16",
+                        "warning": "17",
+                        "danger": "17.5","count":409},"values":[{"dt":"20/11/2026 00:00","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"SL_NML"},{"dt":"20/11/2026 00:05","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"SL_NML"},{"dt":"20/11/2026 00:10","clean":"15.31","raw":"15.31","ecm":"15.31","final":"15.31","severity":"SL_NML"},{"dt":"20/11/2026 00:15","clean":"15.29","raw":"15.29","ecm":"15.29","final":"15.29","severity":"SL_NML"},{"dt":"20/11/2026 00:20","clean":"15.3","raw":"15.3","ecm":"15.3","final":"15.3","severity":"SL_NML"},{"dt":"20/11/2026 00:25","clean":"15.32","raw":"15.32","ecm":"15.32","final":"15.32","severity":"SL_NML"},{"dt":"20/11/2026 00:30","clean":"15.3","raw":"15.3","ecm":"15.3","final":"15.3","severity":"SL_NML"},{"dt":"20/11/2026 00:35","clean":"15.29","raw":"15.29","ecm":"15.29","final":"15.29","severity":"SL_NML"},{"dt":"20/11/2026 00:40","clean":"15.28","raw":"15.28","ecm":"15.28","final":"15.28","severity":"

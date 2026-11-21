@@ -1,0 +1,21 @@
+HTTP/2 200 
+content-type: text/html; charset=UTF-8
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+permissions-policy: geolocation=(), microphone=(), camera=()
+x-akamai-transformed: 9 11429 0 pmb=mRUM,1
+expires: Sat, 21 Nov 2026 09:04:10 GMT
+cache-control: max-age=0, no-cache, no-store
+pragma: no-cache
+date: Sat, 21 Nov 2026 09:04:10 GMT
+server-timing: cdn-cache; desc=MISS
+server-timing: edge; dur=1584
+server-timing: origin; dur=530
+alt-svc: h3=":443"; ma=93600
+akamai-grn: 0.ccd50b17.1795251848.111622e
+server-timing: ak_p; desc="1795251848423_386651596_17916462_211000_15028_10_53_15";dur=1
+
