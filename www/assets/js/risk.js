@@ -53,6 +53,10 @@
     return 'https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/query/searchresultwaterleveldtlead.php?station=' + encodeURIComponent(gid) +
       '&from=' + encodeURIComponent(f(now - (hours || 12) * HOUR)) + '&to=' + encodeURIComponent(f(now)) + '&datafreq=15';
   }
+  /* JPS rain gauge graph data (5-minute), the last `hours` hours */
+  function rainUrl(gid, now, hours) {
+    return seriesUrl(gid, now, hours).replace('searchresultwaterleveldtlead.php?station=', 'searchresultrainfalldthourlylead.php?extra=&station=').replace('&datafreq=15', '&datafreq=60');
+  }
   /* least-squares slope (m per hour) of the points in the last `span` hours */
   function slope(pts, end, span) {
     var P = pts.filter(function (p) { return p.t >= end - span * HOUR && p.t <= end; });
@@ -288,7 +292,7 @@
     return out;
   }
 
-  return { LEVELS: LEVELS, level: level, combine: combine, ramp: ramp, seriesUrl: seriesUrl, histPoints: histPoints, slope: slope, trend: trend, earlyFlood: earlyFlood,
+  return { LEVELS: LEVELS, level: level, combine: combine, ramp: ramp, seriesUrl: seriesUrl, rainUrl: rainUrl, histPoints: histPoints, slope: slope, trend: trend, earlyFlood: earlyFlood,
     rainScore: rainScore, weatherPart: weatherPart, riverPart: riverPart, coastalPart: coastalPart, landScore: landScore,
     windPart: windPart, seaPart: seaPart, weatherOffPart: weatherOffPart, offScore: offScore, offValues: offValues, earlyOffshore: earlyOffshore, windows: windows, when: when };
 });

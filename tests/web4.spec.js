@@ -289,3 +289,53 @@ test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Fl
   await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.getElementById('advOut').offsetTop - 10; });
   await page.screenshot({ path: '/tmp/shots/risk-adv-off.png' });
 });
+
+test('history: the full JPS record (5-minute, 14 days) through the relay, rain gauge at the same place, offshore past days from Open-Meteo', async ({ page, baseURL }) => {
+  const fs = require('fs'), path = require('path');
+  await page.setViewportSize({ width: 1180, height: 820 });
+  const water = fs.readFileSync(path.join(__dirname, 'web-fixtures/jps-water-TRG.html'), 'utf8'), rain = fs.readFileSync(path.join(__dirname, 'web-fixtures/jps-rain-TRG.html'), 'utf8');
+  const asked = [];
+  /* a stand-in for the user's Cloudflare relay: what JPS answers, with the relay's own <style> in front like the real one */
+  await page.route(/^https:\/\/relay\.example\.workers\.dev\//, r => {
+    const u = decodeURIComponent(r.request().url()); asked.push(u);
+    const body = /searchresultwaterlevel/.test(u) ? '<style>a{b:1}</style>' + JSON.stringify(F.wlSeries(Date.now())) : /searchresultrainfalldthourlylead/.test(u) ? JSON.stringify(F.rfSeries(Date.now()))
+      : /aras-air-data/.test(u) ? water : /searchresultrainfall\.php/.test(u) ? rain : null;
+    return body === null ? r.fulfill({ status: 404, body: 'no' }) : r.fulfill({ status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body });
+  });
+  await open(page, baseURL);
+  await page.addStyleTag({ content: '#toasts { display: none !important; }' });
+  await page.click('[data-view="settings"]');
+  await page.fill('#f_relayUrl', 'https://relay.example.workers.dev');
+  await page.fill('#f_relayKey', 'k3y-history-1');
+  await page.click('#setSave');
+  await page.waitForFunction(() => MC.state.settings.relayKey === 'k3y-history-1');
+  await page.evaluate(() => MC.Data.refresh());
+  await page.waitForFunction(() => MC.state.snap.jps && MC.state.snap.jps.live && MC.state.snap.jps.water.some(x => x.gid), null, { timeout: 20000 });
+  await page.click('[data-view="history"]');
+  await expect(page.locator('#hHours')).toHaveValue('336');
+  const id = await page.evaluate(() => MC.state.snap.stations.find(s => /Sg\. Mas/.test(s.name)).id);
+  await page.selectOption('#hStation', id);
+  await expect(page.locator('#hSub')).toContainText('JPS readings (5 minutes)', { timeout: 20000 });
+  const n = +(await page.locator('#hSub').textContent()).match(/^\d+/)[0];
+  expect(n).toBeGreaterThan(4000);                                                         /* 14 days x 288 a day */
+  await expect(page.locator('#hNote')).toContainText('Full data from JPS Public Infobanjir');
+  await expect(page.locator('#hRainTitle')).toContainText('JPS Kg. Sg. Mas (F2)');
+  expect(asked.some(u => /searchresultwaterleveldtlead\.php\?station=27197&from=/.test(u))).toBe(true);
+  expect(asked.some(u => /searchresultrainfalldthourlylead\.php\?extra=&station=/.test(u))).toBe(true);
+  /* the line has no gaps: points every 30 minutes over 14 days */
+  const path0 = await page.locator('#chartLevel svg path.ln, #chartLevel svg path').first().getAttribute('d');
+  expect((path0.match(/M/g) || []).length).toBeLessThanOrEqual(2);
+  await page.screenshot({ path: '/tmp/shots/history-jps.png' });
+  await page.selectOption('#hHours', '720');
+  await expect(page.locator('#hSub')).toContainText('JPS readings', { timeout: 20000 });
+  expect(asked.some(u => /searchresultwaterleveldtlead[^ ]*from=\d\d\/\d\d\/\d{4} \d\d:\d\d/.test(u))).toBe(true);
+  /* offshore: the past days from the models */
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
+  await page.waitForFunction(() => MC.state.settings.kind === 'offshore');
+  await page.click('[data-view="history"]');
+  await page.selectOption('#hHours', '336');
+  await expect(page.locator('#hSub')).toContainText('h · Open-Meteo model', { timeout: 20000 });
+  expect(+(await page.locator('#hSub').textContent()).match(/^\d+/)[0]).toBeGreaterThanOrEqual(330);
+  await expect(page.locator('#hTempTitle')).toHaveText('Temperature (Open-Meteo model)');
+  await page.screenshot({ path: '/tmp/shots/history-off.png' });
+});

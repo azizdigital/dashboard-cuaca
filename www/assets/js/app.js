@@ -1793,12 +1793,99 @@
   };
 
   /* -------------------------------------------------------------- history */
+  /* -------------------------------------------------------------- history
+     the full record from the source, not only the readings this app happened to see:
+     land: JPS graph data (every 5 minutes, up to 30 days) for the gauge + the rain gauge at the same place (relay on the web, the PC on desktop);
+     offshore: Open-Meteo's past days (waves, swell, wind, gusts, temperature). The app's own readings stay as the fallback. */
   var History = {
-    entries: [],
+    entries: [], full: null, cache: {}, jpsList: null,
     load: function () {
       var hours = +$('hHours').value;
       this.stations();
-      Data.history(hours).then(function (e) { History.entries = e; History.render(); });
+      Data.history(hours).then(function (e) { History.entries = e; History.render(); History.fetchFull(); });
+    },
+    /* JPS graph data: through the relay (web) or the PC (desktop / phone on the PC) */
+    jpsGet: function (url) {
+      if (state.mode === 'pc') return fetchT('/api/fetch?url=' + encodeURIComponent(url), 90000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      if (!C.relayReady(state.settings)) return Promise.reject(new Error(L('Pasang relay Cloudflare (Tetapan › Relay laman) untuk data penuh JPS.')));
+      return fetchT(C.relayUrlFor(url, state.settings), 90000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+    },
+    jsonGet: function (url) {
+      var u = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(url) : url;
+      return fetchT(u, 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    },
+    /* JPS station lists with their graph ids */
+    jps: function () {
+      var sn = state.snap || {};
+      if (sn.jps && sn.jps.water && sn.jps.water.some(function (x) { return x.gid; })) return Promise.resolve(sn.jps);
+      if (this.jpsList && Date.now() - this.jpsList.at < 15 * 60000) return Promise.resolve(this.jpsList.data);
+      return this.jsonGet(C.mirrorUrls(state.settings, MIRROR).jpsMirror + '?m=' + Math.floor(Date.now() / 600000)).then(function (j) { History.jpsList = { at: Date.now(), data: j }; return j; });
+    },
+    fetchFull: function () {
+      var id = $('hStation').value, hours = +$('hHours').value, s = state.settings, now = Date.now(), R = window.MCRisk, P = window.MCParse;
+      var off = s.kind === 'offshore', key = (off ? 'off|' + s.marineLat + ',' + s.marineLon : 'jps|' + id) + '|' + hours;
+      var c = this.cache[key];
+      if (c && now - c.at < 10 * 60000) { this.full = c; this.render(); return; }
+      if (this.full && this.full.key === key && this.full.busy) return;
+      this.full = { key: key, busy: true };
+      this.note();
+      var job, days = Math.max(1, Math.ceil(hours / 24));
+      var tz = '&timezone=Asia%2FKuala_Lumpur&past_days=' + days + '&forecast_days=1';
+      var hourly = function (j, k) {
+        var H = (j && j.hourly) || {}, off8 = j && j.utc_offset_seconds !== undefined ? j.utc_offset_seconds : 28800;
+        return (H.time || []).map(function (t, i) { return { t: Date.parse(t + ':00Z') - off8 * 1000, v: H[k] ? H[k][i] : null }; }).filter(function (p) { return p.v !== null && p.v !== undefined && p.t <= now; });
+      };
+      var lat = off ? s.marineLat : s.lat, lon = off ? s.marineLon : s.lon;
+      var wx = this.jsonGet('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m&wind_speed_unit=kn' + tz);
+      if (off) {
+        job = Promise.all([wx, this.jsonGet('https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lon + '&hourly=wave_height,swell_wave_height' + tz)]).then(function (r) {
+          return { src: 'model', temp: hourly(r[0], 'temperature_2m'), series: { '@wind': hourly(r[0], 'wind_speed_10m'), '@gust': hourly(r[0], 'wind_gusts_10m'), '@wave': hourly(r[1], 'wave_height'), '@swell': hourly(r[1], 'swell_wave_height') } };
+        });
+      } else {
+        var st = ((state.snap && state.snap.stations) || []).filter(function (x) { return x.id === id; })[0];
+        if (!st || !R || !P) { this.full = { key: key, err: L('Pilih stesen') }; this.note(); return; }
+        job = this.jps().then(function (j) {
+          var w = (j.water || []).filter(function (x) { return x.name === st.name; })[0];
+          if (!w || !w.gid) throw new Error(L('Stesen ini tiada dalam senarai JPS Public Infobanjir.'));
+          var lc = function (x) { return String(x || '').toLowerCase(); }, place = lc(st.name.split(/\s+di\s+/i).pop());
+          var rs = (((j.rain && j.rain.stations) || []).filter(function (r) { return r.gid && (lc(r.name) === place || (place.length > 4 && (lc(r.name).indexOf(place) >= 0 || place.indexOf(lc(r.name)) >= 0))); }))[0];
+          return Promise.all([History.jpsGet(R.seriesUrl(w.gid, now, hours)), rs ? History.jpsGet(R.rainUrl(rs.gid, now, hours)).catch(function () { return null; }) : null, wx.catch(function () { return null; })]).then(function (r) {
+            var lv = P.wlSeries(r[0]);
+            if (!lv.length) throw new Error(L('JPS tiada bacaan untuk tempoh ini.'));
+            return { src: 'jps', level: lv, rain: r[1] ? P.rfSeries(r[1]) : null, rainName: rs ? rs.name : '', temp: r[2] ? hourly(r[2], 'temperature_2m') : null };
+          });
+        });
+      }
+      job.then(function (d) {
+        d.key = key; d.at = Date.now();
+        History.cache[key] = d;
+        if (History.full && History.full.key === key) { History.full = d; History.render(); }
+      }).catch(function (e) {
+        if (History.full && History.full.key === key) { History.full = { key: key, err: (e && e.message) || String(e) }; History.render(); }
+      });
+    },
+    mine: function () {
+      var s = state.settings, id = $('hStation').value, hours = +$('hHours').value;
+      var key = (s.kind === 'offshore' ? 'off|' + s.marineLat + ',' + s.marineLon : 'jps|' + id) + '|' + hours;
+      return this.full && this.full.key === key ? this.full : null;
+    },
+    note: function () {
+      var f0 = this.mine(), el = $('hNote');
+      if (!el) return;
+      el.className = 'note';
+      el.textContent = !f0 ? '' : f0.busy ? L('Membaca data penuh…') : f0.err ? L('Data penuh tidak dapat dibaca ({e}). Graf guna bacaan yang app simpan.', { e: f0.err })
+        : f0.src === 'jps' ? L('Data penuh JPS Public Infobanjir (setiap 5 minit).') : L('Open-Meteo: data model jam-jam untuk hari lepas (bukan bacaan alat).');
+    },
+    /* the largest reading in each step (floods: the peak matters) */
+    thin: function (pts, hours) {
+      var step = hours <= 72 ? 0 : hours <= 168 ? 15 : hours <= 336 ? 30 : 60;
+      if (!step) return pts;
+      var out = [], cur = null;
+      pts.forEach(function (p) {
+        var b = Math.floor(p.t / (step * 60000));
+        if (!cur || cur.b !== b) { cur = { b: b, t: p.t, v: p.v }; out.push(cur); } else if (p.v > cur.v) { cur.v = p.v; cur.t = p.t; }
+      });
+      return out.map(function (x) { return { t: x.t, v: x.v }; });
     },
     /* offshore profiles have no rivers: the list shows sea & wind readings instead */
     METRICS: { '@wave': [L('Tinggi ombak'), 'm', 1, 'wave'], '@swell': [L('Alun (swell)'), 'm', 1, 'swell'], '@gust': [L('Tiupan angin'), 'knot', 0, 'gust'], '@wind': [L('Kelajuan angin'), 'knot', 0, 'wind'] },
@@ -1816,27 +1903,42 @@
       if (cur && ids[cur]) sel.value = cur; else if (sts[0]) sel.value = sts[0].id;
     },
     render: function () {
-      var id = $('hStation').value, hours = +$('hHours').value, now = Date.now();
+      var id = $('hStation').value, hours = +$('hHours').value, now = Date.now(), full = this.mine(), ok = full && !full.busy && !full.err;
       state.histStation = id; save('mc_hist_station', id);
       var st = ((state.snap && state.snap.stations) || []).filter(function (x) { return x.id === id; })[0];
-      var met = this.METRICS[id], unit = met ? met[1] : 'm', dec = met ? met[2] : 2, pts;
+      var met = this.METRICS[id], unit = met ? met[1] : 'm', dec = met ? met[2] : 2, pts, from = now - hours * 3600000;
       if (met) {
         var key = met[3], toKt = unit === 'knot';
-        pts = this.entries.filter(function (e) { return e[key] !== null && e[key] !== undefined; }).map(function (e) { return { t: e.t, v: toKt ? C.kt(e[key]) : e[key] }; });
+        if (ok && full.series && full.series[id] && full.series[id].length) pts = full.series[id].filter(function (p) { return p.t >= from; });
+        else pts = this.entries.filter(function (e) { return e[key] !== null && e[key] !== undefined; }).map(function (e) { return { t: e.t, v: toKt ? C.kt(e[key]) : e[key] }; });
         $('hTitle').textContent = met[0] + ' · ' + state.settings.locationName;
-        $('hSub').textContent = pts.length + L(' bacaan app');
+        $('hSub').textContent = pts.length + (ok ? L(' jam · model Open-Meteo') : L(' bacaan app'));
         var thr = key === 'wave' ? [{ v: state.settings.waveM, label: L('Ambang'), cls: 'warning' }] : key === 'gust' ? [{ v: C.kt(state.settings.gustKmh), label: L('Ambang'), cls: 'warning' }] : [];
-        CH.line($('chartLevel'), { points: pts, from: now - hours * 3600000, to: now, unit: unit, decimals: dec, height: 260, label: met[0], thresholds: thr });
+        CH.line($('chartLevel'), { points: pts, from: from, to: now, unit: unit, decimals: dec, height: 260, label: met[0], thresholds: thr });
       } else {
         $('hTitle').textContent = st ? L('Paras air · ') + st.name : L('Paras air');
-        pts = this.entries.filter(function (e) { return e.levels && e.levels[id] !== undefined; }).map(function (e) { return { t: e.t, v: e.levels[id] }; });
-        $('hSub').textContent = pts.length + L(' bacaan · ') + (st ? C.statusName(st.status) : '');
-        CH.line($('chartLevel'), { points: pts, from: now - hours * 3600000, to: now, unit: 'm', height: 260, label: L('Paras air'),
+        if (ok && full.level) pts = full.level.filter(function (p) { return p.t >= from; });
+        else pts = this.entries.filter(function (e) { return e.levels && e.levels[id] !== undefined; }).map(function (e) { return { t: e.t, v: e.levels[id] }; });
+        $('hSub').textContent = pts.length + (ok && full.level ? L(' bacaan JPS (5 minit) · ') : L(' bacaan app · ')) + (st ? C.statusName(st.status) : '');
+        CH.line($('chartLevel'), { points: ok && full.level ? this.thin(pts, hours) : pts, from: from, to: now, unit: 'm', height: 260, label: L('Paras air'),
           thresholds: st ? [{ v: st.alert, label: L('Waspada'), cls: 'alert' }, { v: st.warning, label: L('Amaran'), cls: 'warning' }, { v: st.danger, label: L('Bahaya'), cls: 'danger' }] : [] });
       }
+      this.note();
+      /* rain: the JPS gauge at the same place (past, hourly), else Open-Meteo past + forecast */
       var w = state.snap && state.snap.weather;
-      if (w && w.hourly) CH.bars($('chartRainLong'), { bars: w.hourly.map(function (h) { return { t: h.t, v: h.p, pp: h.pp, future: h.t >= Math.floor(now / 3600000) * 3600000 }; }), now: now, height: 200 });
-      CH.line($('chartTemp'), { points: this.entries.map(function (e) { return { t: e.t, v: e.temp }; }), from: now - hours * 3600000, to: now, unit: '°C', decimals: 1, height: 200, label: L('Suhu') });
+      if (ok && full.rain && full.rain.length) {
+        var rb = full.rain.filter(function (b) { return b.t >= from; });
+        $('hRainTitle').textContent = L('Hujan setiap jam · JPS {n}', { n: full.rainName });
+        $('hRainSub').textContent = L('{t} mm dalam tempoh ini', { t: f(rb.reduce(function (a, b) { return a + b.v; }, 0), 1) });
+        CH.bars($('chartRainLong'), { bars: rb.map(function (b) { return { t: b.t, v: b.v, future: false }; }), now: now, height: 200 });
+      } else {
+        $('hRainTitle').textContent = L('Hujan setiap jam');
+        $('hRainSub').textContent = L('Open-Meteo · 48 jam lalu + 7 hari ramalan');
+        if (w && w.hourly) CH.bars($('chartRainLong'), { bars: w.hourly.map(function (h) { return { t: h.t, v: h.p, pp: h.pp, future: h.t >= Math.floor(now / 3600000) * 3600000 }; }), now: now, height: 200 });
+      }
+      var tp = ok && full.temp && full.temp.length ? full.temp.filter(function (p) { return p.t >= from; }) : this.entries.map(function (e) { return { t: e.t, v: e.temp }; });
+      $('hTempTitle').textContent = ok && full.temp && full.temp.length ? L('Suhu (model Open-Meteo)') : L('Suhu (bacaan app)');
+      CH.line($('chartTemp'), { points: tp, from: from, to: now, unit: '°C', decimals: 1, height: 200, label: L('Suhu') });
       var last = pts.slice(-80).reverse();
       $('hCount').textContent = pts.length ? pts.length + L(' bacaan') : '';
       $('hTable').innerHTML = last.length ? '<table class="tbl"><thead><tr><th>Masa</th><th class="num">' + (met ? met[0] + ' (' + unit + ')' : L('Paras (m)')) + '</th><th class="num">Beza</th></tr></thead><tbody>' + last.map(function (p, i) {
@@ -1845,22 +1947,36 @@
       }).join('') + '</tbody></table>' : '<div class="empty">Tiada bacaan untuk stesen ini dalam tempoh dipilih.</div>';
     },
     csv: function () {
-      var ids = {}, names = {};
-      ((state.snap && state.snap.stations) || []).forEach(function (x) { names[x.id] = x.name; });
-      this.entries.forEach(function (e) { Object.keys(e.levels || {}).forEach(function (k) { ids[k] = 1; }); });
-      var cols = Object.keys(ids);
-      var q = function (s) { return '"' + String(s).replace(/"/g, '""') + '"'; };
-      var lines = [[L('Masa (MYT)')].concat(cols.map(function (k) { return q(L('Paras m - ') + (names[k] || k)); })).concat([L('Suhu C'), L('Hujan semasa mm'), L('Angin km/j'), L('Tiupan km/j'), L('Ombak m'), L('Alun m')]).join(',')];
-      this.entries.forEach(function (e) {
-        lines.push([q(C.fmtDateTime(e.t))].concat(cols.map(function (k) { return e.levels && e.levels[k] !== undefined ? e.levels[k] : ''; }))
-          .concat([e.temp, e.p, e.wind, e.gust, e.wave, e.swell].map(function (v) { return v === null || v === undefined ? '' : v; })).join(','));
-      });
+      var q = function (s) { return '"' + String(s).replace(/"/g, '""') + '"'; }, lines, full = this.mine(), id = $('hStation').value;
+      if (full && !full.busy && !full.err) {
+        /* the full record of the chosen station / sea point */
+        if (full.level) {
+          var rain = {}; (full.rain || []).forEach(function (b) { rain[b.t] = b.v; });
+          var st = ((state.snap && state.snap.stations) || []).filter(function (x) { return x.id === id; })[0];
+          lines = [[L('Masa (MYT)'), q(L('Paras m - ') + (st ? st.name : id)), q(L('Hujan mm/jam - ') + (full.rainName || '-'))].join(',')];
+          full.level.forEach(function (p) { var h = Math.floor((p.t - 1) / 3600000) * 3600000; lines.push([q(C.fmtDateTime(p.t)), p.v, p.t % 3600000 === 0 && rain[h] !== undefined ? rain[h] : ''].join(',')); });
+        } else {
+          var S = full.series, keys = Object.keys(S), times = {};
+          keys.forEach(function (k) { S[k].forEach(function (p) { (times[p.t] = times[p.t] || {})[k] = p.v; }); });
+          lines = [[L('Masa (MYT)')].concat(keys.map(function (k) { return q(History.METRICS[k][0] + ' (' + History.METRICS[k][1] + ')'); })).join(',')];
+          Object.keys(times).map(Number).sort(function (a, b) { return a - b; }).forEach(function (t) { lines.push([q(C.fmtDateTime(t))].concat(keys.map(function (k) { var v = times[t][k]; return v === undefined || v === null ? '' : v; })).join(',')); });
+        }
+      } else {
+        var ids = {}, names = {};
+        ((state.snap && state.snap.stations) || []).forEach(function (x) { names[x.id] = x.name; });
+        this.entries.forEach(function (e) { Object.keys(e.levels || {}).forEach(function (k) { ids[k] = 1; }); });
+        var cols = Object.keys(ids);
+        lines = [[L('Masa (MYT)')].concat(cols.map(function (k) { return q(L('Paras m - ') + (names[k] || k)); })).concat([L('Suhu C'), L('Hujan semasa mm'), L('Angin km/j'), L('Tiupan km/j'), L('Ombak m'), L('Alun m')]).join(',')];
+        this.entries.forEach(function (e) {
+          lines.push([q(C.fmtDateTime(e.t))].concat(cols.map(function (k) { return e.levels && e.levels[k] !== undefined ? e.levels[k] : ''; }))
+            .concat([e.temp, e.p, e.wind, e.gust, e.wave, e.swell].map(function (v) { return v === null || v === undefined ? '' : v; })).join(','));
+        });
+      }
       var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = L('dashboard-cuaca-sejarah-') + (state.profiles.active || L('profil')) + '-' + C.dateKey(Date.now()) + '.csv'; a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
     }
   };
-
 
   /* ---- ad blocker button in the site bar (desktop): how many ads were blocked on this page; click = leave this site alone */
   function pageHost(fr) { try { return new URL(fr.url || fr.baseUrl || fr.site.url).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { return ''; } }
@@ -2205,7 +2321,7 @@
   $('wAuto').onchange = function () { Wall.cfg.auto = +this.value; save('mc_wall', Wall.cfg); };
   $('wReloadAll').onclick = function () { Wall.frames.forEach(function (fr) { fr.reload(); }); };
   $('wall').addEventListener('change', function (e) { if (e.target.hasAttribute('data-pane')) Wall.setPane(+e.target.getAttribute('data-pane'), e.target.value); });
-  $('hStation').onchange = function () { History.render(); };
+  $('hStation').onchange = function () { History.render(); History.fetchFull(); };
   $('hHours').onchange = function () { History.load(); };
   $('hCsv').onclick = function () { History.csv(); };
   $('aAckAll').onclick = function () { Data.ack('all'); };

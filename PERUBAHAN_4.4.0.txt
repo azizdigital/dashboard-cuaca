@@ -20,3 +20,10 @@ Offshore
 - Had tempoh alun untuk bot, basket, swing rope, crane ke vesel, overside, selam, vesel bekalan (boleh ubah).
 - Amaran awal: angin naik >= 8 kt dalam 6 jam (tanda cold surge), angin / ombak capai had dalam 24 jam, alun panjang.
 - Weather window: tempoh Go paling awal untuk setiap kerja (>= 4 jam, boleh ubah), di dashboard (3 hari) & tab AI.
+
+Sejarah & graf (data penuh, tiada lubang)
+- Paras air: terus dari JPS Public Infobanjir, setiap 5 minit, 1 / 3 / 7 / 14 (asal) / 30 hari.
+- Hujan: stesen hujan JPS di tempat sama, jumlah setiap jam untuk tempoh yang sama.
+- Offshore: ombak, alun, angin, tiupan & suhu dari model Open-Meteo untuk hari-hari lepas.
+- Web app: melalui relay Cloudflare. App PC: PC baca JPS terus. Tanpa relay: bacaan app (dengan nota).
+- CSV: data penuh stesen / titik laut yang dipilih.

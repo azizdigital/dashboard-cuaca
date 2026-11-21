@@ -69,6 +69,26 @@ function jpsWater(html) {
 
 /* one station's history (JPS graph page data, JSON): {"info": {...}, "values": [{"dt":"20/11/2026 00:05","final":"15.28"}, ...]}
    -> [{ t: ms, v: metres }] oldest first; -9999 and empty readings dropped */
+/* one rain gauge's history (JPS graph page data): 5-minute "clean" mm -> hourly totals [{ t: start of hour ms, v: mm }] */
+function rfSeries(body) {
+  let j = body;
+  if (typeof body === 'string') {
+    const a = body.search(/\{\s*"info"/), b = body.lastIndexOf('}');
+    try { j = JSON.parse(a >= 0 && b > a ? body.slice(a, b + 1) : body.trim()); } catch (e) { return []; }
+  }
+  const hours = new Map();
+  ((j && j.values) || []).forEach(x => {
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/.exec(String(x.dt || ''));
+    const v = num(x.clean !== undefined ? x.clean : x.raw);
+    if (!m || v === null || v < 0) return;
+    /* a reading at hh:05 .. (hh+1):00 is rain in the hour that started at hh:00 */
+    let t = Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 8, +m[5]);
+    t = Math.floor((t - 1) / 3600000) * 3600000;
+    hours.set(t, (hours.get(t) || 0) + v);
+  });
+  return [...hours.entries()].sort((a, b) => a[0] - b[0]).map(e => ({ t: e[0], v: Math.round(e[1] * 10) / 10 }));
+}
+
 function wlSeries(body) {
   let j = body;
   if (typeof body === 'string') {
@@ -96,13 +116,19 @@ function jpsRain(html) {
     const mid = r.find(c => /midnight/i.test(c));
     if (mid && !today) today = isoDate(mid);
   }
+  /* the "from midnight" cell links to the gauge's graph page: /rf-graph/?stationid=_TSET0074 (the 5-minute history) */
+  const gid = {};
+  String(html || '').split(/data-th\s*=\s*["']?No["'\s>]/i).forEach(chunk => {
+    const n = /data-th\s*=\s*["']?Station ID["']?\s*>([\s\S]*?)<\/td>/i.exec(chunk), g = /stationid=([A-Za-z0-9_-]+)/i.exec(chunk);
+    if (n && g && !gid[text(n[1])]) gid[text(n[1])] = g[1];
+  });
   for (const r of all) {
     if (r.length < 13 || !/^\d+$/.test(r[0]) || !r[2]) continue;
     const key = r[1] + '|' + r[2];
     if (seen.has(key)) continue;
     seen.add(key);
     stations.push({ no: +r[0], id: r[1], name: r[2], district: r[3], updated: mytIso(r[4]),
-      daily: r.slice(5, 11).map(num), today: num(r[11]), hour: num(r[12]) });
+      daily: r.slice(5, 11).map(num), today: num(r[11]), hour: num(r[12]), gid: gid[r[1]] || null });
   }
   if (!today && stations.length && stations[0].updated) today = stations[0].updated.slice(0, 10);
   return { days, today, stations };
@@ -135,5 +161,5 @@ function tides(html, nowMs) {
   return out.sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
 }
 
-return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides, wlSeries: wlSeries };
+return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides, wlSeries: wlSeries, rfSeries: rfSeries };
 }));

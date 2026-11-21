@@ -82,6 +82,16 @@ function offshore(url, now) {
     return { utc_offset_seconds: 28800, daily: D };
   }
   const H = { time: [] };
+  const past = u.searchParams.get('forecast_days') === '1' ? +(u.searchParams.get('past_days') || 0) : 0;
+  if (past) {
+    /* history charts: the past days (+1 day), only what was asked */
+    const s0 = start - past * 86400000, P = { time: [] };
+    for (let t = s0; t < start + 86400000; t += 3600000) P.time.push(local(t));
+    (u.searchParams.get('hourly') || '').split(',').forEach(k => {
+      P[k] = P.time.map((t, i) => Math.round((/wave|swell/.test(k) ? 1.2 + 0.4 * Math.sin(i / 20) : /gust/.test(k) ? 20 + 6 * Math.sin(i / 15) : /wind/.test(k) ? 14 + 5 * Math.sin(i / 15) : 27.5 + Math.sin(i / 24 * 6.283)) * 100) / 100);
+    });
+    return { utc_offset_seconds: 28800, hourly: P };
+  }
   for (let i = 0; i < days * 24; i++) H.time.push(local(start + i * 3600000));
   /* advisor (land): rain only, several places in one request -> one answer per place; heavy rain on day 2 afternoon */
   if (u.searchParams.get('hourly') === 'precipitation') {
@@ -117,6 +127,23 @@ function offshore(url, now) {
   H.weather_code = H.time.map((t, i) => f(i, i % 24 === 15 && /ecmwf|gfs/.test(model) ? 95 : i % 24 === 14 ? 61 : 3));
   return { utc_offset_seconds: 28800, hourly: H };
 }
-function isOffshore(url) { const m = new URL(url).searchParams.get('models') || ''; return m && m !== 'gfs05'; }
+function isOffshore(url) { const q = new URL(url).searchParams, m = q.get('models') || ''; return (m && m !== 'gfs05') || (!!q.get('past_days') && q.get('forecast_days') === '1'); }
 
-module.exports = { offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };
+/* JPS graph data (5-minute) for the last 14 days, made from the real sample shape: a slow rise then a fall */
+function wlSeries(now) {
+  const end = Math.floor(now / 300000) * 300000, values = [];
+  const f = t => { const d = new Date(t + 8 * 3600000); return String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear() + ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0'); };
+  for (let t = end - 14 * 86400000; t <= end; t += 300000) {
+    const h = (end - t) / 3600000, v = 29.1 + 0.6 * Math.exp(-Math.pow((h - 100) / 30, 2)) + 0.02 * Math.sin(h);
+    values.push({ dt: f(t), clean: v.toFixed(2), raw: v.toFixed(2), ecm: v.toFixed(2), final: v.toFixed(2), severity: 'SL_NML' });
+  }
+  return { info: { name: 'Sg. Mas di Kg. Sg. Mas (F2)', normal: '29', alert: '31', warning: '31.5', danger: '32', count: values.length }, values };
+}
+function rfSeries(now) {
+  const end = Math.floor(now / 300000) * 300000, values = [];
+  const f = t => { const d = new Date(t + 8 * 3600000); return String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear() + ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0'); };
+  for (let t = end - 14 * 86400000; t <= end; t += 300000) { const h = (end - t) / 3600000; values.push({ dt: f(t), raw: 0, clean: h > 96 && h < 110 ? 0.6 : 0 }); }
+  return { info: { name: 'Kg. Sg. Mas (F2)', light: '10', moderate: '30', heavy: '60', veryheavy: '90', count: values.length }, values };
+}
+
+module.exports = { wlSeries, rfSeries, offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };

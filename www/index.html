@@ -215,14 +215,14 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
           <div class="ctrls">
             <label for="hStation">Stesen</label><select class="sel" id="hStation"></select>
             <label for="hHours">Tempoh</label>
-            <select class="sel" id="hHours"><option value="24">24 jam</option><option value="48" selected>48 jam</option><option value="72">3 hari</option><option value="168">7 hari</option><option value="336">14 hari</option><option value="720">30 hari</option></select>
+            <select class="sel" id="hHours"><option value="24">1 hari</option><option value="72">3 hari</option><option value="168">7 hari</option><option value="336" selected>14 hari</option><option value="720">30 hari</option></select>
             <div style="flex:1"></div>
             <button class="btn" id="hCsv">Muat turun CSV</button>
           </div>
           <div class="grid">
-            <section class="card wide"><div class="card-h"><h3 id="hTitle">Paras air</h3><small id="hSub"></small></div><div class="card-b"><div class="chart" id="chartLevel"></div></div></section>
-            <section class="card wide"><div class="card-h"><h3>Hujan setiap jam</h3><small>Open-Meteo · 48 jam lalu + 7 hari ramalan</small></div><div class="card-b"><div class="legend"><span><i style="background:var(--chart-past)"></i>Lepas</span><span><i style="background:var(--chart-future)"></i>Ramalan</span></div><div class="chart" id="chartRainLong"></div></div></section>
-            <section class="card"><div class="card-h"><h3>Suhu (bacaan app)</h3><small>dari setiap kemas kini</small></div><div class="card-b"><div class="chart" id="chartTemp"></div></div></section>
+            <section class="card wide"><div class="card-h"><h3 id="hTitle">Paras air</h3><small id="hSub"></small></div><div class="card-b"><div class="chart" id="chartLevel"></div><p class="note" id="hNote"></p></div></section>
+            <section class="card wide"><div class="card-h"><h3 id="hRainTitle">Hujan setiap jam</h3><small id="hRainSub">Open-Meteo · 48 jam lalu + 7 hari ramalan</small></div><div class="card-b"><div class="legend"><span><i style="background:var(--chart-past)"></i>Lepas</span><span><i style="background:var(--chart-future)"></i>Ramalan</span></div><div class="chart" id="chartRainLong"></div></div></section>
+            <section class="card"><div class="card-h"><h3 id="hTempTitle">Suhu (bacaan app)</h3><small>dari setiap kemas kini</small></div><div class="card-b"><div class="chart" id="chartTemp"></div></div></section>
             <section class="card"><div class="card-h"><h3>Bacaan terakhir</h3><small id="hCount"></small></div><div class="card-b" id="hTable" style="max-height:340px;overflow:auto"></div></section>
           </div>
         </div>
