@@ -1,80 +1,98 @@
-v24.22.3
-== run1 18s
-{
- "at": "2026-11-21T13:35:14.607Z",
- "sources": {
-  "kemaman": {
-   "ok": true,
-   "gauges": 25,
-   "failed": 0,
-   "full": 25
-  },
-  "jps-TRG": {
-   "water": true,
-   "rain": true,
-   "errors": {},
-   "stations": 47
-  },
-  "tide-cukai": {
-   "ok": true,
-   "error": null,
-   "events": 105
-  }
- }
-}
-916K	s8/run1/kemaman
-now.json
-rf-25822.json
-rf-26661.json
-rf-26665.json
-rf-27191.json
-rf-27192.json
-rf-27193.json
-rf-27194.json
-rf-27195.json
-rf-27196.json
-rf-27197.json
-rf-27199.json
-rf-3933001_.json
-rf-4131001_.json
-rf-4232002_.json
-rf-4233453_.json
-rf-4234109_.json
-rf-TKMN0007.json
-wl-25822.json
-wl-26675.json
-wl-27192.json
-wl-27195.json
-wl-27196.json
-wl-27197.json
-wl-4131001_.json
-wl-4233453_.json
-end 1795268100000 water 8 rain 17
-WL Sg. Cherul di Jambatan Ban Ho 4131001_ 10.7 307 [10.7, 10.7, 10.7]
-WL Sg. Kemaman di Rumah Pam Paya Paman 4233453_ 1.54 26 [1.43, 1.51, 1.54]
-WL Sg. Tumpat di Kg. Baru Kemasik 25822 1.01 26 [0.9, 1.04, 1.01]
-WL Sg. Kemaman di Jamb. Air Putih (F2) 27192 8.84 306 [8.84, 8.84, 8.84]
-WL Sg. Cukai di Kg. Yak Yah (F2) 27195 0.03 308 [0.03, 0.03, 0.03]
-WL Sg. Kemaman di Kg. Rantau Panjang (F2) 27196 3.67 301 [3.67, 3.67, 3.67]
-WL Sg. Mas di Kg. Sg. Mas (F2) 27197 29.14 308 [29.14, 29.14, 29.14]
-WL Muara Sg. Kemaman di Kg. Geliga (F2) 26675 1.12 308 [1.23, 1.22, 1.2]
-RF Hulu Jabor 3933001_ 48 8 [None, None, None, None, None, None]
-RF Jambatan Ban Ho 4131001_ 158 0 [0, None, None, None, None, None]
-RF Kg. Baru Kemasik 25822 168 52.5 [None, None, None, None, None, None]
-RF Jambatan Air Putih 4232002_ 168 202.5 [None, 0, None, None, None, None]
-RF Rumah Pam Paya Paman 4233453_ 168 0 [None, None, None, None, None, None]
-RF JPS Kemaman 4234109_ 168 214 [None, None, None, None, None, None]
-RF Yak Yah TKMN0007 168 220.0 [None, 0, None, None, None, None]
-RF SMK Neram (F2) 26665 168 281.5 [0, 0, None, None, None, None]
-RF Jambatan Air Putih (F2) 27192 168 573.0 [0, 0, None, 0, 0, None]
-RF Hulu Jabor (F2) 27191 145 102.0 [0, 0, None, None, None, None]
-RF Jambatan Tebak (F2) 27193 126 162.0 [0, 0, None, None, None, None]
-RF Seri Bandi (F2) 27194 168 336.0 [0, 0, None, None, None, None]
-RF Kg. Yak Yah (F2) 27195 126 306.0 [0, 0, None, None, None, None]
-RF Kg. Rantau Panjang (F2) 27196 168 388.0 [0, 0, None, None, None, None]
-RF Kg. Sg. Mas (F2) 27197 92 234.0 [0, 0, None, None, None, None]
-RF Bukit Teruna Kijal (F2) 27199 168 666.0 [0, 0, None, None, None, None]
-RF Kuarter JPS di Dusun Nyior (F2) 26661 168 670.0 [0, 0, None, None, None, None]
-run1/kemaman/wl-25822.json 8640 first 4 nulls 7925
-run1/kemaman/wl-26675.json 8640 first 0 nulls 6
-run1/kemaman/wl-27192.json 8640 first 0 nulls 247
+== 27192 30550
+== 4234109_ 9812
+== 25822 2925
+== TKMN0007 10521
+## 27192 {'name': 'Sg. Kemaman di Jambatan Air Putih (F2)', 'light': '10', 'moderate': '30', 'heavy': '60', 'veryheavy': '90', 'count': 284} 284
+   {'dt': '19/11/2026 06:30', 'raw': 0.5, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:35', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:40', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:45', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0}
+   {'dt': '19/11/2026 06:50', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0}
+   {'dt': '19/11/2026 06:55', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0}
+   {'dt': '19/11/2026 07:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 530, 'c15min': 0}
+   {'dt': '19/11/2026 07:05', 'raw': 0.5, 'clean': 1, 'chourly': 1, 'cdaily': 1, 'tdaily': 0, 'cyearly': 530.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:10', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 1, 'tdaily': 0, 'cyearly': 530.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:15', 'raw': 0.5, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 1.5, 'tdaily': 0, 'cyearly': 531, 'c15min': 1}
+   {'dt': '19/11/2026 07:20', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 1.5, 'tdaily': 0, 'cyearly': 531, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:25', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 1.5, 'tdaily': 0, 'cyearly': 531, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:30', 'raw': 0.5, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2, 'tdaily': 0, 'cyearly': 531.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:35', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2, 'tdaily': 0, 'cyearly': 531.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:40', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2, 'tdaily': 0, 'cyearly': 531.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:45', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2, 'tdaily': 0, 'cyearly': 531.5, 'c15min': 0}
+   {'dt': '19/11/2026 07:50', 'raw': 0.5, 'clean': 2, 'chourly': 2, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:55', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0.5}
+   {'dt': '19/11/2026 08:00', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0.5}
+   {'dt': '19/11/2026 08:05', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:10', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:20', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:25', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:30', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:35', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:40', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 08:45', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 532, 'c15min': 0}
+   {'dt': '19/11/2026 16:00', 'raw': 2.5, 'clean': 2.5, 'chourly': 2.5, 'cdaily': 5, 'tdaily': 0, 'cyearly': 534.5, 'c15min': 2.5}
+   {'dt': '19/11/2026 16:05', 'raw': 4, 'clean': 6.5, 'chourly': 6.5, 'cdaily': 9, 'tdaily': 0, 'cyearly': 538.5, 'c15min': 6.5}
+   {'dt': '19/11/2026 16:10', 'raw': 3.5, 'clean': 10, 'chourly': 10, 'cdaily': 12.5, 'tdaily': 0, 'cyearly': 542, 'c15min': 10}
+   {'dt': '19/11/2026 16:15', 'raw': 2.5, 'clean': 12.5, 'chourly': 12.5, 'cdaily': 15, 'tdaily': 0, 'cyearly': 544.5, 'c15min': 10}
+   {'dt': '19/11/2026 16:20', 'raw': 4.5, 'clean': 17, 'chourly': 17, 'cdaily': 19.5, 'tdaily': 0, 'cyearly': 549, 'c15min': 10.5}
+   {'dt': '19/11/2026 16:25', 'raw': 0.5, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 7.5}
+   {'dt': '19/11/2026 16:30', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 5}
+   {'dt': '19/11/2026 16:35', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 16:40', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 0}
+   {'dt': '19/11/2026 16:45', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 0}
+   {'dt': '19/11/2026 16:50', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 0}
+   {'dt': '19/11/2026 16:55', 'raw': 0, 'clean': 17.5, 'chourly': 17.5, 'cdaily': 20, 'tdaily': 0, 'cyearly': 549.5, 'c15min': 0}
+   sum clean 326.5 max cdaily 27.5 last {'dt': '20/11/2026 00:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 27.5, 'tdaily': 0, 'cyearly': 557, 'c15min': 0}
+## 4234109_ {'name': 'JPS Kemaman', 'light': '10', 'moderate': '30', 'heavy': '60', 'veryheavy': '90', 'count': 92} 92
+   {'dt': '19/11/2026 05:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 1, 'tdaily': 0, 'cyearly': 1239, 'c15min': 1}
+   {'dt': '19/11/2026 05:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 1, 'tdaily': 0, 'cyearly': 1239, 'c15min': 0}
+   {'dt': '19/11/2026 05:30', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 2, 'tdaily': 0, 'cyearly': 1240, 'c15min': 1}
+   {'dt': '19/11/2026 05:45', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 2, 'tdaily': 0, 'cyearly': 1240, 'c15min': 0}
+   {'dt': '19/11/2026 06:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2, 'tdaily': 0, 'cyearly': 1240, 'c15min': 0}
+   {'dt': '19/11/2026 06:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2, 'tdaily': 0, 'cyearly': 1240, 'c15min': 0}
+   {'dt': '19/11/2026 08:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 1}
+   {'dt': '19/11/2026 08:30', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 0}
+   {'dt': '19/11/2026 08:45', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 0}
+   {'dt': '19/11/2026 09:00', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 4, 'tdaily': 0, 'cyearly': 1242, 'c15min': 1}
+   {'dt': '19/11/2026 09:45', 'raw': 0, 'clean': 4, 'chourly': 4, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 3}
+   {'dt': '19/11/2026 10:00', 'raw': 0, 'clean': 3, 'chourly': 3, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 0}
+   {'dt': '19/11/2026 10:15', 'raw': 0, 'clean': 3, 'chourly': 3, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 0}
+   {'dt': '19/11/2026 10:30', 'raw': 0, 'clean': 3, 'chourly': 3, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1241, 'c15min': 0}
+   {'dt': '19/11/2026 20:00', 'raw': 0, 'clean': 3, 'chourly': 3, 'cdaily': 6, 'tdaily': 0, 'cyearly': 1244, 'c15min': 3}
+   {'dt': '19/11/2026 20:15', 'raw': 0, 'clean': 4, 'chourly': 4, 'cdaily': 7, 'tdaily': 0, 'cyearly': 1245, 'c15min': 1}
+   {'dt': '19/11/2026 20:30', 'raw': 0, 'clean': 4, 'chourly': 4, 'cdaily': 7, 'tdaily': 0, 'cyearly': 1245, 'c15min': 0}
+   {'dt': '19/11/2026 20:45', 'raw': 0, 'clean': 4, 'chourly': 4, 'cdaily': 7, 'tdaily': 0, 'cyearly': 1245, 'c15min': 0}
+   {'dt': '19/11/2026 21:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 7, 'tdaily': 0, 'cyearly': 1245, 'c15min': 0}
+   {'dt': '19/11/2026 23:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 8, 'tdaily': 0, 'cyearly': 1246, 'c15min': 1}
+   {'dt': '19/11/2026 23:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 8, 'tdaily': 0, 'cyearly': 1246, 'c15min': 0}
+   {'dt': '19/11/2026 23:30', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 8, 'tdaily': 0, 'cyearly': 1246, 'c15min': 0}
+   {'dt': '19/11/2026 23:45', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 8, 'tdaily': 0, 'cyearly': 1246, 'c15min': 0}
+   sum clean 46.0 max cdaily 8.0 last {'dt': '20/11/2026 00:00', 'raw': 0, 'clean': 0, 'chourly': 0, 'cdaily': 8, 'tdaily': 0, 'cyearly': 1246, 'c15min': 0}
+## 25822 {'name': 'Sg. Tumpat di Kg. Baru Kemasik', 'light': '10', 'moderate': '30', 'heavy': '60', 'veryheavy': '90', 'count': 25} 25
+   {'dt': '19/11/2026 07:00', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 1.5, 'tdaily': 0, 'cyearly': 1048, 'c15min': 1.5}
+   {'dt': '19/11/2026 08:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 2.5, 'tdaily': 0, 'cyearly': 1049, 'c15min': 1}
+   {'dt': '19/11/2026 11:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 3, 'tdaily': 0, 'cyearly': 1049.5, 'c15min': 0.5}
+   sum clean 3.0 max cdaily 3.0 last {'dt': '20/11/2026 00:00', 'raw': 0, 'clean': 0, 'chourly': 0, 'cdaily': 0, 'tdaily': 0, 'cyearly': 1049.5, 'c15min': 0}
+## TKMN0007 {'name': 'Yak Yah', 'light': '10', 'moderate': '30', 'heavy': '60', 'veryheavy': '90', 'count': 97} 97
+   {'dt': '19/11/2026 05:45', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 866, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 0.5, 'tdaily': 0, 'cyearly': 866, 'c15min': 0}
+   {'dt': '19/11/2026 06:15', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 1, 'tdaily': 0, 'cyearly': 866.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:30', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 1.5, 'tdaily': 0, 'cyearly': 867, 'c15min': 0.5}
+   {'dt': '19/11/2026 06:45', 'raw': 0, 'clean': 1.5, 'chourly': 1.5, 'cdaily': 2, 'tdaily': 0, 'cyearly': 867.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:00', 'raw': 0, 'clean': 2.5, 'chourly': 2.5, 'cdaily': 3, 'tdaily': 0, 'cyearly': 868.5, 'c15min': 1}
+   {'dt': '19/11/2026 07:15', 'raw': 0, 'clean': 2.5, 'chourly': 2.5, 'cdaily': 3.5, 'tdaily': 0, 'cyearly': 869, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:30', 'raw': 0, 'clean': 2.5, 'chourly': 2.5, 'cdaily': 4, 'tdaily': 0, 'cyearly': 869.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 07:45', 'raw': 0, 'clean': 2, 'chourly': 2, 'cdaily': 4, 'tdaily': 0, 'cyearly': 869.5, 'c15min': 0}
+   {'dt': '19/11/2026 08:00', 'raw': 0, 'clean': 1, 'chourly': 1, 'cdaily': 4, 'tdaily': 0, 'cyearly': 869.5, 'c15min': 0}
+   {'dt': '19/11/2026 08:15', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 4, 'tdaily': 0, 'cyearly': 869.5, 'c15min': 0}
+   {'dt': '19/11/2026 20:00', 'raw': 0, 'clean': 8, 'chourly': 8, 'cdaily': 12, 'tdaily': 0, 'cyearly': 877.5, 'c15min': 8}
+   {'dt': '19/11/2026 20:15', 'raw': 0, 'clean': 8.5, 'chourly': 8.5, 'cdaily': 12.5, 'tdaily': 0, 'cyearly': 878, 'c15min': 0.5}
+   {'dt': '19/11/2026 20:30', 'raw': 0, 'clean': 8.5, 'chourly': 8.5, 'cdaily': 12.5, 'tdaily': 0, 'cyearly': 878, 'c15min': 0}
+   {'dt': '19/11/2026 20:45', 'raw': 0, 'clean': 8.5, 'chourly': 8.5, 'cdaily': 12.5, 'tdaily': 0, 'cyearly': 878, 'c15min': 0}
+   {'dt': '19/11/2026 21:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 12.5, 'tdaily': 0, 'cyearly': 878, 'c15min': 0}
+   {'dt': '19/11/2026 21:30', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 13, 'tdaily': 0, 'cyearly': 878.5, 'c15min': 0.5}
+   {'dt': '19/11/2026 21:45', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 13, 'tdaily': 0, 'cyearly': 878.5, 'c15min': 0}
+   {'dt': '19/11/2026 22:00', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 13, 'tdaily': 0, 'cyearly': 878.5, 'c15min': 0}
+   {'dt': '19/11/2026 22:15', 'raw': 0, 'clean': 0.5, 'chourly': 0.5, 'cdaily': 13, 'tdaily': 0, 'cyearly': 878.5, 'c15min': 0}
+   sum clean 52.0 max cdaily 13.0 last {'dt': '20/11/2026 00:00', 'raw': 0, 'clean': 0, 'chourly': 0, 'cdaily': 0, 'tdaily': 0, 'cyearly': 878.5, 'c15min': 0}
