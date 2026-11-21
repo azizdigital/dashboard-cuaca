@@ -1,0 +1,50 @@
+# Dashboard Cuaca Aziz - builds the Windows desktop app (Electron) on a free Windows runner.
+# Installer + portable .exe go to the release "pc-app".
+name: PC app (Windows)
+
+on:
+  push:
+    branches: [main]
+    paths: ['main.js', 'preload.js', 'lib/**', 'www/**', 'build/**', 'package.json', 'package-lock.json', '.github/workflows/pc.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pc-app
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install
+        run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Unit tests
+        run: node tests/unit.js
+      - name: Build installer + portable
+        run: |
+          node tools/build-precache.js
+          npx electron-builder --win nsis portable --x64 --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Release "pc-app"
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          mv "dist/Dashboard Cuaca Aziz Setup $V.exe" dist/DashboardCuacaAziz-Setup.exe
+          mv "dist/Dashboard Cuaca Aziz $V.exe" dist/DashboardCuacaAziz-Portable.exe
+          gh release view pc-app >/dev/null 2>&1 || gh release create pc-app --title "App PC (Windows)" --notes "Dibina semula setiap kali kod app berubah."
+          gh release edit pc-app --notes "Versi $V. Pasang: DashboardCuacaAziz-Setup.exe (disyorkan). Tanpa pasang: DashboardCuacaAziz-Portable.exe."
+          gh release upload pc-app dist/DashboardCuacaAziz-Setup.exe dist/DashboardCuacaAziz-Portable.exe --clobber
