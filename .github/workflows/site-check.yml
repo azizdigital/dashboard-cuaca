@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: ./check.sh
+      - run: ./check.sh > log3.txt 2>&1; cat log3.txt
       - run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add -A samples2 log2.txt
+          git add -A s3 frames.tsv log3.txt
           git commit -m "Samples [skip ci]"
           git push
