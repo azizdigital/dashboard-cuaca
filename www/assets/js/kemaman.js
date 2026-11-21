@@ -243,8 +243,10 @@
   /* the river layout of the app's settings (Tetapan › Susunan sungai), else the default */
   function upstream() { var s = load('mc_settings', null); return (s && typeof s.ewUpstream === 'string' ? s.ewUpstream : null) || (C.DEFAULTS && C.DEFAULTS.ewUpstream) || ''; }
   function getJson(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); }
+  /* cache-buster: one per 5 minutes; a forced update: a new one now */
+  function bust() { return S.bust ? 't=' + S.bust : 'm=' + Math.floor(Date.now() / (5 * MIN)); }
   function loadNow() {
-    return getJson(MIRROR + 'kemaman/now.json?m=' + Math.floor(Date.now() / (5 * MIN))).then(function (j) {
+    return getJson(MIRROR + 'kemaman/now.json?' + bust()).then(function (j) {
       if (!j || !j.water) throw new Error(L('Data mirror tidak lengkap'));
       var P = (GEO && GEO.stations) || {};
       var place = function (st) { var q = P[st.name]; if (q) { st.lat = q[0]; st.lon = q[1]; st.src = q[2]; } };
@@ -258,7 +260,7 @@
   function loadFile(kind, gid) {
     var k = kind + '-' + gid, c = S.files[k];
     if (c && Date.now() - c.at < 10 * MIN) return Promise.resolve(c.data);
-    return getJson(MIRROR + 'kemaman/' + k + '.json?m=' + Math.floor(Date.now() / (5 * MIN))).then(function (j) { S.files[k] = { at: Date.now(), data: j }; return j; });
+    return getJson(MIRROR + 'kemaman/' + k + '.json?' + bust()).then(function (j) { S.files[k] = { at: Date.now(), data: j }; return j; });
   }
   /* Open-Meteo: 5 models, 4 points, yesterday + 2 days; counted with the dashboard's daily budget (localStorage mc_om) */
   function omCount(n) { var o = load('mc_om', {}); if (o.day !== C.dateKey(Date.now())) o = { day: C.dateKey(Date.now()), n: 0, block: o.block || 0 }; o.n += n; save('mc_om', o); return o; }
@@ -286,7 +288,7 @@
     var d = S.data, now = Date.now(), age = d ? (now - Date.parse(d.at)) / MIN : null;
     var fresh = age === null ? '' : age > 60 ? '<span class="km-badge bad">⚠️ ' + esc(L('Data lama: {m} minit', { m: Math.round(age) })) + '</span>' : '<span class="km-badge ok">● ' + esc(L('Langsung · {t}', { t: hm(Date.parse(d.at)) })) + '</span>';
     return '<header class="km-head"><div><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div><div class="km-act">' + fresh +
-      '<button type="button" class="km-btn" data-act="refresh" title="' + esc(L('Segar')) + '">↻</button>' +
+      '<button type="button" class="km-btn force" data-act="refresh" title="' + esc(L('Baca semula semua data sekarang, tanpa cache')) + '">⚡ ' + esc(L('Paksa kemas kini')) + '</button>' +
       '<button type="button" class="km-btn" data-act="pdf">🖨️ ' + esc(L('PDF')) + '</button>' +
       '<button type="button" class="km-btn" data-act="img">🖼️ ' + esc(L('Gambar')) + '</button>' +
       '<a class="km-btn ln" href="' + ORIG[S.tab] + '" target="_blank" rel="noopener">' + esc(L('Laman asal ↗')) + '</a></div></header>';
@@ -675,7 +677,7 @@
     }
     var a = t.dataset.act;
     if (a === 'close') closeSheet();
-    else if (a === 'refresh') refresh(true);
+    else if (a === 'refresh') force();
     else if (a === 'play') togglePlay(t);
     else if (a === 'pdf') printPage();
     else if (a === 'img') saveImage();
@@ -748,8 +750,25 @@
     var keep = S.sel;
     loadNow().then(function () { render(); if (keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name); });
   }
-  root.MCKemaman = { S: S, refresh: refresh, idx: idx, pct: pct, intensity: intensity, rainBin: rainBin, shortName: shortName, pts: pts, setTab: function (t) { S.tab = t === 'rain' ? 'rain' : 'water'; closeSheet(); render(); } };
-  window.addEventListener('message', function (e) { if (e.origin === location.origin && e.data && e.data.kmTab) root.MCKemaman.setTab(e.data.kmTab); });
+  /* "Paksa kemas kini": everything again now (mirror files, 30-day files, 5 models), then the version and the data times */
+  function force() {
+    S.bust = Date.now(); S.files = {}; S.models = null; S.modelsAt = 0;
+    note('⚡ ' + L('Paksa kemas kini…'));
+    var keep = S.sel;
+    loadNow().then(function () {
+      render(); if (keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name);
+      if (S.tab === 'water') loadModels();
+      note(S.err ? '⚠️ ' + L('Tidak dapat membaca data mirror: {e}', { e: S.err }) :
+        '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + L('mirror JPS {m}', { m: hm(Date.parse(S.data.at)) }) + ' · ' + L('Versi {v}', { v: C.VERSION }), 6000);
+      S.bust = 0;
+    });
+  }
+  function note(text, ms) {
+    var n = $('kmNote'); if (!n) { n = document.createElement('div'); n.id = 'kmNote'; n.className = 'km-note-pop'; n.setAttribute('role', 'status'); document.body.appendChild(n); }
+    n.textContent = text; n.hidden = false; clearTimeout(note.t); if (ms) note.t = setTimeout(function () { n.hidden = true; }, ms);
+  }
+  root.MCKemaman = { S: S, refresh: refresh, force: force, idx: idx, pct: pct, intensity: intensity, rainBin: rainBin, shortName: shortName, pts: pts, setTab: function (t) { S.tab = t === 'rain' ? 'rain' : 'water'; closeSheet(); render(); } };
+  window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data) return; if (e.data.kmTab) root.MCKemaman.setTab(e.data.kmTab); if (e.data.kmForce) force(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.at > 5 * MIN) refresh(); });
   setInterval(function () { refresh(false); }, 5 * MIN);
   setInterval(function () { if (S.data && !S.sel) { var b = document.querySelector('.km-badge'); if (b) { var age = (Date.now() - Date.parse(S.data.at)) / MIN; if (age > 60 && !b.classList.contains('bad')) render(); } } }, MIN);

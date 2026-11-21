@@ -1782,6 +1782,22 @@
       });
     }
   };
+  /* "Paksa kemas kini": everything read again now, with no cache - weather, models, JPS 5-minute series, the history lists and the
+     Kemaman pages in the tabs / wall. The GitHub mirror itself (JPS tables, tides) is read by GitHub every ~15 minutes. */
+  function forceUpdate() {
+    if (state.refreshing) return Promise.resolve();
+    Early.cache = {}; Early.rainCache = null; History.cache = {}; History.jpsList = null; Off.rep = null;
+    Array.prototype.forEach.call(document.querySelectorAll('iframe'), function (f) {
+      try { if (/kemaman\.html/.test(f.getAttribute('src') || '')) f.contentWindow.postMessage({ kmForce: true }, location.origin); } catch (e) { /* */ }
+    });
+    var btn = $('btnForce'); btn.classList.add('spin');
+    toast(L('Paksa kemas kini…'), L('Membaca semula semua data'));
+    var hm = function (t) { var p = C.myt(t); return (p.h < 10 ? '0' : '') + p.h + ':' + (p.mi < 10 ? '0' : '') + p.mi; };
+    return Promise.resolve(Data.refresh()).then(function () {
+      var j = state.snap && state.snap.jps, at = j && j.at ? Date.parse(j.at) : null;
+      toast(L('Data dikemas kini {t}', { t: hm(Date.now()) }), L('Versi {v}', { v: C.VERSION }) + (at ? ' · ' + L('mirror JPS {m}', { m: hm(at) }) : ''));
+    }).catch(function () { }).then(function () { btn.classList.remove('spin'); });
+  }
   function histKey() { return 'mc_d_hist_' + (state.profiles.active || 'kemaman'); }
   /* phone with no PC: fetch the public APIs directly (they allow it, except where the browser blocks) */
   var Direct = {
@@ -2402,6 +2418,8 @@
   };
   $('btnClearSites').onclick = function () { if (D && confirm(L('Padam semua cookie & cache laman web? Anda akan log keluar dari laman yang memerlukan log masuk.'))) D.clearSiteData().then(function () { toast(L('Data laman dipadam'), ''); }); };
   $('btnRefresh').onclick = function () { Data.refresh(); };
+  $('btnForce').onclick = function () { forceUpdate(); };
+  $('btnForce2').onclick = function () { forceUpdate(); };
   $('btnBell').onclick = function () { show('alerts'); };
   $('btnPalette').onclick = function () { Pal.open(); };
   $('palBg').addEventListener('mousedown', function (e) { if (e.target === $('palBg')) Pal.close(); });

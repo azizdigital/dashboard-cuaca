@@ -384,6 +384,14 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await expect(fr2.locator('#kmModelTbl tr')).toHaveCount(7);
   await page.waitForTimeout(600);
   await page.screenshot({ path: '/tmp/kmshots/app-rain.png' });
+  /* force update: the dashboard button reads everything again and tells the version and data times; the Kemaman pages too */
+  await page.locator('[data-site="waterlevel"]').first().click();
+  const fw = page.frameLocator('#siteHost .frame.on iframe');
+  await fw.locator('[data-act="refresh"]').click();
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · Versi 4\.5\.1/);
+  await page.locator('#btnForce').click();
+  await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
+  await page.screenshot({ path: '/tmp/kmshots/force.png' });
   /* wall mode: the Water Level Kemaman pane shows the same page */
   await page.locator('.rbtn[data-view="wall"]').click();
   await expect(page.locator('#view-wall iframe[src*="kemaman.html?tab=water"]').first()).toBeAttached();

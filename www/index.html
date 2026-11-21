@@ -60,6 +60,7 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
       <button class="lang-btn" id="langBtn" title="Tukar ke Bahasa Melayu">BM</button>
       <span class="pill" id="statusPill" title="Status data"><span class="dot" id="statusDot"></span><span id="statusText">Memuatkan…</span></span>
       <button class="ibtn" id="btnRefresh" title="Kemas kini data sekarang (F9)" aria-label="Kemas kini data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+      <button class="ibtn force" id="btnForce" title="Paksa kemas kini: baca semula semua data sekarang, tanpa cache" aria-label="Paksa kemas kini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></button>
       <button class="ibtn" id="btnBell" title="Alert" aria-label="Alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="bellBadge" hidden>0</span></button>
       <button class="ibtn" id="btnPalette" title="Cari & arahan (Ctrl+K)" aria-label="Cari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </header>
@@ -292,6 +293,7 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
             <section class="card"><div class="card-h"><h3>Kemas kini</h3><small>semua profil</small></div><div class="card-b">
               <div class="fld"><label for="f_refreshMin">Kekerapan kemas kini data<small>Berapa kerap app ambil data baru</small></label><select class="sel" id="f_refreshMin" name="refreshMin"><option value="5">5 minit</option><option value="10">10 minit</option><option value="15">15 minit</option><option value="30">30 minit</option><option value="60">60 minit</option></select></div>
               <div class="fld"><label for="f_staleHours">Data stesen dikira lama selepas (jam)<small>Data lama tidak mencetuskan alert</small></label><input class="inp" id="f_staleHours" name="staleHours" type="number" step="1" min="1"></div>
+              <div class="fld"><label>Paksa kemas kini<small>Baca semula semua data sekarang tanpa cache (cuaca, model, JPS, halaman Kemaman). Mirror JPS sendiri dikemas kini oleh GitHub setiap ~15 minit.</small></label><button class="btn" type="button" id="btnForce2">⚡ Paksa kemas kini</button></div>
               <div class="fld"><label for="f_siteCheck">Semak status semua laman<small>Setiap 30 minit</small></label><div class="sw"><input type="checkbox" id="f_siteCheck" name="siteCheck"><span></span></div></div>
             </div></section>
             <section class="card"><div class="card-h"><h3>Notifikasi & aplikasi</h3></div><div class="card-b">

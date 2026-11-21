@@ -1,0 +1,7 @@
+Dashboard Cuaca Aziz 4.5.1
+
+- Butang "Paksa kemas kini" (⚡): baca semula semua data sekarang tanpa cache - cuaca, 5 model hujan, model offshore, data 5 minit
+  JPS, senarai Sejarah dan halaman Kemaman (tab & Mod dinding). Selepas siap: "Data dikemas kini 22:37 · mirror JPS 22:25 · Versi 4.5.1".
+  Ada di kepala Dashboard (sebelah ↻), di kepala halaman Water Level / Rainfall Kemaman, dan di Tetapan › Kemas kini.
+  Mirror JPS sendiri dikemas kini oleh GitHub setiap ~15 minit; "mirror JPS" menunjukkan masa bacaan terakhirnya.
+- Peta Kemaman guna jubin OpenStreetMap (CARTO kini perlukan kunci API); tema gelap = peta yang sama digelapkan.
