@@ -62,4 +62,54 @@ function metForecast(now) {
   f.sort((a, b) => a.date < b.date ? -1 : 1).forEach((x, i) => { x.date = new Date(start + i * 86400000).toISOString().slice(0, 10); });
   return f;
 }
-module.exports = { forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };
+
+/* made-up offshore model answers (Open-Meteo, one model per request): each model a little different, short models stop early */
+const OFF_W = { ecmwf_ifs025: [0, 15], gfs_seamless: [1.5, 16], icon_seamless: [-1, 7], jma_seamless: [0.5, 11], meteofrance_seamless: [-0.5, 4], ukmo_seamless: [1, 7] };
+const OFF_V = { ecmwf_wam025: [0, 15, 3], ncep_gfswave025: [0.15, 16, 1], meteofrance_wave: [-0.1, 10, 3], dwd_gwam: [0.05, 7, 1] };
+function offshore(url, now) {
+  const u = new URL(url), model = u.searchParams.get('models'), days = 14;
+  const start = Date.parse(local(now).slice(0, 10) + 'T00:00:00+08:00');
+  if (/ensemble-api/.test(url)) {
+    const runs = model === 'gfs025' ? 31 : 51, D = { time: [] };
+    let seed = 7;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let d = 0; d < days; d++) D.time.push(local(start + d * 86400000).slice(0, 10));
+    for (let m = 0; m < runs; m++) {
+      const k = m ? '_member' + String(m).padStart(2, '0') : '';
+      D['wind_speed_10m_max' + k] = D.time.map((t, d) => d >= (model === 'gfs025' ? 10 : 15) ? null : Math.round((15 + 4 * Math.sin(d / 2) + (rnd() - 0.5) * (2 + d)) * 10) / 10);
+      D['wind_gusts_10m_max' + k] = D['wind_speed_10m_max' + k].map(v => v === null ? null : Math.round(v * 13.5) / 10);
+    }
+    return { utc_offset_seconds: 28800, daily: D };
+  }
+  const H = { time: [] };
+  for (let i = 0; i < days * 24; i++) H.time.push(local(start + i * 3600000));
+  if (/marine-api/.test(url)) {
+    const [off, len, step] = OFF_V[model] || [0, 7, 1], f = (i, v) => (i >= len * 24 || i % step ? null : Math.round(v * 100) / 100);
+    H.wave_height = H.time.map((t, i) => f(i, 1.35 + 0.45 * Math.sin(i / 40) + off));
+    H.wave_direction = H.time.map((t, i) => f(i, 45));
+    H.wave_period = H.time.map((t, i) => f(i, 6));
+    H.wind_wave_height = H.time.map((t, i) => f(i, 0.6 + 0.2 * Math.sin(i / 30)));
+    H.wind_wave_direction = H.time.map((t, i) => f(i, 60));
+    H.wind_wave_period = H.time.map((t, i) => f(i, 3));
+    H.wind_wave_peak_period = H.time.map((t, i) => f(i, 4));
+    H.swell_wave_height = H.time.map((t, i) => f(i, 1.1 + 0.3 * Math.sin(i / 50)));
+    H.swell_wave_direction = H.time.map((t, i) => f(i, 40));
+    H.swell_wave_period = H.time.map((t, i) => f(i, 6.5));
+    H.swell_wave_peak_period = H.time.map((t, i) => f(i, 7));
+    return { utc_offset_seconds: 28800, hourly: H };
+  }
+  const [off, len] = OFF_W[model] || [0, 7], f = (i, v) => (i >= len * 24 ? null : Math.round(v * 10) / 10);
+  const w = i => 12 + 5 * Math.sin(2 * Math.PI * i / 30) + off;
+  H.wind_speed_10m = H.time.map((t, i) => f(i, w(i)));
+  H.wind_speed_80m = H.time.map((t, i) => f(i, w(i) * 1.15));
+  H.wind_gusts_10m = H.time.map((t, i) => f(i, w(i) * 1.4));
+  H.wind_direction_10m = H.time.map((t, i) => f(i, 45 + 15 * Math.sin(i / 12)));
+  H.temperature_2m = H.time.map((t, i) => f(i, 27.5 + Math.sin(i / 24 * 2 * Math.PI)));
+  H.precipitation = H.time.map((t, i) => f(i, i % 24 >= 14 && i % 24 <= 16 ? 2.5 : 0));
+  H.cape = H.time.map((t, i) => f(i, i % 24 >= 12 && i % 24 <= 17 ? 900 : 150));
+  H.weather_code = H.time.map((t, i) => f(i, i % 24 === 15 && /ecmwf|gfs/.test(model) ? 95 : i % 24 === 14 ? 61 : 3));
+  return { utc_offset_seconds: 28800, hourly: H };
+}
+function isOffshore(url) { const m = new URL(url).searchParams.get('models') || ''; return m && m !== 'gfs05'; }
+
+module.exports = { offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };

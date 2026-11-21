@@ -7,9 +7,16 @@ async function sources(page, opts = {}) {
   const now = Date.now(), m = F.mirror(now);
   if (opts.jps) opts.jps(m.jps);
   const json = (r, b, st = 200) => r.fulfill({ status: st, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(b) });
-  await page.route(/^https:\/\/api\.open-meteo\.com\//, r => json(r, F.forecast(now, { gust: opts.gust })));
-  await page.route(/^https:\/\/marine-api\.open-meteo\.com\//, r => json(r, F.shiftOpenMeteo('om-marine.json', now)));
-  await page.route(/^https:\/\/ensemble-api\.open-meteo\.com\//, r => json(r, F.shiftOpenMeteo('om-ensemble-gfs.json', now)));
+  /* offshore comparison: one model per request; opts.offFail = models that answer HTTP 400 */
+  const off = (r, other) => {
+    const u = r.request().url();
+    if (!F.isOffshore(u)) return other();
+    if ((opts.offFail || []).some(m => u.includes('models=' + m))) return json(r, { error: true, reason: 'bad model' }, 400);
+    return json(r, F.offshore(u, now));
+  };
+  await page.route(/^https:\/\/api\.open-meteo\.com\//, r => off(r, () => json(r, F.forecast(now, { gust: opts.gust }))));
+  await page.route(/^https:\/\/marine-api\.open-meteo\.com\//, r => off(r, () => json(r, F.shiftOpenMeteo('om-marine.json', now))));
+  await page.route(/^https:\/\/ensemble-api\.open-meteo\.com\//, r => off(r, () => json(r, F.shiftOpenMeteo('om-ensemble-gfs.json', now))));
   await page.route(/^https:\/\/flood-api\.open-meteo\.com\//, r => { flood.push(r.request().url()); return json(r, F.shiftOpenMeteo('om-flood.json', now - 7 * 86400000)); });
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/warning/, r => json(r, F.warnings(now)));
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/forecast/, r => json(r, F.metForecast(now).map(x => Object.assign(x, { location: { location_id: 'Ds065', location_name: 'Kemaman' } }))));
@@ -107,4 +114,53 @@ test('relay again: a refused site (Flood Hub) shows inside the app through the r
     await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /aras-air\/data-paras-air\/\?state=TRG&type=NEGERI&lang=en#dcdistrict=Kemaman/);
     await expect(page.frameLocator('#siteHost .frame.on iframe').locator('#result')).toHaveText('district:Kemaman');
   } finally { R.stop(); }
+});
+
+test('offshore model comparison card: 3/7/14 days, chance & confidence, every model, sources, A4 report', async ({ page, baseURL }) => {
+  await open(page, baseURL, { offFail: ['meteofrance_seamless'] });
+  await expect(page.locator('#cardOffCmp')).toBeHidden();                    /* land profile: not shown */
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
+  await expect(page.locator('#cardOffCmp')).toBeVisible();
+  await expect(page.locator('#ocBody table.oc-days tbody tr')).toHaveCount(3, { timeout: 30000 });
+  await expect(page.locator('#ocSub')).toContainText('5 wind models · 4 wave models');
+  await expect(page.locator('#ocBody .oc-warnbox')).toContainText('Risk of squalls');
+  await expect(page.locator('#ocBody .oc-warnbox')).toContainText('Chance of lightning');
+  await expect(page.locator('#ocBody')).toContainText('north-east');
+  await expect(page.locator('#ocBody svg.chart')).toHaveCount(2);
+  expect(await page.locator('#ocBody .oc-arrows span').count()).toBeGreaterThan(6);
+  expect(await page.locator('#ocBody .oc-days .oc-conf').first().textContent()).toMatch(/High|Medium|Low/);
+  expect(await page.locator('#ocBody .oc-days tbody tr').first().locator('td').nth(3).textContent()).toMatch(/^\d+%$/);
+  await page.locator('#ocSeg [data-days="7"]').click();
+  await expect(page.locator('#ocBody table.oc-days tbody tr')).toHaveCount(7);
+  await page.locator('#ocSeg [data-days="14"]').click();
+  await expect(page.locator('#ocBody table.oc-days tbody tr')).toHaveCount(14);
+  /* every model: 6 wind rows + 2 ensemble rows; 4 wave rows + confidence */
+  await page.locator('details.oc-det[data-k="models"] summary').click();
+  await expect(page.locator('#ocBody .oc-mat').first().locator('tbody tr')).toHaveCount(8);
+  await expect(page.locator('#ocBody .oc-mat').nth(1).locator('tbody tr')).toHaveCount(5);
+  await page.locator('details.oc-det[data-k="table"] summary').click();
+  expect(await page.locator('#ocBody .oc-rows tbody tr').count()).toBeGreaterThan(40);
+  await page.locator('details.oc-det[data-k="src"] summary').click();
+  await expect(page.locator('#ocBody .oc-src li.bad')).toHaveCount(1);
+  await expect(page.locator('#ocBody .oc-src li.ok')).toHaveCount(11);
+  await expect(page.locator('#ocBody .oc-src')).toContainText('NOAA WAVEWATCH III');
+  await page.locator('#cardOffCmp').screenshot({ path: '/tmp/shots/offcmp-' + test.info().project.name + '.png' });
+  /* PDF: the report layout, then the browser's print (Save as PDF) */
+  await page.locator('#ocSeg [data-days="7"]').click();
+  await page.evaluate(() => { window.__printed = 0; window.print = () => { window.__printed++; }; });
+  await page.click('#ocPdf');
+  expect(await page.evaluate(() => window.__printed)).toBe(1);
+  await expect(page.locator('html')).toHaveClass(/printing/);
+  expect(await page.title()).toMatch(/^Irong-Barat-\d{4}-\d\d-\d\d_\d{4}_LT$/);
+  await expect(page.locator('#printRoot h1')).toContainText('Irong Barat');
+  await expect(page.locator('#printRoot .oc-days tbody tr')).toHaveCount(7);
+  await expect(page.locator('#printRoot svg.chart')).toHaveCount(2);
+  await page.emulateMedia({ media: 'print' });
+  await page.pdf({ path: '/tmp/shots/Irong-Barat-report.pdf', format: 'A4', preferCSSPageSize: true, printBackground: true });
+  await page.emulateMedia({ media: 'screen' });
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
+  await expect(page.locator('html')).not.toHaveClass(/printing/);
+  /* limits from Settings change the chance and the red line */
+  const before = await page.evaluate(() => MC.state.settings.offWindKt);
+  expect(before).toBe(15);
 });

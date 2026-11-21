@@ -216,7 +216,7 @@ test('newAlerts: new or escalated only', () => {
 /* ------------------------------------------------------------- languages */
 const I18N = require('../www/assets/js/i18n');
 test('every L(\'...\') text in the code has an English translation', () => {
-  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
+  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
   const missing = [];
   files.forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
@@ -585,6 +585,71 @@ test('relay v2 removes ads; ad-heavy sites go through the relay when wanted', as
   assert.strictEqual(core.relayAdsFor(core.siteById('windy'), s), false);
   assert.strictEqual(core.relayAdsFor(core.siteById('tideforecast'), Object.assign({}, s, { relayAds: false })), false);
   assert.strictEqual(core.relayAdsFor(core.siteById('tideforecast'), core.cleanSettings({})), false);
+});
+
+/* ------------------------------------------------ offshore model comparison (4.2.0) */
+test('offshore comparison: models side by side, chance over the limits, confidence, warning, words, rows', async () => {
+  const OFF = require('../www/assets/js/offshore');
+  const FX = require('./web-fixtures/make');
+  const now = Date.parse('2026-11-21T12:30:00+08:00');
+  const u = OFF.urls(5.5501, 104.7745);
+  assert.strictEqual(u.length, OFF.WIND.length + OFF.WAVE.length + OFF.ENS.length);
+  assert.ok(u.every(x => /forecast_days=14/.test(x.url) && /timezone=Asia%2FKuala_Lumpur/.test(x.url) && /models=/.test(x.url)));
+  assert.ok(u.filter(x => x.group !== 'wave').every(x => /wind_speed_unit=kn/.test(x.url)));
+  const raw = await OFF.collect(5.5501, 104.7745, async url => { if (/meteofrance_seamless/.test(url)) throw new Error('HTTP 400'); return FX.offshore(url, now); });
+  assert.strictEqual(raw.wind.meteofrance_seamless.ok, false);
+  assert.strictEqual(raw.wind.ecmwf_ifs025.ok, true);
+  I18N.setLang('ms');
+  const r = OFF.build(raw, { now, windKt: 15, waveM: 1.5 });
+  assert.deepStrictEqual(r.ok.wind, ['ecmwf_ifs025', 'gfs_seamless', 'icon_seamless', 'jma_seamless', 'ukmo_seamless']);
+  assert.strictEqual(r.ok.wave.length, 4); assert.strictEqual(r.ok.ens.length, 2);
+  assert.strictEqual(r.days.length, 14); assert.strictEqual(r.days[0].date, '2026-11-21');
+  const d1 = r.days[1];
+  /* middle value + spread of the models' daily max; the fixture's models differ by -1 .. +1.5 kt */
+  assert.ok(d1.wind.lo < d1.wind.m && d1.wind.m < d1.wind.hi && d1.wind.n === 5);
+  assert.strictEqual(d1.probWind.src, 'ens'); assert.strictEqual(d1.probWind.n, 82);
+  assert.ok(d1.probWind.p >= 0 && d1.probWind.p <= 1);
+  assert.strictEqual(d1.probWave.n, 4);
+  assert.ok(Math.abs(d1.hmax - d1.hs.m * 1.7) < 1e-9);
+  /* day 11+: GEFS has stopped, only ECMWF ENS; confidence never "high" */
+  assert.strictEqual(r.days[11].ens.n, 51);
+  assert.ok(r.days.slice(10).every(x => x.conf.level <= 2));
+  assert.ok(['Tinggi', 'Sederhana', 'Rendah'].includes(d1.conf.label));
+  /* short models drop out: ICON (7 days) is in day 3 but not in day 9 */
+  assert.ok('icon_seamless' in r.days[3].windBy && !('icon_seamless' in r.days[9].windBy));
+  /* next 24 h: CAPE 900 + thunder in 2 of 5 models -> squall risk, lightning medium */
+  assert.strictEqual(r.warn.lightning, 'medium');
+  assert.ok(/^Risiko squall \d+–\d+ knot/.test(r.warn.lines[0]), r.warn.lines[0]);
+  assert.ok(/^Angin timur laut/.test(r.summary.wind), r.summary.wind);
+  assert.ok(/Monsun Timur Laut/.test(r.summary.season));
+  assert.ok(/ribut petir/.test(r.summary.weather));
+  const ol = OFF.outlook(r, 7);
+  assert.ok(ol.some(x => /^Angin paling kuat/.test(x)) && ol.some(x => /peluang ≥50%/.test(x)));
+  /* rows: 3-hourly (02, 05 .. 23) for 2 days, 6-hourly (02, 08, 14, 20) to day 7, then 08 & 20 */
+  const hr = t => new Date(t + 8 * 3600000).getUTCHours();
+  const r3 = OFF.rows(r, 3), r14 = OFF.rows(r, 14);
+  assert.ok(r3.filter(x => OFF.dateKey(x.t) === '2026-11-22').every(x => hr(x.t) % 3 === 2));
+  assert.deepStrictEqual(r3.filter(x => OFF.dateKey(x.t) === '2026-11-23').map(x => hr(x.t)), [2, 8, 14, 20]);
+  assert.deepStrictEqual(r14.filter(x => OFF.dateKey(x.t) === '2026-12-01').map(x => hr(x.t)), [8, 20]);
+  assert.ok(r3[0].t >= now - 90 * 60000);
+  assert.strictEqual(OFF.fileName('Irong Barat (offshore)', now), 'Irong-Barat-2026-11-21_1230_LT');
+  assert.strictEqual(r.sources.filter(x => !x.ok).map(x => x.id).join(), 'meteofrance_seamless');
+  /* the same in English */
+  I18N.setLang('en');
+  const e = OFF.build(raw, { now, windKt: 15, waveM: 1.5 });
+  assert.ok(/^Risk of squalls of \d+–\d+ knots/.test(e.warn.lines[0]), e.warn.lines[0]);
+  assert.ok(/north-east winds/.test(e.summary.wind) && /^[A-Z]/.test(e.summary.wind), e.summary.wind);
+  assert.ok(/seas, Hs/.test(e.summary.sea), e.summary.sea);
+  /* limits: a higher limit lowers the chance */
+  const hi = OFF.build(raw, { now, windKt: 25, waveM: 3 });
+  assert.ok(hi.days[1].probWind.p <= d1.probWind.p && hi.days[1].probWave.p === 0);
+  /* nothing answered: empty but no crash */
+  const none = OFF.build({ wind: {}, wave: {}, ens: {} }, { now });
+  assert.strictEqual(none.days.length, 0); assert.ok(none.warn.lines.length === 1);
+  /* settings: limits are per profile, kept in range */
+  assert.ok(core.PROFILE_KEYS.includes('offWindKt') && core.PROFILE_KEYS.includes('offWaveM'));
+  assert.strictEqual(core.cleanSettings({ offWindKt: 0 }).offWindKt, 15);
+  assert.strictEqual(core.cleanSettings({ offWaveM: '2.2' }).offWaveM, 2.2);
 });
 
 (async () => {

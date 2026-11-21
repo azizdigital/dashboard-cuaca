@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.1.9';
+  var VERSION = '4.2.0';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -152,6 +152,7 @@
     waterAlertLevel: 'alert',        /* alert = Waspada, warning = Amaran, danger = Bahaya */
     waterRiseM: 0.5,                 /* naik >= x m dalam ~1 jam */
     rain3hMm: 20, rain24hMm: 60, gustKmh: 50, waveM: 2.5,
+    offWindKt: 15, offWaveM: 1.5,    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
     sound: true, notify: true, keepInTray: false, startWithWindows: false,   /* keepInTray off: closing the window quits the app (3.3.1) */
@@ -169,7 +170,8 @@
     jpsState: 'TRG'                  /* web app: JPS Public Infobanjir state code for water level & rainfall (read through the relay) */
   };
   var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
-    'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace'];
+    'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace',
+    'offWindKt', 'offWaveM'];
   var CAN_BE_EMPTY = ['adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
   var JPS_STATES = ['PLS', 'KDH', 'PNG', 'PRK', 'SEL', 'WLH', 'PTJ', 'NSN', 'MLK', 'JHR', 'PHG', 'TRG', 'KEL', 'SRK', 'SAB', 'WLP'];
@@ -263,6 +265,8 @@
       out[k] = isFinite(v) && Math.abs(v) <= (k === 'riverLat' ? 90 : 180) ? v : (k === 'riverLat' ? out.lat : out.lon);
     });
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
+    if (!(out.offWindKt >= 1 && out.offWindKt <= 80)) out.offWindKt = DEFAULTS.offWindKt;
+    if (!(out.offWaveM >= 0.1 && out.offWaveM <= 15)) out.offWaveM = DEFAULTS.offWaveM;
     out.jpsState = String(out.jpsState).toUpperCase();
     if (JPS_STATES.indexOf(out.jpsState) < 0) out.jpsState = DEFAULTS.jpsState;
     return out;

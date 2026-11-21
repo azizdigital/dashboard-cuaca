@@ -225,6 +225,9 @@ test('profile switch: Irong Barat offshore dashboard, sites follow the profile, 
   await page.waitForFunction(() => MC.state.snap && MC.state.snap.profile && MC.state.snap.profile.id === 'irong-barat', null, { timeout: 15000 });
   await expect(page.locator('#profName')).toHaveText('Irong Barat (offshore)');
   await expect(page.locator('#cardOffshore')).toBeVisible();
+  /* offshore model comparison through the PC (/api/offshore: the page may only talk to the PC) */
+  await expect(page.locator('#ocBody table.oc-days tbody tr')).toHaveCount(3, { timeout: 20000 });
+  await expect(page.locator('#ocSub')).toContainText('6 wind models · 4 wave models');
   await expect(page.locator('#cardWater')).toBeHidden();
   await expect(page.locator('#cardMet')).toBeHidden();
   await expect(page.locator('#dashTiles .tile')).toHaveCount(7);

@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('mcDesktop', {
   openPhoneSetup: () => ipcRenderer.invoke('mc:openSetup'),
   openDataDir: () => ipcRenderer.invoke('mc:openDataDir'),
   clearSiteData: () => ipcRenderer.invoke('mc:clearSiteData'),
+  savePdf: name => ipcRenderer.invoke('mc:savePdf', String(name || '')),
   adblockInfo: webContentsId => ipcRenderer.invoke('mc:adblockInfo', +webContentsId || 0),
   adblockUpdate: () => ipcRenderer.invoke('mc:adblockUpdate'),
   relayTest: (url, key, targets) => ipcRenderer.invoke('mc:relayTest', String(url || ''), String(key || ''), Array.isArray(targets) ? targets.slice(0, 12).map(t => ({ id: String(t.id), url: String(t.url) })) : []),

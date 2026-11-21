@@ -451,6 +451,17 @@ function ipc() {
     }
     return { code: 'done', sites };
   });
+  /* offshore report: the page's print layout saved as an A4 PDF, where the user chooses */
+  handle('mc:savePdf', async (e, name) => {
+    const wc = e.sender;
+    const data = await wc.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true });
+    const file = (String(name || 'Offshore').replace(/[^A-Za-z0-9_.-]+/g, '-').slice(0, 80) || 'Offshore') + '.pdf';
+    const r = await dialog.showSaveDialog(BrowserWindow.fromWebContents(wc), { defaultPath: path.join(app.getPath('documents'), file), filters: [{ name: 'PDF', extensions: ['pdf'] }] });
+    if (r.canceled || !r.filePath) return { ok: false };
+    fs.writeFileSync(r.filePath, data);
+    shell.openPath(r.filePath);
+    return { ok: true, path: r.filePath };
+  });
   handle('mc:adblockInfo', (e, wcId) => Object.assign(adblock.info(), { blocked: adblock.blocked(+wcId || 0) }));
   handle('mc:adblockUpdate', () => adblock.update(true));
   handle('mc:clearSiteData', async () => { await session.fromPartition(SITES_PART).clearStorageData(); return true; });
@@ -472,7 +483,8 @@ app.whenReady().then(async () => {
     store, collector,
     info: role => ({ name: NAME, lang: store.settings().lang, version: app.getVersion(), desktop: role === 'app', sharing: srv.isSharing(), ports: srv.ports, ips: srv.lanIPs(), ca: srv.caName() }),
     onSettings: s => applySettings(s),
-    onTestAlert: a => notify([a])
+    onTestAlert: a => notify([a]),
+    offshoreFetch: url => fetchJson(url, 30000)
   });
   srv = createServer({ www: path.join(__dirname, 'www'), dataDir: app.getPath('userData'), ports, api: api.handle, onError: e => console.error('server', e && e.message) });
   try { await srv.start(); } catch (e) {

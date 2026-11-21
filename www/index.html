@@ -80,6 +80,10 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
                 <div id="offTable" style="overflow-x:auto;margin-top:12px"></div>
               </div>
             </section>
+            <section class="card wide off-only" id="cardOffCmp">
+              <div class="card-h"><h3>🧭 Perbandingan model offshore</h3><small id="ocSub">beberapa model percuma · nilai tengah & julat</small><div class="sp"></div><div class="seg" id="ocSeg" role="tablist"><button data-days="3">3 hari</button><button data-days="7">7 hari</button><button data-days="14">14 hari</button></div><button class="btn sm" id="ocPdf" type="button">📄 Simpan PDF</button></div>
+              <div class="card-b" id="ocBody"></div>
+            </section>
             <section class="card wide land-only" id="cardWater">
               <div class="card-h"><h3>🌊 Paras Air Sungai</h3><small id="waterSub">JPS Public Infobanjir</small><div class="sp"></div><a class="btn sm" id="waterLink" target="_blank" rel="noopener" href="https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/aras-air-data/?state=TRG&amp;district=ALL&amp;station=ALL&amp;lang=en">Laman JPS ↗</a></div>
               <div class="card-b" id="waterBody"></div>
@@ -230,6 +234,8 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
             <section class="card"><div class="card-h"><h3>Ambang alert · <span class="pname">-</span></h3><small>untuk profil ini sahaja</small></div><div class="card-b">
               <div class="fld"><label for="f_gustKmh">Tiupan angin (km/j)<small id="gustKt">50 km/j = 27 knot</small></label><input class="inp" id="f_gustKmh" name="gustKmh" type="number" step="1" min="1"></div>
               <div class="fld"><label for="f_waveM">Tinggi ombak (m)</label><input class="inp" id="f_waveM" name="waveM" type="number" step="0.1" min="0.1"></div>
+              <div class="fld off-only"><label for="f_offWindKt">Had angin kad perbandingan (knot)<small>Untuk % peluang &amp; garisan merah carta</small></label><input class="inp" id="f_offWindKt" name="offWindKt" type="number" step="1" min="1" max="80"></div>
+              <div class="fld off-only"><label for="f_offWaveM">Had ombak kad perbandingan (Hs, m)<small>Untuk % peluang &amp; garisan merah carta</small></label><input class="inp" id="f_offWaveM" name="offWaveM" type="number" step="0.1" min="0.1" max="15"></div>
               <div class="fld"><label for="f_visKm">Penglihatan kurang daripada (km)<small>0 = tutup</small></label><input class="inp" id="f_visKm" name="visKm" type="number" step="0.5" min="0"></div>
               <div class="fld"><label for="f_thunderAlert">Alert ribut petir dijangka<small>Ramalan dalam 6 jam</small></label><div class="sw"><input type="checkbox" id="f_thunderAlert" name="thunderAlert"><span></span></div></div>
               <div class="fld"><label for="f_rain3hMm">Ramalan hujan 3 jam (mm)</label><input class="inp" id="f_rain3hMm" name="rain3hMm" type="number" step="1" min="1"></div>
@@ -311,6 +317,7 @@ setTimeout(out,5000);s.addEventListener('click',out);})();</script>
 <script src="assets/js/core.js"></script>
 <script src="assets/js/charts.js"></script>
 <script src="assets/js/charts2.js"></script>
+<script src="assets/js/offshore.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

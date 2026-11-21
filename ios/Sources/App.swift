@@ -52,6 +52,7 @@ final class DashboardViewController: UIViewController, WKScriptMessageHandler, W
         view.backgroundColor = bg
         let config = makeConfiguration()
         config.userContentController.add(WeakHandler(self), name: "dcOpen")
+        config.userContentController.add(WeakHandler(self), name: "dcPdf")
         web = WKWebView(frame: view.bounds, configuration: config)
         web.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         web.isOpaque = false
@@ -88,11 +89,49 @@ final class DashboardViewController: UIViewController, WKScriptMessageHandler, W
 
     /// the web app asks: open this site
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "dcPdf" {
+            let name = ((message.body as? [String: Any])?["name"] as? String) ?? "Offshore"
+            makePDF(name: name)
+            return
+        }
         guard message.name == "dcOpen", let body = message.body as? [String: Any],
               let s = body["url"] as? String, let url = URL(string: s, relativeTo: web.url)?.absoluteURL else { return }
         let id = (body["id"] as? String) ?? url.absoluteString
         let title = (body["title"] as? String) ?? (url.host ?? "")
         openSite(id: id, title: title, url: url)
+    }
+
+    /// the web app's print layout (its CSS for printing) as an A4 PDF, then the share sheet: Save to Files, Mail, AirDrop...
+    func makePDF(name: String) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            guard let self = self else { return }
+            let renderer = UIPrintPageRenderer()
+            renderer.addPrintFormatter(self.web.viewPrintFormatter(), startingAtPageAt: 0)
+            let paper = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)   /* A4 in points */
+            renderer.setValue(NSValue(cgRect: paper), forKey: "paperRect")
+            renderer.setValue(NSValue(cgRect: paper.insetBy(dx: 28, dy: 30)), forKey: "printableRect")
+            let data = NSMutableData()
+            UIGraphicsBeginPDFContextToData(data, paper, nil)
+            renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
+            let bounds = UIGraphicsGetPDFContextBounds()
+            for i in 0..<renderer.numberOfPages {
+                UIGraphicsBeginPDFPage()
+                renderer.drawPage(at: i, in: bounds)
+            }
+            UIGraphicsEndPDFContext()
+            self.web.evaluateJavaScript("window.dcPdfDone && window.dcPdfDone()", completionHandler: nil)
+            let safe = name.replacingOccurrences(of: "[^A-Za-z0-9_.-]+", with: "-", options: .regularExpression)
+            let file = FileManager.default.temporaryDirectory.appendingPathComponent((safe.isEmpty ? "Offshore" : safe) + ".pdf")
+            do { try data.write(to: file, options: .atomic) } catch { return }
+            let share = UIActivityViewController(activityItems: [file], applicationActivities: nil)
+            if let pop = share.popoverPresentationController {
+                pop.sourceView = self.view
+                pop.sourceRect = CGRect(x: self.view.bounds.midX, y: 70, width: 1, height: 1)
+                pop.permittedArrowDirections = .up
+            }
+            if self.presentedViewController != nil { self.dismiss(animated: false) }
+            self.present(share, animated: true)
+        }
     }
 
     func openSite(id: String, title: String, url: URL) {

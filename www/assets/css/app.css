@@ -533,3 +533,65 @@ tr.js-danger td { background: var(--soft-danger); } tr.js-danger td.lv { color: 
   background: var(--brand); color: var(--brand-ink); border-radius: 12px; padding: 10px 12px; font-size: 14px; box-shadow: var(--shadow); }
 .ios-hint button { background: none; border: 0; color: inherit; font-size: 16px; cursor: pointer; }
 @media (min-width: 761px) { .ios-hint { left: auto; right: 16px; bottom: 16px; max-width: 460px; } }
+
+/* ---- 4.2.0 offshore model comparison card + its A4 report (PDF) */
+#cardOffCmp .card-h { flex-wrap: wrap; row-gap: 8px; }
+.oc-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; margin-bottom: 10px; }
+.oc-meta span { color: var(--ink-3); margin-right: 6px; }
+.oc-sec { margin-top: 14px; }
+.oc-sec h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: .02em; }
+.oc-sec p { margin: 4px 0; font-size: 13px; line-height: 1.5; }
+.oc-sec ul { margin: 4px 0; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+.oc-warnbox { border: 1px solid color-mix(in srgb, var(--st-warning) 45%, transparent); background: var(--soft-warning); border-radius: 12px; padding: 10px 12px; }
+.oc-met { margin-top: 6px; font-size: 12.5px; }
+.oc-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.oc-days td, .oc-mat td, .oc-rows td { padding: 6px 8px; white-space: nowrap; }
+.oc-days small, .oc-rows small { color: var(--ink-3); }
+.oc-mat tr.ens td { color: var(--ink-2); font-style: italic; }
+.oc-mat td:first-child, .oc-mat th:first-child { position: sticky; left: 0; background: var(--surface); }
+.oc-rows thead tr.grp th { text-align: center; border-bottom: 0; }
+.oc-rows th { text-align: center; }
+.oc-rows tr.dstart td { border-top: 2px solid var(--line-2); }
+.oc-rows td.num, .oc-mat td.num { text-align: right; }
+.oc-rows td.hot, .oc-mat td.hot { color: var(--st-warning); font-weight: 700; }
+.oc-conf { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.oc-conf.c3 { color: var(--st-normal); } .oc-conf.c2 { color: var(--st-alert); } .oc-conf.c1 { color: var(--st-danger); }
+.oc-arrows { position: relative; height: 34px; }
+.oc-arrows span { position: absolute; top: 0; transform: translateX(-50%); text-align: center; line-height: 1; }
+.oc-arrows i { display: block; font-style: normal; font-size: 15px; color: var(--brand-text); }
+.oc-arrows small { font-size: 9.5px; color: var(--ink-3); }
+.oc-src { list-style: none; padding-left: 0 !important; }
+.oc-src li.bad { opacity: .65; }
+.oc-src a { color: var(--brand-text); }
+#printRoot { display: none; }
+html.printing #printRoot { display: block; position: fixed; left: -10000px; top: 0; width: 186mm; }
+#printRoot { --ink: #111; --ink-2: #333; --ink-3: #5b6472; --line: #d6dbe3; --line-2: #9aa5b5; --surface: #fff; --fill: #fff; --chart-grid: #dfe4ea;
+  --brand-text: #1d4ed8; --st-warning: #c2410c; --st-normal: #15803d; --st-alert: #a16207; --st-danger: #b91c1c; --soft-warning: #fff4ea;
+  background: #fff; color: #111; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; }
+#printRoot .rpt { padding: 0; }
+#printRoot .r-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; border-bottom: 2px solid #1f3c88; padding-bottom: 6px; margin-bottom: 8px; }
+#printRoot h1 { font-size: 15pt; margin: 0; }
+#printRoot .r-brand { text-align: right; color: #1f3c88; }
+#printRoot .r-brand b { display: block; font-size: 11pt; } #printRoot .r-brand small { font-size: 8pt; color: #5b6472; }
+#printRoot .oc-sec { margin-top: 8px; break-inside: avoid; page-break-inside: avoid; }
+#printRoot .oc-sec h4, #printRoot .r-bar { font-size: 10.5pt; margin: 0 0 4px; border-bottom: 1.5px solid #111; padding-bottom: 2px; }
+#printRoot .oc-sec p, #printRoot .oc-sec ul, #printRoot .note { font-size: 9pt; color: #222; }
+#printRoot .oc-meta { font-size: 9pt; }
+#printRoot .tbl { width: 100%; border-collapse: collapse; font-size: 8.3pt; }
+#printRoot .tbl th { background: #2f45a8; color: #fff; font-size: 7.6pt; padding: 3px 4px; text-transform: none; letter-spacing: 0; border: 0; }
+#printRoot .tbl td { padding: 2.5px 4px; border-bottom: 1px solid #e3e7ee; }
+#printRoot .oc-rows tr.dstart td { border-top: 1.5px solid #555; }
+#printRoot .oc-mat td:first-child { position: static; }
+#printRoot .oc-warnbox { border-radius: 6px; padding: 6px 8px; }
+#printRoot .legend { font-size: 8pt; }
+#printRoot svg.chart .axis { font-size: 9px; }
+#printRoot .oc-sec p { margin: 2px 0; }
+#printRoot .r-page { break-before: page; page-break-before: always; }
+#printRoot .tip, #printRoot .cross { display: none; }
+@media print {
+  @page { size: A4; margin: 11mm 12mm; }
+  html.printing, html.printing body { height: auto !important; overflow: visible !important; background: #fff !important; }
+  html.printing body > *:not(#printRoot) { display: none !important; }
+  html.printing #printRoot { position: static; left: 0; width: auto; }
+  #printRoot * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

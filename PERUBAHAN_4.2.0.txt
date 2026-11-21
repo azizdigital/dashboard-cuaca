@@ -1,0 +1,16 @@
+Dashboard Cuaca Aziz 4.2.0
+
+Kad baru: Perbandingan model offshore (profil offshore sahaja, contoh Irong Barat)
+- 6 model cuaca (ECMWF IFS, NOAA GFS, DWD ICON, JMA, Météo-France, UK Met Office),
+  4 model ombak (ECMWF WAM, NOAA WAVEWATCH III, Météo-France MFWAM, DWD GWAM),
+  2 ensemble (ECMWF ENS 51 larian, NOAA GEFS 31 larian). Semua percuma melalui Open-Meteo.
+- Pilihan 3 / 7 / 14 hari.
+- Amaran 24 jam (squall, peluang kilat, angin / ombak melebihi had) + amaran MET Malaysia.
+- Ringkasan automatik (angin, laut, alun, cuaca, monsun) dan trend.
+- Setiap hari: nilai tengah model (julat), % peluang melebihi had, tahap keyakinan.
+- Carta angin (10m, 80m, julat model, anak panah arah) dan carta ombak (Hs, ombak maks, julat).
+- Jadual setiap model, jadual terperinci 3 / 6 / 12 jam, senarai sumber & kaedah.
+- Had (15 knot / 1.5 m) boleh ditukar di Tetapan › Ambang alert, untuk setiap profil.
+- Simpan PDF: laporan A4 (muka 1 amaran + ringkasan + carta, muka 2 setiap hari + setiap model + sumber, kemudian jadual).
+  App PC: terus simpan fail PDF. iPad app: helaian kongsi (Simpan ke Fail, Mel). Safari / pelayar: tetingkap cetak (Simpan sebagai PDF).
+- App PC & telefon melalui PC: data diambil oleh PC (/api/offshore), disimpan 30 minit.

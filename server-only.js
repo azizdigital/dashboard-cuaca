@@ -43,6 +43,7 @@ const collector = collectorLib.create({
 });
 api = apiLib.create({
   store, collector,
+  offshoreFetch: mock ? (url => Promise.resolve(require('./tests/web-fixtures/make').offshore(url, Date.now()))) : (url => fetchJson(url, 30000)),
   info: role => ({ name: 'Dashboard Cuaca Aziz', lang: store.settings().lang, version, desktop: false, sharing: srv.isSharing(), ports: srv.ports, ips: srv.lanIPs(), ca: srv.caName() })
 });
 srv = createServer({ www: path.join(__dirname, 'www'), dataDir, ports, api: api.handle, onError: e => console.error('server', e && e.message) });

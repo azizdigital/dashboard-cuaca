@@ -29,7 +29,10 @@
     ok: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.dcOpen),
     open: function (site) {
       try { window.webkit.messageHandlers.dcOpen.postMessage({ id: site.id, title: L(site.title), url: siteUrl(site) }); } catch (e) { /* */ }
-    }
+    },
+    /* 4.2.0: the app turns the print layout into a PDF and opens the iPad share sheet (Save to Files, Mail...) */
+    pdfOk: !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.dcPdf),
+    pdf: function (name) { try { window.webkit.messageHandlers.dcPdf.postMessage({ name: name }); } catch (e) { /* */ } }
   };
   if (Native.ok) document.documentElement.classList.add('is-native');
   /* iPad / iPhone in a Safari tab: sites that open "outside" become Safari tabs. From the Home Screen icon they open
@@ -638,6 +641,214 @@
       }).join('') + '</tbody></table>' : '<div class="empty">Tiada ramalan.</div>';
   }
 
+  /* ------------------------------------------ offshore model comparison (like a metocean report)
+     several free models side by side (offshore.js): middle value + spread, % chance over the limits, confidence; PDF */
+  var OC_DAYS = [3, 7, 14];
+  var Off = {
+    raw: null, rep: null, repKey: '', busy: false, err: '', errAt: 0,
+    days: OC_DAYS.indexOf(load('mc_oc_days', 3)) >= 0 ? load('mc_oc_days', 3) : 3,
+    open: load('mc_oc_open', {}),
+    key: function (lat, lon) { return (+lat).toFixed(3) + ',' + (+lon).toFixed(3); },
+    mine: function () {
+      var s = state.settings;
+      if (!this.raw) { var c = load('mc_oc_raw', null); if (c && c.v === 1) this.raw = c; }
+      return this.raw && this.raw.key === this.key(s.marineLat, s.marineLon) ? this.raw : null;
+    },
+    load: function (force) {
+      var s = state.settings;
+      if (s.kind !== 'offshore' || this.busy || !window.MCOffshore) return;
+      var mine = this.mine();
+      if (!force && mine && Date.now() - mine.at < 30 * 60000) return;
+      if (!force && this.err && Date.now() - this.errAt < 5 * 60000) return;
+      this.busy = true; renderOffCmp();
+      var get = function (u) { return fetchT(u, 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); };
+      var p = state.mode === 'pc' ? get('/api/offshore' + (force ? '?force=1' : '')) : window.MCOffshore.collect(s.marineLat, s.marineLon, get);
+      p.then(function (raw) {
+        var ok = 0;
+        ['wind', 'wave', 'ens'].forEach(function (g) { Object.keys(raw[g] || {}).forEach(function (k) { if (raw[g][k].ok) ok++; }); });
+        if (!ok) throw new Error(L('Tiada model menjawab'));
+        raw.key = Off.key(raw.lat, raw.lon);
+        Off.raw = raw; Off.rep = null; Off.err = '';
+        save('mc_oc_raw', raw);
+      }).catch(function (e) { Off.err = (e && e.message) || String(e); Off.errAt = Date.now(); })
+        .then(function () { Off.busy = false; renderOffCmp(); });
+    },
+    report: function () {
+      var raw = this.mine(), s = state.settings;
+      if (!raw || !window.MCOffshore) return null;
+      var k = raw.at + '|' + s.offWindKt + '|' + s.offWaveM + '|' + Math.floor(Date.now() / 600000) + '|' + I18N.lang();
+      if (!this.rep || this.repKey !== k) { this.repKey = k; this.rep = window.MCOffshore.build(raw, { now: Date.now(), windKt: s.offWindKt, waveM: s.offWaveM }); }
+      return this.rep;
+    },
+    pdf: function () {
+      var rep = Off.report();
+      if (!rep) { toast(L('Belum ada data untuk PDF'), Off.busy ? L('Membaca model…') : '', 'warning'); return; }
+      var root = $('printRoot');
+      if (!root) { root = document.createElement('div'); root.id = 'printRoot'; document.body.appendChild(root); }
+      root.innerHTML = '<div class="rpt">' + ocHtml(rep, Off.days, true) + '</div>';
+      var html = document.documentElement;
+      html.classList.add('printing');
+      ocCharts(rep, Off.days, root);
+      var name = window.MCOffshore.fileName(state.settings.locationName, rep.at), title = document.title;
+      document.title = name;
+      var done = function () { html.classList.remove('printing'); document.title = title; };
+      if (D && D.savePdf) {
+        D.savePdf(name).then(function (r) { if (r && r.ok) toast(L('PDF disimpan'), r.path || ''); }, function (e) { toast(L('Gagal simpan PDF'), (e && e.message) || '', 'warning'); }).then(done);
+        return;
+      }
+      if (Native.pdfOk) { window.dcPdfDone = function () { window.dcPdfDone = null; done(); }; Native.pdf(name); return; }
+      window.addEventListener('afterprint', function h() { window.removeEventListener('afterprint', h); done(); });
+      window.print();
+    }
+  };
+  var OC_RISK = { high: 'tinggi', medium: 'sederhana', low: 'rendah' };
+  function ocPct(p) { return p ? '<span class="' + (p.p >= 0.5 ? 'hot' : '') + '">' + Math.round(p.p * 100) + '%</span>' : '-'; }
+  function ocConf(c) { return c && c.level ? '<span class="oc-conf c' + c.level + '">' + ['', '●○○', '●●○', '●●●'][c.level] + ' ' + esc(c.label) + '</span>' : '-'; }
+  function ocHtml(rep, n, pdf) {
+    var s = state.settings, O = window.MCOffshore, D = rep.days.slice(0, n), kt = rep.windKt, hm = rep.waveM;
+    var runs = 0; D.forEach(function (x) { if (x.ens && x.ens.n > runs) runs = x.ens.n; });
+    var en = I18N.lang() === 'en', met = (((state.snap && state.snap.met) || {}).warnings || []);
+    var issue = C.fmtDate(rep.at) + ', ' + C.fmtTime(rep.at) + ' LT';
+    var li = function (t) { return '<li>' + esc(t) + '</li>'; };
+    var h = '';
+    if (pdf) h += '<div class="r-head"><div><h1>' + esc(String(s.locationName).replace(/\s*\(.*?\)\s*/g, ' ').trim()) + ' — ' + esc(C.fmtDate(rep.at)) + ' (' + C.fmtTime(rep.at) + L(' LT keluaran') + ')</h1></div>' +
+      '<div class="r-brand"><b>Dashboard Cuaca Aziz</b><small>' + L('Ramalan automatik daripada beberapa model percuma') + '</small></div></div>';
+    h += '<div class="oc-meta">' +
+      '<div><span>' + L('Lokasi') + '</span><b>' + f(Math.abs(rep.lat), 2) + (rep.lat >= 0 ? 'N' : 'S') + ', ' + f(Math.abs(rep.lon), 2) + (rep.lon >= 0 ? 'E' : 'W') + '</b></div>' +
+      '<div><span>' + L('Dikeluarkan') + '</span><b>' + esc(issue) + '</b></div>' +
+      '<div><span>' + L('Tempoh') + '</span><b>' + L('{n} hari', { n: n }) + '</b></div>' +
+      '<div><span>' + L('Model') + '</span><b>' + L('{w} angin · {v} ombak · {e} larian ensemble', { w: rep.ok.wind.length, v: rep.ok.wave.length, e: runs }) + '</b></div>' +
+      '<div><span>' + L('Had') + '</span><b>' + kt + ' kt · Hs ' + hm + ' m</b></div></div>';
+    /* warning, next 24 h */
+    var w = rep.warn, metHtml = met.length ? met.map(function (x) {
+      return '<div class="oc-met">⚠️ <b>' + esc(en ? x.title_en || x.title_bm : x.title_bm || x.title_en) + '</b> ' + esc(en ? x.heading_en || x.heading_bm : x.heading_bm || x.heading_en) +
+        (x.to ? ' <small class="muted">' + L('hingga ') + esc(C.fmtDate(x.to) + ' ' + C.fmtTime(x.to)) + '</small>' : '') + '</div>';
+    }).join('') : '<div class="muted oc-met">' + L('MET Malaysia: tiada amaran untuk kawasan ini.') + '</div>';
+    h += '<div class="oc-sec oc-warnbox"><h4>' + L('Amaran (24 jam)') + '</h4><ul>' + w.lines.map(li).join('') + '</ul>' +
+      '<div>' + L('Peluang kilat:') + ' <span class="riskchip risk-' + (OC_RISK[w.lightning] || 'rendah') + '">' + esc(w.lightningText) + '</span>' +
+      (w.cape !== null ? ' <small class="muted">CAPE ' + f(w.cape, 0) + ' J/kg</small>' : '') + '</div>' + metHtml + '</div>';
+    /* summary */
+    var sm = rep.summary;
+    h += '<div class="oc-sec"><h4>' + L('Ringkasan (dijana daripada model)') + '</h4>' +
+      '<p>' + esc([sm.wind, sm.sea, sm.swell].filter(Boolean).join(' ')) + '</p>' +
+      '<p>' + esc([sm.weather, sm.season].filter(Boolean).join(' ')) + '</p>' +
+      '<ul class="oc-ol">' + O.outlook(rep, n).map(li).join('') + '</ul></div>';
+    /* day by day */
+    var daysH = '<div class="oc-sec"><h4>' + L('Setiap hari: nilai tengah model (julat), peluang & keyakinan') + '</h4><div class="oc-scroll"><table class="tbl oc-days"><thead><tr><th>' + L('Hari') + '</th><th>' + L('Arah') + '</th>' +
+      '<th class="num">' + L('Angin maks (knot)') + '</th><th class="num">' + L('Peluang ≥{k} kt', { k: kt }) + '</th><th class="num">' + L('Hs maks (m)') + '</th><th class="num">' + L('Ombak maks (m)') + '</th>' +
+      '<th class="num">' + L('Peluang ≥{m} m', { m: hm }) + '</th><th class="num">' + L('Hujan (mm)') + '</th><th>' + L('Keyakinan') + '</th></tr></thead><tbody>' +
+      D.map(function (x) {
+        return '<tr><td><b>' + esc(O.shortDay(x.date)) + '</b></td><td>' + arrow(x.dir) + O.compass16(x.dir) + '</td>' +
+          '<td class="num"><span class="' + (x.wind.m !== null && x.wind.m >= kt ? 'hot' : '') + '">' + f(x.wind.m, 0) + '</span> <small>(' + f(x.wind.lo, 0) + '–' + f(x.wind.hi, 0) + ')</small></td>' +
+          '<td class="num">' + ocPct(x.probWind) + '</td>' +
+          '<td class="num"><span class="' + (x.hs.m !== null && x.hs.m >= hm ? 'hot' : '') + '">' + f(x.hs.m, 1) + '</span> <small>(' + f(x.hs.lo, 1) + '–' + f(x.hs.hi, 1) + ')</small></td>' +
+          '<td class="num">' + f(x.hmax, 1) + '</td><td class="num">' + ocPct(x.probWave) + '</td>' +
+          '<td class="num">' + f(x.rain, 1) + (x.thunder !== null && x.thunder >= 0.34 ? ' ⚡' : '') + '</td><td>' + ocConf(x.conf) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<p class="note">' + L('Peluang angin = bahagian larian ensemble (ECMWF 51 + NOAA GEFS 31; selepas hari ke-10 ECMWF sahaja) yang angin maks hariannya melebihi had. Peluang ombak = bahagian model ombak yang melebihi had. ⚡ = ribut petir dalam sekurang-kurangnya 1/3 model.') + '</p></div>';
+    /* charts */
+    var chartsH = '<div class="oc-sec r-keep"><h4>' + L('Carta angin (knot)') + '</h4><div class="oc-arrows oc-a-wind"></div><div class="chartbox oc-wind"></div></div>' +
+      '<div class="oc-sec r-keep"><h4>' + L('Carta ombak (m)') + '</h4><div class="chartbox oc-wave"></div></div>';
+    /* every model, daily max */
+    var cols = D.map(function (x) { return '<th class="num">' + esc(O.shortDay(x.date)) + '</th>'; }).join('');
+    var cell = function (v, thr, d) { return '<td class="num' + (v !== null && v !== undefined && v >= thr ? ' hot' : '') + '">' + f(v, d) + '</td>'; };
+    var mat = '<div class="oc-scroll"><table class="tbl oc-mat"><thead><tr><th>' + L('Angin maks 10m (knot)') + '</th>' + cols + '</tr></thead><tbody>' +
+      O.WIND.map(function (m) { return '<tr><td>' + esc(m.name) + '</td>' + D.map(function (x) { return cell(x.windBy[m.id], kt, 0); }).join('') + '</tr>'; }).join('') +
+      '<tr class="ens"><td>' + L('Ensemble 10–90%') + '</td>' + D.map(function (x) { return '<td class="num">' + (x.ens ? f(x.ens.p10, 0) + '–' + f(x.ens.p90, 0) : '-') + '</td>'; }).join('') + '</tr>' +
+      '<tr class="ens"><td>' + L('Peluang ≥{k} kt', { k: kt }) + '</td>' + D.map(function (x) { return '<td class="num">' + ocPct(x.probWind) + '</td>'; }).join('') + '</tr>' +
+      '</tbody></table></div><div class="oc-scroll"><table class="tbl oc-mat"><thead><tr><th>' + L('Hs maks (m)') + '</th>' + cols + '</tr></thead><tbody>' +
+      O.WAVE.map(function (m) { return '<tr><td>' + esc(m.name) + '</td>' + D.map(function (x) { return cell(x.hsBy[m.id], hm, 1); }).join('') + '</tr>'; }).join('') +
+      '<tr class="ens"><td>' + L('Keyakinan') + '</td>' + D.map(function (x) { return '<td class="num">' + (x.conf.level ? ['', '●○○', '●●○', '●●●'][x.conf.level] : '-') + '</td>'; }).join('') + '</tr>' +
+      '</tbody></table></div><p class="note">' + L('Kosong (-) = model itu tidak meramal sejauh itu atau tidak menjawab.') + '</p>';
+    /* detailed table */
+    var R = O.rows(rep, n), lastDay = '';
+    var tbl = '<div class="oc-scroll"><table class="tbl oc-rows"><thead><tr class="grp"><th rowspan="2">' + L('Tarikh / masa') + '</th><th colspan="4">' + L('Angin') + '</th><th colspan="2">' + L('Keseluruhan') + '</th>' +
+      '<th colspan="3">' + L('Laut (sea)') + '</th><th colspan="3">' + L('Alun (swell)') + '</th><th>' + L('Suhu') + '</th></tr><tr>' +
+      '<th>' + L('Arah') + '</th><th class="num">10m<br><small>kt</small></th><th class="num">80m<br><small>kt</small></th><th class="num">' + L('Tiupan') + '<br><small>kt</small></th>' +
+      '<th class="num">Hs<br><small>m</small></th><th class="num">' + L('Maks') + '<br><small>m</small></th><th class="num">Hs<br><small>m</small></th><th class="num">Tp<br><small>s</small></th><th>' + L('Arah') + '</th>' +
+      '<th class="num">Hs<br><small>m</small></th><th class="num">Tp<br><small>s</small></th><th>' + L('Arah') + '</th><th class="num">°C</th></tr></thead><tbody>' +
+      R.map(function (r) {
+        var dk = C.dateKey(r.t), first = dk !== lastDay;
+        lastDay = dk;
+        return '<tr' + (first ? ' class="dstart"' : '') + '><td>' + (first ? '<b>' + esc(O.shortDay(dk)) + '</b> ' : '') + C.fmtTime(r.t) + '</td>' +
+          '<td>' + O.compass16(r.dir) + '</td>' + cell(r.w10.m, kt, 0) + '<td class="num">' + f(r.w80.m, 0) + '</td><td class="num">' + f(r.g.m, 0) + '</td>' +
+          cell(r.hs.m, hm, 1) + '<td class="num">' + f(r.hmax, 1) + '</td><td class="num">' + f(r.sh, 1) + '</td><td class="num">' + f(r.st, 0) + '</td><td>' + O.compass16(r.sd) + '</td>' +
+          '<td class="num">' + f(r.wh, 1) + '</td><td class="num">' + f(r.wt, 0) + '</td><td>' + O.compass16(r.wd) + '</td><td class="num">' + f(r.temp, 0) + '</td></tr>';
+      }).join('') + '</tbody></table></div><p class="note">' + L('Setiap 3 jam untuk 2 hari pertama, kemudian 6 jam hingga hari ke-7, kemudian 12 jam. Nilai = nilai tengah semua model.') + '</p>';
+    /* sources */
+    var grp = { wind: L('angin & cuaca'), wave: L('ombak'), ens: L('ensemble angin') };
+    var src = '<ul class="oc-src">' + rep.sources.map(function (x) {
+      return '<li class="' + (x.ok ? 'ok' : 'bad') + '">' + (x.ok ? '✓' : '✗') + ' <a href="' + esc(x.link) + '" target="_blank" rel="noopener">' + esc(x.name) + '</a>' + (x.runs ? ' (' + x.runs + L(' larian') + ')' : '') +
+        ' <small class="muted">' + esc(x.by) + ' · ' + esc(grp[x.group]) + ' · ' + L('{d} hari', { d: x.days }) + (x.ok ? '' : ' · ' + esc(x.error || L('gagal'))) + '</small></li>';
+    }).join('') + '</ul>' +
+      '<p class="note">' + L('Data model: Open-Meteo.com (CC BY 4.0), daripada ECMWF, NOAA, DWD, JMA, Météo-France dan Met Office. Amaran rasmi: MET Malaysia (data.gov.my).') + '</p>' +
+      '<p class="note">' + L('Kaedah: nilai tengah = median model yang ada pada masa itu; julat = paling rendah hingga paling tinggi. Ombak maks ≈ 1.7 × Hs (anggaran). Keyakinan Tinggi bila model / larian hampir sama, Rendah bila jauh berbeza; hari ke-11 dan seterusnya paling tinggi Sederhana. Squall & kilat dianggar daripada tiupan angin, CAPE dan kod cuaca model.') + '</p>' +
+      '<p class="note"><b>' + L('Ramalan automatik ini bukan ramalan rasmi dan bukan pengganti ramalan offshore berbayar. Keadaan sebenar boleh berbeza.') + '</b></p>';
+    if (pdf) {
+      /* page 1 like the paper reports: warning, summary, wind & wave charts; page 2: days, every model, sources; then the table */
+      h += chartsH + '<div class="r-page">' + daysH + '<div class="oc-sec r-keep"><h4>' + L('Perbandingan setiap model (maks harian)') + '</h4>' + mat + '</div>' +
+        '<div class="oc-sec r-keep"><h4>' + L('Sumber & kaedah') + '</h4>' + src + '</div></div>' +
+        '<div class="r-page"><h4 class="r-bar">' + L('Perincian') + '</h4>' + tbl + '</div>';
+    } else {
+      h += daysH + chartsH;
+      var det = function (k, title, body) { return '<details class="jpsd oc-det" data-k="' + k + '"' + (Off.open[k] ? ' open' : '') + '><summary>' + title + '</summary>' + body + '</details>'; };
+      h += det('models', L('Perbandingan setiap model (maks harian)'), mat) + det('table', L('Jadual terperinci (3 jam → 6 jam → 12 jam)'), tbl) + det('src', L('Sumber & kaedah'), src);
+    }
+    return h;
+  }
+  /* wind & wave charts (+ the direction arrows above the wind chart) for the chosen days, in the card or the PDF */
+  function ocCharts(rep, n, root) {
+    var wH = root.querySelector('.oc-wind'), vH = root.querySelector('.oc-wave'), aH = root.querySelector('.oc-a-wind');
+    if (!wH || !window.Charts) return;
+    var day0 = C.localMs(C.dateKey(Date.now())), end = day0 + n * 86400000;
+    /* 3-hourly steps: some wave models only give every 3 hours, and mixing would make a saw-tooth */
+    var H = rep.hours.filter(function (h) { return h.t >= rep.now - 3 * 3600000 && h.t <= end && new Date(h.t).getUTCHours() % 3 === 0; });
+    var HW = H.filter(function (h) { return h.w10.m !== null; }), HV = H.filter(function (h) { return h.hs.m !== null; });
+    if (!HW.length) { wH.innerHTML = '<div class="empty">-</div>'; return; }
+    var ticks = []; for (var t = day0; t <= end; t += 86400000) ticks.push(t);
+    var common = { ticks: ticks, xFormat: tickDay, tipTime: tipTime, now: Date.now(), yMin: 0 };
+    var line = function (list, v, name) { return { name: name, color: '#e0393e', dash: '5 4', unit: '', digits: 1, points: [[list[0].t, v], [list[list.length - 1].t, v]] }; };
+    window.Charts.chart(wH, Object.assign({ height: 200, yLabel: 'knot', label: L('Carta angin (knot)'), series: [
+      { name: L('Julat model'), kind: 'band', color: '#199e70', unit: 'kt', digits: 0, points: HW.map(function (h) { return [h.t, h.w10.lo, h.w10.hi]; }) },
+      { name: L('Angin 10m'), color: '#199e70', unit: 'kt', digits: 0, points: HW.map(function (h) { return [h.t, h.w10.m]; }) },
+      { name: L('Angin 80m'), color: '#3987e5', unit: 'kt', digits: 0, points: HW.map(function (h) { return [h.t, h.w80.m]; }) },
+      line(HW, rep.windKt, L('Had {k} kt', { k: rep.windKt }))] }, common));
+    if (vH && HV.length) window.Charts.chart(vH, Object.assign({ height: 200, yLabel: 'm', label: L('Carta ombak (m)'), series: [
+      { name: L('Julat model'), kind: 'band', color: '#3987e5', unit: 'm', digits: 1, points: HV.map(function (h) { return [h.t, h.hs.lo, h.hs.hi]; }) },
+      { name: L('Hs (ombak signifikan)'), color: '#3987e5', unit: 'm', digits: 1, points: HV.map(function (h) { return [h.t, h.hs.m]; }) },
+      { name: L('Ombak maks'), color: '#199e70', unit: 'm', digits: 1, points: HV.map(function (h) { return [h.t, h.hmax]; }) },
+      line(HV, rep.waveM, L('Had {m} m', { m: rep.waveM }))] }, common));
+    else if (vH) vH.innerHTML = '<div class="empty">' + L('Tiada data ombak.') + '</div>';
+    /* arrows: every 6 h (3 days), 12 h (7 days) or 24 h (14 days), placed over the chart's time axis */
+    if (aH) {
+      var svg = wH.querySelector('svg'), W = svg ? +svg.getAttribute('width') : 600, tA = HW[0].t, tB = HW[HW.length - 1].t;
+      var hrs = n <= 3 ? [2, 8, 14, 20] : n <= 7 ? [8, 20] : [14];
+      aH.innerHTML = HW.filter(function (h) { return hrs.indexOf(new Date(h.t + 8 * 3600000).getUTCHours()) >= 0 && h.dir !== null; }).map(function (h) {
+        var x = (36 + (h.t - tA) / Math.max(1, tB - tA) * (W - 46)) / W * 100;
+        return '<span style="left:' + x.toFixed(2) + '%"><i style="transform:rotate(' + Math.round(h.dir + 180) + 'deg)">↑</i><small>' + window.MCOffshore.compass16(h.dir) + '</small></span>';
+      }).join('');
+    }
+  }
+  function renderOffCmp() {
+    var body = $('ocBody'), s = state.settings;
+    if (!body || s.kind !== 'offshore') return;
+    [].forEach.call(document.querySelectorAll('#ocSeg [data-days]'), function (b) {
+      b.setAttribute('aria-selected', String(+b.getAttribute('data-days') === Off.days));
+      b.onclick = function () { Off.days = +b.getAttribute('data-days'); save('mc_oc_days', Off.days); renderOffCmp(); };
+    });
+    $('ocPdf').onclick = function () { Off.pdf(); };
+    var rep = Off.report();
+    $('ocSub').textContent = rep ? L('{w} model angin · {v} model ombak · dikemas kini {t}', { w: rep.ok.wind.length, v: rep.ok.wave.length, t: C.fmtTime(rep.at) }) : L('beberapa model percuma · nilai tengah & julat');
+    if (!rep) {
+      body.innerHTML = '<div class="empty">' + (Off.busy ? L('Membaca model…') : Off.err ? esc(L('Gagal membaca model: ') + Off.err) : L('Belum ada data.')) + '</div>';
+      return;
+    }
+    body.innerHTML = (Off.busy ? '<p class="note">' + L('Mengemas kini…') + '</p>' : Off.err ? '<p class="note">' + esc(L('Gagal kemas kini: ') + Off.err) + '</p>' : '') + ocHtml(rep, Off.days, false);
+    ocCharts(rep, Off.days, body);
+    [].forEach.call(body.querySelectorAll('details.oc-det'), function (d) {
+      d.addEventListener('toggle', function () { Off.open[d.getAttribute('data-k')] = d.open; save('mc_oc_open', Off.open); });
+    });
+  }
   function renderDashboard() {
     var s = state.snap || {};
     var alerts = activeAlerts(), open = alerts.filter(function (a) { return !a.acked; });
@@ -672,6 +883,8 @@
         metTile
       ].join('');
       renderOffshore(s);
+      renderOffCmp();
+      Off.load();
     } else $('dashTiles').innerHTML = [
       '<div class="tile"><div class="k">Cuaca sekarang</div><div class="v"><span class="emoji">' + wc.icon + '</span>' + f(cur && cur.temp, 0) + '<small>°C</small></div><div class="s">' + esc(wc.text) + (cur ? L(' · Terasa ') + f(cur.feels, 0) + L('° · Lembap ') + f(cur.rh, 0) + '%' : '') + '</div></div>',
       '<div class="tile"><div class="k">Hujan 3 jam akan datang</div><div class="v">' + f(sum && sum.next3h) + '<small>mm</small></div><div class="s">24 jam: <b>' + f(sum && sum.next24h) + ' mm</b>' + L(' · lalu: ') + f(sum && sum.past24h) + ' mm' + (sum && sum.maxProb6h !== null ? L(' · peluang ') + f(sum.maxProb6h, 0) + '%' : '') + '</div></div>',
@@ -1028,6 +1241,7 @@
       }, 120000);
     },
     refresh: function () {
+      Off.load(true);
       if (state.mode === 'direct') return Direct.run();
       state.refreshing = true; renderStatus();
       return apiPost('/api/refresh').then(onSnap).catch(function (e) { toast(L('Gagal kemas kini'), e.message, 'warning'); }).finally(function () { state.refreshing = false; renderStatus(); });
@@ -1740,5 +1954,5 @@
   if (!isDesktop) takeSetupLink();
 
   Data.start();
-  window.MC = { state: state, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
+  window.MC = { state: state, Off: Off, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
 })();
