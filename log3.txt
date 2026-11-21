@@ -1,3 +1,18 @@
-== osm 10/805/499 -> 200 image/png 14732
-== osm 11/1611/999 -> 200 image/png 12581
-== carto -> 200 image/png 2513
+== stats-v4.json 200 6453
+{"latitude":4.225006,"longitude":103.42502,"generationtime_ms":20.70140838623047,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":8.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_mean":"m³/s","river_discharge_median":"m³/s","river_discharge_max":"m³/s","river_discharge_min":"m³/s","river_discharge_p25":"m³/s","river_discharge_p75"
+== ens.json 200 13382
+{"latitude":4.225006,"longitude":103.42502,"generationtime_ms":2.4265050888061523,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":8.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_member01":"m³/s","river_discharge_member02":"m³/s","river_discharge_member03":"m³/s","river_discharge_member04":"m³/s","river_discharge_member05":"m³/s"
+== hist-v4.json 200 276403
+{"latitude":4.225006,"longitude":103.42502,"generationtime_ms":19.54364776611328,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":8.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s"},"daily":{"time":["1984-01-01","1984-01-02","1984-01-03","1984-01-04","1984-01-05","1984-01-06","1984-01-07","1984-01-08","1984-01-09","1984-01-10","1984-01-11","1984-01-12","
+== seamless-v3.json 200 2465
+{"latitude":4.2000046,"longitude":103.399994,"generationtime_ms":0.09822845458984375,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":8.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s"},"daily":{"time":["2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31","2026-09-0
+== models.json 200 5902
+{"latitude":4.225006,"longitude":103.42502,"generationtime_ms":0.2522468566894531,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":8.0,"daily_units":{"time":"iso8601","river_discharge_seamless_v4":"m³/s","river_discharge_forecast_v4":"m³/s","river_discharge_consolidated_v4":"m³/s","river_discharge_seamless_v3":"m³/s","river_discharge_forecast_v3":"m³/s","river
+== pt-4_2715_103_2146.json 200 2301
+{"latitude":4.2750015,"longitude":103.225006,"generationtime_ms":2.456068992614746,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":25.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_max":"m³/s","river_discharge_min":"m³/s"},"daily":{"time":["2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","20
+== pt-4_1389_103_1708.json 200 2290
+{"latitude":4.125,"longitude":103.17502,"generationtime_ms":6.498575210571289,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":26.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_max":"m³/s","river_discharge_min":"m³/s"},"daily":{"time":["2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","2026-10
+== pt-4_2776_103_2657.json 200 2112
+{"latitude":4.2750015,"longitude":103.275024,"generationtime_ms":1.7333030700683594,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":15.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_max":"m³/s","river_discharge_min":"m³/s"},"daily":{"time":["2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","2
+== pt-4_2183_103_3726.json 200 2434
+{"latitude":4.225006,"longitude":103.375,"generationtime_ms":1.1653900146484375,"utc_offset_seconds":0,"timezone":"GMT","timezone_abbreviation":"GMT","elevation":1.0,"daily_units":{"time":"iso8601","river_discharge":"m³/s","river_discharge_max":"m³/s","river_discharge_min":"m³/s"},"daily":{"time":["2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","2026-1
