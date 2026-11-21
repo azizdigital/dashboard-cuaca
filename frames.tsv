@@ -1,0 +1,19 @@
+id	status	xfo	frame_ancestors	final
+ventusky-sat	200	-	-	https://www.ventusky.com/?p=4.2;103.4;5&l=satellite
+jma-himawari	200	SAMEORIGIN	-	https://www.data.jma.go.jp/mscweb/data/himawari/sat_img.php?area=se2
+jma-bosai	200	-	frame-ancestors 'self' www.mlit.go.jp www.data.jma.go.jp ds.data.jma.go.jp www.jma-net.go.jp www.pref.tokushima.lg.jp www.cgr.mlit.go.jp river-bosai.ktr.mlit.go.jp mie-mizubosai.go.jp sim.mie-mizubosai.go.jp mobile.mie-mizubosai.go.jp yoshino-drs.skr.mlit.go.jp view.mie-mizubosai.cbr.mlit.go.jp sim.mie-mizubosai.cbr.mlit.go.jp mobile.mie-mizubosai.cbr.mlit.go.jp	https://www.jma.go.jp/bosai/map.html#5/4.2/103.4/&elem=ir&contents=himawari
+nict-himawari	200	SAMEORIGIN	-	https://himawari.asia/
+nict-h8	200	SAMEORIGIN	-	https://himawari8.nict.go.jp/
+rammb-slider	200	SAMEORIGIN	-	https://slider.cira.colostate.edu/?sat=himawari&sec=full_disk
+zoom-sat	200	SAMEORIGIN	-	https://zoom.earth/maps/satellite/
+eumetview	200	-	-	https://view.eumetsat.int/productviewer
+myshiptracking	403	SAMEORIGIN	-	https://www.myshiptracking.com/?zoom=8&lat=4.23&lng=103.42
+myshiptracking-embed	403	SAMEORIGIN	-	https://www.myshiptracking.com/embed?zoom=8&lat=4.23&lng=103.42
+marinetraffic	200	-	-	https://www.marinetraffic.com/en/ais/home/centerx:103.4/centery:4.2/zoom:8
+marinetraffic-embed	200	-	-	https://www.marinetraffic.com/en/ais/embed/zoom:8/centery:4.2/centerx:103.4/maptype:4/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vtypes:/showmenu:/remember:false
+shipxplorer	200	SAMEORIGIN	-	https://www.shipxplorer.com/?lat=4.2&lon=103.4&zoom=8
+vesseltracker	404	SAMEORIGIN	frame-ancestors 'self' *.shipdb.com *.vesseltracker.com	https://www.vesseltracker.com/en/Map.html
+gfw	200	-	-	https://globalfishingwatch.org:443/platform/map
+shipfinder	000	-	-	https://www.shipfinder.org/
+balticshipping	200	DENY	-	https://www.balticshipping.com/vessels
+aishub	200	sameorigin	-	https://www.aishub.net/coverage
