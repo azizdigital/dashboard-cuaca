@@ -1,0 +1,1537 @@
+
+
+<input type='hidden' id='language' value='my'>
+<title>Hidrograf</title>
+
+<script src="/wp-content/themes/enlighten/js/jquery-2.1.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
+<script src="/wp-content/themes/enlighten/js/Chart.js"></script>
+<script src="/wp-content/themes/enlighten/js/bootstrap-datetimepicker.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/wp-content/themes/enlighten/js/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" type='text/css'>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="/wp-content/themes/enlighten/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="/wp-content/themes/enlighten/css/bootstrap-datetimepicker.css" />
+<link rel="shortcut icon" href="/wp-content/themes/enlighten/images/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/wp-content/themes/enlighten/style.css" type='text/css'>
+
+
+<!-- Export CSV, PNG, PDF-->
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/FileSaver/FileSaver.min.js"></script>
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/js-xlsx/xlsx.core.min.js"></script>
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/jsPDF/jspdf.min.js"></script>
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js"></script>
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/tableExport.min.js"></script>
+<!-- For IE support include es6-promise before html2canvas -->
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/es6-promise/es6-promise.auto.min.js"></script>
+<script type="text/javascript" src="/wp-content/themes/enlighten/libs/html2canvas/html2canvas.min.js"></script>
+<!-- end Export -->
+
+<style>
+    #footer-wrapper {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        margin-bottom: 0;
+        margin-left: -18%;
+    }
+
+    .spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -50px;
+        /* half width of the spinner gif */
+        margin-top: -50px;
+        /* half height of the spinner gif */
+        text-align: center;
+        z-index: 1234;
+        overflow: auto;
+        width: 150px;
+        /* width of the spinner gif */
+        height: 152px;
+        /*hight of the spinner gif +2px to fix IE8 issue */
+        opacity: 0.5;
+    }
+
+    #wlchart {
+        left: 0;
+        height: 100%;
+        width: 1000px;
+    }
+
+    /*.container {
+        background:url(/wp-content/themes/enlighten/images/jps_graph_logo.png);
+        background-repeat:no-repeat;
+        background-size: contain;
+        opacity: 0.5;
+        filter: alpha(opacity=50);
+    }*/
+
+    .container {
+        position: relative;
+    }
+
+
+    .container:after {
+        content: "";
+        /*background: url(/wp-content/themes/enlighten/images/jps_graph_logo.png) no-repeat center center;*/
+        background: url(/wp-content/uploads/2018/07/new.png) no-repeat center center;
+        opacity: 0.1;
+        top: 80;
+        left: 0px;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 60%;
+        background-size: 30%;
+
+        position: absolute;
+        z-index: -1;
+    }
+
+
+    .normaltable {
+        position: relative;
+    }
+
+    ul {
+        z-index:100 !important;
+    }
+
+</style>
+
+<style>
+    #chart {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .legend {
+       width: 50%;
+       position: absolute;
+       top: 5px;
+       right: 20px;
+       color: @light;
+       font-family: @family;
+       font-variant: small-caps;
+       font-size: @size + 2;
+    }
+    .legend ul li{list-style:none;}
+    .legend ul li span{ width:50px; height:15px;display:inline-block; margin-right:5px; }
+
+    .btn {
+        margin-top: 10;
+        margin-right: 10;
+    }
+
+</style>
+
+<style>
+
+    table {
+        width: 100%;
+    }
+
+    .readings {
+        display: table-cell;
+        vertical-align: middle;
+    }
+
+    .dd-button:after {
+        top:60%;
+    }
+
+    .dd-menu li {
+        padding: 10px 30px;
+    }
+</style>
+
+<style>
+		canvas{
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		#chartjs-tooltip {
+			opacity: 1;
+			position: absolute;
+			background: rgba(0, 0, 0, .7);
+			color: white;
+			border-radius: 3px;
+			-webkit-transition: all .1s ease;
+			transition: all .1s ease;
+			pointer-events: none;
+			-webkit-transform: translate(-50%, 0);
+			transform: translate(-50%, 0);
+		}
+
+		.chartjs-tooltip-key {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			margin-right: 10px;
+		}
+	</style>
+
+
+<div class="container" style="position:relative;">
+    <!--<div class = "container-fluid" style="margin-top:10px; margin:5px;">-->
+    <div class="row">
+    <br>
+    <!--border-top="1" border-left="1" border-bottom="1" border-right="1"-->
+    <table class='normaltable' id='normaltable' style="border:1px black solid;">
+        <tr style="border:1px black solid;background-color:lightsteelblue;">
+            <td width="30%">
+                <img src="/wp-content/uploads/2018/07/new.png"  width="240" height="100" style="cursor: pointer;">
+            </td>
+            <td style='font-size:large;padding-right:100px !important' width="70%">
+                <br>
+                <b>Hidrograf Stesen Sg. Setiu di Kg. Besut (RHN)</b><br>
+                ( Setiu / Terengganu )<br>
+                <div id="datebetween">&nbsp;</div>
+                <br>
+            </td>
+        </tr>
+        <tr style="border:1px black solid;">
+            <td colspan="2">
+                <canvas id="chart" width="600" height="300"></canvas>
+            </td>
+        </tr>
+
+        </table>
+        <table>
+        <tr>
+            <td colspan="5" style="text-align:left;background-color:lightsteelblue;border:1px black solid;padding-left:10px;">
+                <br>
+                <table>
+                    <tr>
+                        <td class="readings" style="text-align:left;background-color:lightblue;border:1px black solid;padding-left:10px;"><div id="datewl">Gerakkan kursor pada graf untuk melihat bacaan</div></td>
+                        <td>
+                            <div align="right">
+                                                                 <label class="dropdown" style="padding-top:10px;padding-right:10px;position:relative;">
+                                    <div class="dd-button">
+                                      Eksport                                    </div>
+                                    <input type="checkbox" class="dd-input" id="test">
+                                    <ul class="dd-menu">
+                                      <!--<li href="#" onClick ="$('#normaltable').tableExport({type:'json',escape:'false'});">JSON</li>-->
+                                      <!--<li href="#" onClick ="$('#normaltable').tableExport({type:'excel',escape:'false'});">XLS</li>-->
+                                      <!--<li href="#" onClick ="$('#normaltable').tableExport({type:'csv',escape:'false'});">CSV</li>-->
+                                      <!--<li href="#" onClick ="$('#normaltable').tableExport({type:'doc',escape:'false'});">DOC</li>-->
+                                      <li href="#" onClick ="expPDF();">PDF</li>
+                                      <li href="#" onClick ="$('#normaltable').tableExport({fileName:'Public Portal - Hydrograph',type:'png',escape:'false'});">PNG</li>
+                                    
+                                    </ul>
+
+                                </label>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+    <table  id="dataPref" class="table" style="display:none;z-index:-1;">
+        <tr>
+            <td colspan="4" style='text-align:left;background-color:lightsteelblue;'>
+                <div class="form-group"><label class="col-md-1 control-label" for="state">Negeri:</label>
+                    <div class="col-md-3">
+                        <select id="state" name="state" onChange="searchDistrict();" class="form-control input-md">
+                            <option disabled="disabled" selected="selected" value="">Pilih Negeri</option>
+                            <option value='PLS'>Perlis</option><option value='KDH'>Kedah</option><option value='MAD'>MADA</option><option value='LSM'>Sg. Muda</option><option value='PNG'>Pulau Pinang</option><option value='PRK'>Perak</option><option value='SEL'>Selangor</option><option value='WLH'>Wilayah Persekutuan Kuala Lumpur </option><option value='PTJ'>Wilayah Persekutuan Putrajaya</option><option value='NSN'>Negeri Sembilan</option><option value='MLK'>Melaka</option><option value='JHR'>Johor</option><option value='PHG'>Pahang</option><option value='TRG' selected>Terengganu</option><option value='KEL'>Kelantan</option><option value='SRK'>Sarawak</option><option value='SAB'>Sabah</option><option value='WLP'>Wilayah Persekutuan Labuan</option>                        </select>
+                    </div>
+                    <label class="col-md-1 control-label" for="distinct">Daerah:</label>
+                    <div class="col-md-3">
+                        <select id="district" name="district" onChange="searchStation(); " class="form-control input-md">
+                            <option disabled="disabled" selected="selected" value="">Pilih Daerah&nbsp;</option>
+                            <option value='BESUT'>Besut</option><option value='DUNGUN'>Dungun</option><option value='HUTRGANU'>Hulu Terengganu</option><option value='KEMAMAN'>Kemaman</option><option value='KUNE'>Kuala Nerus</option><option value='KUTRGANU'>Kuala Terengganu</option><option value='MARANG'>Marang</option><option value='SETIU' selected>Setiu</option>                        </select>
+                    </div>
+                    <label class="col-md-1 control-label" for="distinct">Stesen: </label>
+                    <div class="col-md-3">
+                        <select id="station" name="station" class="form-control input-md" onchange="changeStationorDate();">
+                            <option disabled="disabled" selected="selected" value="">Pilih Stesen&nbsp;</option>
+                            <option value='_TKTG0283'>Taman Desa Tanjung Damai (F1)</option><option value='_TSET0004'>Sek. Keb. Sg. Tong (F1)</option><option value='_TSET0008'>Kg. Bukit (F1)</option><option value='_TSET0014'>Sek. Keb. Lubuk Teras (F1)</option><option value='_TSET0074'>Sg. Terengganu di Stewong Jatuh (F1)</option><option value='25318' selected>Sg. Setiu di Kg. Besut (RHN)</option><option value='26669'>Hulu Sg. Tarom (F2)</option><option value='26670'>Kg. Mok Jintan (F2)</option><option value='26677'>Sg. Setiu di Kg. Mangkuk (F2)</option><option value='26678'>Sg. Setiu di Jambatan Che Selamah (F2)</option><option value='26682'>Kg. Hulu Seladang (F2)</option><option value='27210'>Sg. Setiu di Jambatan Permaisuri (F2)</option><option value='27211'>Sg. Setiu di Jambatan Penarik (F2)</option><option value='27212'>Sg. Chalok di Jambatan Chalok (F2)</option><option value='27213'>Sg. Chalok di Kg. Katuk (F2)</option><option value='27214'>Sg. Guntung di Jambatan Guntung (F2)</option><option value='27217'>Ibu Bekalan Setiu (F2)</option><option value='5328043_TSET0003'>Kg. Pelong (F1)</option><option value='5426003_'>Sg. Setiu di Kg. Besut</option><option value='5428003_'>Sg. Chalok di Jambatan Chalok</option><option value='5428040_TSET0001'>Kg. Langkap (F1)</option><option value='5527024_'>Sg. Setiu di Jambatan Permaisuri</option><option value='KGBUKIT'>Sg. Nerus di Kg. Bukit</option>                        </select>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr border="0">
+            <td colspan="4" style='text-align:left;background-color:lightsteelblue;'>
+                <label class="col-md-1 control-label" for="distinct">Dari:</label>
+                <div class='col-md-3'>
+                    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker6'>
+                            <input type='text' class="form-control" id="datetimepicker-from" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar open-datetimepicker"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="col-md-1 control-label" for="distinct">hingga:</label>
+
+                <div class='col-md-3'>
+                    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker7'>
+                            <input type='text' class="form-control" id="datetimepicker-to" />
+                            <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <label class="col-md-1 control-label" for="distinct">Frekuensi Data (min):</label>
+                <div class="col-md-3">
+                    <select id="datafreq" name="datafreq" class="form-control input-md">
+                        <option disabled="disabled" value="">Pilih Masa&nbsp;</option>
+                        <option value='5' >5 min</option>
+                        <option value='15' selected>15 min</option>
+                        <!--<option value='30' >30 min</option>-->
+                        <option value='60' >60 min</option>
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style='background-color:lightsteelblue;'>
+                <label class="col-md-1 control-label" for="distinct">Paksi Y (Minima)<br>,m:</label>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <input type="text" id="yaxismin">
+                    </div>
+                </div>
+                <label class="col-md-1 control-label" for="distinct">Paksi Y (Maksima)<br>,m:</label>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <input type="text" id="yaxismax">
+                    </div>
+                </div>
+                <label class="col-md-1 control-label" for="distinct">Frekuensi Paparan (jam):</label>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <input type="text" id="xaxisfreq">
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4" style='text-align:left;background-color:lightsteelblue;'>
+                <center>
+                    <button type="button" class="btn btn-default" onclick="searchResult();">
+                        Papar                    </button>
+                </center><br>
+            </td>
+        </tr>
+            </table>
+
+    <br><br><br>
+
+    <table id="dataTable" class="table" style="display:none;z-index:-1;">
+        <thead>
+            <!--<tr>
+                <th colspan=4>
+                    <center>Data Aras Air</center>
+                </th>
+
+            </tr>-->
+            <tr style="background-color:lightsteelblue;">
+                <th>
+                    <center>No</center>
+                </th>
+                <th>
+                    <center>Tarikh</center>
+                </th>
+                <th>
+                    <center>Masa</center>
+                </th>
+                <th>
+                    <center>Data Aras Air (m) - Raw</center>
+                </th>
+                <th>
+                    <center>Data Aras Air (m) - ECM</center>
+                </th>
+                <th>
+                    <center>Data Aras Air (m) - Clean</center>
+                </th>
+
+            </tr>
+        </thead>
+        <tbody id="wldata"></tbody>
+    </table>
+    </div>
+</div> <!-- content  -->
+
+<script type="text/javascript">
+    var extra = "";
+    var station = "";
+    var datefrom = "";
+    var dateto = "";
+    var ymax = null;
+    var ymin = null;
+    var xfreq = null;
+    var datafreq = null;
+
+    var ip = "11.1.200.132";
+    console.log(ip);
+    var ttt = 'Terengganu';
+    // console.log(ttt);
+    station = '25318';
+    // console.log("extra: " + extra);
+    // console.log("stationid: " + station);
+    datefrom = '2026-11-20';
+    // console.log("datefrom: " + datefrom);
+    dateto = '2026-11-21';
+    // console.log("dateto: " + dateto);
+
+    ymax = '';
+    if(ymax==''){ymax='0';}
+    // console.log("ymax: " + ymax);
+
+    ymin = '';
+    if(ymin==''){ymin='0';}
+    // console.log("ymin: " + ymin);
+
+    xfreq = '';
+    if(xfreq==''){xfreq='0';}
+    // console.log("xfreq: " + xfreq);
+
+    datafreq = '';
+    //if(datafreq==''){datafreq='15';}
+
+
+</script> <!-- read paramater  -->
+
+
+<script type="text/javascript">
+
+    
+   // Disable right-click
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+
+  // Prevents the default action for the F12 key press
+// (typically opens browser developer tools)
+document.onkeydown = (e) => {
+    
+    // Prevents F12 key press
+    if (e.key == 123) {
+        e.preventDefault();
+    }
+
+    // Prevents Ctrl+Shift+I key combination
+    if (e.ctrlKey && e.shiftKey && e.key == 'I') {
+        e.preventDefault();
+    }
+
+    // Prevents Ctrl+Shift+C key combination
+    if (e.ctrlKey && e.shiftKey && e.key == 'C') {
+        e.preventDefault();
+    }
+
+    // Prevents Ctrl+Shift+J key combination
+    if (e.ctrlKey && e.shiftKey && e.key == 'J') {
+        e.preventDefault();
+    }
+
+    // Prevents Ctrl+U or Ctrl+u key press
+    if ((e.ctrlKey && e.key == 'U') || (e.ctrlKey && e.key == 'u')) {
+        e.preventDefault();
+    }
+
+    // Prevents Ctrl+Shift+I key combination (alternative check)
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+    }
+};
+
+    
+    
+
+</script> <!-- server ip // to show which server is serving the page -->
+
+
+<script type="text/javascript">
+
+    // to update spinner later 25/03/2020 08:30 - Imran
+    $(document).ajaxStart(function() {
+        $(".spinner").show();
+    });
+
+    $(document).ajaxComplete(function() {
+        $(".spinner").hide();
+    });
+
+</script> <!-- spinner  -->
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+    $('#download').click(function() {
+        html2canvas($('#normaltable').get(0)).then( function (canvas) {
+            var imgData = canvas.toDataURL(
+                    'image/png');
+                var doc = new jsPDF('p', 'mm');
+                doc.addImage(imgData, 'PNG', 10, 10);
+                doc.save('sample-file.pdf');
+        });
+    });
+});
+
+//Ticket #JPS-F2-01196
+function expPDF2() {
+    const table = document.getElementById('dataTable');
+    const rows = Array.from(table.querySelectorAll('tr')).map(row =>
+        Array.from(row.querySelectorAll('th, td')).map(cell => ({
+            text: cell.innerText,
+            backgroundColor: window.getComputedStyle(cell).backgroundColor // Get background color
+        }))
+    );
+
+    const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait
+    const margin = 10;
+    const bottomMargin = 25; // Reserved space at the bottom of the page
+    const headerHeight = 15; // Height for the table header row
+    const pageWidth = pdf.internal.pageSize.width;
+    const pageHeight = pdf.internal.pageSize.height;
+    const cellPadding = 5;
+    const headerColor = [176, 196, 222]; // Light steel blue
+    const cellHeight = 10;
+    const title = 'Public Portal - Hydrograph'; // Title matching filename
+    let yPosition = margin + headerHeight + 15; // Adjust position to account for the title
+    let currentPage = 1; // Track the current page
+
+    // Function to add a page number at the bottom-right of each page
+    function addPageNumber(pageNumber) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        const text = `${pageNumber}`;
+        pdf.text(text, pageWidth - margin - pdf.getTextWidth(text), pageHeight - 10); // Bottom-right position
+    }
+
+    // Add title to the first page
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    const titleWidth = pdf.getTextWidth(title);
+    pdf.text(title, pageWidth / 2 - titleWidth / 2, margin + 10); // Center the title
+    addPageNumber(currentPage); // Add page number to the first page
+
+    // Calculate column widths dynamically
+    const columnWidths = rows[0].map((_, colIndex) => {
+        const maxTextWidth = Math.max(
+            ...rows.map(row => pdf.getTextWidth(row[colIndex].text || ''))
+        );
+        return maxTextWidth + cellPadding * 2; // Add padding
+    });
+
+    // Ensure the table fits within the page width
+    const totalWidth = columnWidths.reduce((acc, width) => acc + width, 0);
+    if (totalWidth > pageWidth - margin * 2) {
+        const scale = (pageWidth - margin * 2) / totalWidth;
+        columnWidths.forEach((width, index) => (columnWidths[index] *= scale));
+    }
+
+    // Function to draw the table header
+    function drawTableHeader() {
+        let xPosition = margin;
+        rows[0].forEach((headerCell, colIndex) => {
+            const cellWidth = columnWidths[colIndex];
+            pdf.setFillColor(...headerColor); // Header background color
+            pdf.rect(xPosition, yPosition, cellWidth, cellHeight, 'F');
+
+            // Center-align text
+            const textWidth = pdf.getTextWidth(headerCell.text);
+            const textX = xPosition + cellWidth / 2 - textWidth / 2; // Center horizontally
+            const textY = yPosition + cellHeight / 2 + 3; // Center vertically
+            pdf.setTextColor(0, 0, 0); // Black text
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(headerCell.text, textX, textY, { baseline: 'middle' });
+
+            // Draw cell border
+            pdf.rect(xPosition, yPosition, cellWidth, cellHeight);
+
+            xPosition += cellWidth;
+        });
+        yPosition += cellHeight; // Move to the next row
+    }
+
+    // Draw the table header on the first page
+    drawTableHeader();
+
+    // Draw the table rows
+    rows.slice(1).forEach(row => {
+        let xPosition = margin;
+
+        row.forEach((cell, colIndex) => {
+            const cellWidth = columnWidths[colIndex];
+            const { text, backgroundColor } = cell;
+
+            // Determine background color
+            if (backgroundColor !== 'rgba(0, 0, 0, 0)') {
+                const rgb = backgroundColor.match(/\d+/g).map(Number); // Extract RGB values
+                pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+            } else {
+                pdf.setFillColor(255, 255, 255); // Default white background
+            }
+
+            // Draw cell background
+            pdf.rect(xPosition, yPosition, cellWidth, cellHeight, 'F');
+
+            // Center-align text
+            const textWidth = pdf.getTextWidth(text);
+            const textX = xPosition + cellWidth / 2 - textWidth / 2;
+            const textY = yPosition + cellHeight / 2 + 3;
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(text, textX, textY, { baseline: 'middle' });
+
+            // Draw cell border
+            pdf.rect(xPosition, yPosition, cellWidth, cellHeight);
+
+            xPosition += cellWidth;
+        });
+
+        yPosition += cellHeight;
+
+        // Handle page overflow (consider bottom margin)
+        if (yPosition > pageHeight - bottomMargin) {
+            pdf.addPage();
+            currentPage++;
+            yPosition = margin + headerHeight; // Reset position for the new page
+            addPageNumber(currentPage); // Add page number to the new page
+            drawTableHeader(); // Draw the table header on the new page
+        }
+    });
+
+    pdf.save(`${title}.pdf`);
+}
+
+
+ //csv function
+ function excel() {
+    const table = document.getElementById('dataTable'); // Replace with your table ID
+    const rows = Array.from(table.querySelectorAll('tr'));
+
+    // Add a header title to the CSV content
+    const headerTitle = '"Public Portal - Hydrograph"\n\n'; // Customize the title as needed
+
+    // Convert table rows into CSV format
+    const csvContent = rows.map(row => {
+        const cells = Array.from(row.querySelectorAll('th, td'));
+        return cells.map(cell => `"${cell.innerText.replace(/"/g, '""')}"`).join(','); // Escape double quotes
+    }).join('\n');
+
+    // Combine header title with the table content
+    const fullCsvContent = headerTitle + csvContent;
+
+    // Create a Blob for the CSV content
+    const blob = new Blob([fullCsvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // Create a link to trigger the download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Public Portal - Hydrograph.csv'; // Set desired filename
+    link.style.display = 'none';
+
+    // Append link to the document and trigger click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function expPDF(){
+    var titleText = "Public Portal - Hydrograph"; // Title text
+    var titleFontSize = 16; // Title font size
+    var titleX = 10; // Title X position
+    var titleY = 10; // Title Y position
+    var titleWidth = 180; // Title width (adjust according to your table width)
+    var titleHeight = 20; // Title height
+
+    // Create a new jsPDF instance
+    var doc = new jsPDF('l', 'mm', 'a4');
+    
+    // Add the title
+    doc.setFontSize(titleFontSize);
+    doc.text(titleX, titleY, titleText);
+    html2canvas($('#normaltable').get(0),{scale: 0.85}).then( function (canvas) {
+        var imgData = canvas.toDataURL(
+                'image/png');
+            doc.addImage(imgData, 'PNG', 10, titleY + titleHeight + 5);
+            doc.save('Public Portal - Hydrograph.pdf');
+    });
+
+}
+
+
+
+//doc function
+function doc() {
+    // Add the title to the table before exporting
+    var titleRow = "<tr><th colspan='10'>Public Portal - Hydrograph</th></tr>";
+    $("#dataTable").find("thead").prepend(titleRow);
+    
+    // Export the table with the title
+    $('#dataTable').tableExport({
+        type: 'doc',
+        escape: 'false',
+        fileName: 'Public Portal - Hydrograph',
+    });
+    
+    // Remove the title row after exporting
+    $("#dataTable").find("thead tr:first").remove();
+}
+
+</script> <!-- tableExport to pdf -->
+
+<script type="text/javascript">
+
+    function toggleTable() {
+        var lTable = document.getElementById("dataTable");
+        var lButton = document.getElementById("dataButton");
+        lTable.style.display = (lTable.style.display == "table") ? "none" : "table";
+        lButton.innerHTML = (lButton.innerHTML == "Papar Data") ? "Sembunyikan Data" : "Papar Data";
+
+        var lDivExpData = document.getElementById("expData");
+        lDivExpData.style.display = (lDivExpData.style.display == "block") ? "none" : "block";
+    }
+
+    function toggleTablePref() {
+        var lTable = document.getElementById("dataPref");
+        var lButton = document.getElementById("dataButtonPref");
+        lTable.style.display = (lTable.style.display == "table") ? "none" : "table";
+        lButton.innerHTML = (lButton.innerHTML == "Papar Pilihan") ? "Sembunyikan Pilihan" : "Papar Pilihan";
+    }
+
+</script> <!-- function show/hide pref and data table  -->
+
+<script type="text/javascript">
+
+    $(function() {
+        $('#datetimepicker6').datetimepicker({
+            //defaultDate: new Date()-7,
+            format: 'DD/MM/YYYY HH:mm',
+            minDate: moment().subtract(12, 'months'),
+            maxDate: moment()
+        });
+        $('#datetimepicker7').datetimepicker({
+            useCurrent: false, //Important! See issue #1075
+            defaultDate: new Date(),
+            format: 'DD/MM/YYYY HH:mm',
+            minDate: moment().subtract(12, 'months'),
+            maxDate: moment().add(4, 'days')
+        });
+        $("#datetimepicker6").on("dp.change", function(e) {
+            $('#datetimepicker7').data("DateTimePicker").minDate(e.date);
+            //console.log(e.date);
+            //var new_date = moment(e.date, "DD-MM-YYYY").add(14, 'days');
+            //console.log(new_date);
+            //$('#datetimepicker7').data("DateTimePicker").maxDate(new_date);
+        });
+        $("#datetimepicker7").on("dp.change", function(e) {
+            $('#datetimepicker6').data("DateTimePicker").maxDate(e.date);
+        });
+    });
+
+    Date.daysBetween = function(date1, date2) {
+        //Get 1 day in milliseconds
+        var one_day = 1000 * 60 * 60 * 24;
+
+        // Convert both dates to milliseconds
+        var date1_ms = date1.getTime();
+        var date2_ms = date2.getTime();
+
+        // Calculate the difference in milliseconds
+        var difference_ms = date2_ms - date1_ms;
+        //take out milliseconds
+        difference_ms = difference_ms / 1000;
+        var seconds = Math.floor(difference_ms % 60);
+        difference_ms = difference_ms / 60;
+        var minutes = Math.floor(difference_ms % 60);
+        difference_ms = difference_ms / 60;
+        var hours = Math.floor(difference_ms % 24);
+        var days = Math.floor(difference_ms / 24);
+
+        //return days + ' days, ' + hours + ' hours, ' + minutes + ' minutes, and ' + seconds + ' seconds';
+        return days;
+    }
+
+</script> <!-- set timepicker from and to -->
+
+<script type="text/javascript">
+
+    var end_date;
+    $('#datetimepicker6 input').click(function(event) {
+        $('#datetimepicker6').data("DateTimePicker").show();
+        changeStationorDate();
+    });
+
+    $('#datetimepicker7 input').click(function(event) {
+        $('#datetimepicker7').data("DateTimePicker").show();
+        //$('#datetimepicker7 ').data("DateTimePicker").date(new Date());
+        // var datetoend = moment(moment(), "DD-MM-YYYY").add(7, 'days');
+        // console.log('datetoend: ' + datetoend);
+        // setTimeout(() => {
+        //    // $('#datetimepicker7').data("DateTimePicker").maxDate(datetoend);
+
+        // }, 0);
+        changeStationorDate();
+    });
+
+    var d = new Date();
+    d.setDate(d.getDate() + 4);  /* requested by Sazali-02/12/2019(email) */
+
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    var hour = d.getHours();
+    var min = d.getMinutes();
+
+    var df = new Date();
+    df.setDate(df.getDate() - 7);
+    var yearf = df.getFullYear();
+    var monthf = df.getMonth() + 1;
+    var dayf = df.getDate();
+    var hourf = df.getHours();
+
+
+    var outputf = (dayf < 10 ? '0' : '') + dayf + '/' + (monthf < 10 ? '0' : '') + monthf + '/' + yearf + " " + (hourf < 10 ? '0' : '') + hourf + ":00";
+    // console.log("start datetime: "+outputf);
+
+    var outputf_date = (dayf < 10 ? '0' : '') + dayf + '/' + (monthf < 10 ? '0' : '') + monthf + '/' + yearf;
+    // console.log("start date: "+outputf_date);
+
+
+    var output = (day < 10 ? '0' : '') + day + '/' + (month < 10 ? '0' : '') + month + '/' + d.getFullYear() + " " + (hour < 10 ? '0' : '') + hourf + ":00";
+
+    var todaydate = output;
+
+    // console.log("end datetime: "+output);
+    //$('#datetimepicker6').data('DateTimePicker').setDate(new Date(2015, 1, 1, 00, 01));
+
+    if ((station != "") && ((datefrom == "") || (dateto == ""))) {
+        //console.log("7days");
+        $("#datetimepicker-from").val(outputf);
+        $("#datetimepicker-to").val(output);
+        document.getElementById("datebetween").innerHTML =  'Dari <b>' + outputf + '</b> hingga <b>' + output + '</b>';
+        //end_date = output;
+    }
+
+    if ((station != "") && (datefrom != "") && (dateto != "")) {
+        // console.log("custom");
+        $("#datetimepicker-from").val(datefrom);
+        $("#datetimepicker-to").val(dateto);
+        document.getElementById("datebetween").innerHTML =  'Dari <b>' + datefrom + '</b> hingga <b>' + dateto + '</b>';
+        //end_date = dateto;
+    }
+
+    var datetoend = moment(moment(), "DD-MM-YYYY").add(7, 'days');
+    // console.log('datetoend: ' + datetoend);
+    setTimeout(() => {
+        //$('#datetimepicker7').data("DateTimePicker").maxDate(datetoend);
+
+    }, 0);
+
+</script> <!-- set timepicker default values -->
+
+<script type="text/javascript">
+
+    var request = new XMLHttpRequest();
+
+    function searchDistrict() {
+        var name = document.getElementById("state").value;
+        var lang=document.getElementById( "language" ).value;
+        // console.log(name);
+        var url = "/wp-content/themes/enlighten/query/searchdistrictARI.php?name=" + name + "&language="+lang;
+        try {
+            request.onreadystatechange = function() {
+                if (request.readyState == 4) {
+                    var val = request.responseText;
+                    document.getElementById('district').innerHTML = val;
+                    searchStation();
+                }
+            } //end of function
+            request.open("GET", url, true);
+            request.send();
+        } catch (e) {
+            alert("Unable to connect to server");
+        }
+
+
+    }
+
+    function searchStation() {
+        var name = document.getElementById("district").value;
+        var lang=document.getElementById( "language" ).value;
+        // console.log(name);
+        var url = "/wp-content/themes/enlighten/query/searchstationWL.php?name=" + name + "&language="+lang;
+        try {
+            request.onreadystatechange = function() {
+                if (request.readyState == 4) {
+                    var val = request.responseText;
+                    document.getElementById('station').innerHTML = val;
+                }
+            } //end of function
+            request.open("GET", url, true);
+            request.send();
+        } catch (e) {
+            alert("Unable to connect to server");
+        }
+    }
+
+</script> <!-- function: search district and station -->
+
+<script type="text/javascript">
+
+    function searchResult() {
+
+        var station = document.getElementById("station").value;
+        var datefrom = $('#datetimepicker6').data('date');
+        var dateto = $('#datetimepicker7').data('date');
+        var yymax = document.getElementById("yaxismax").value;
+        var yymin = document.getElementById("yaxismin").value;
+        var xxfreq = document.getElementById("xaxisfreq").value;
+        var ddfreq = document.getElementById("datafreq").value;
+
+        // console.log(datefrom + " - " + dateto)
+        var url = "/wl-graph/?stationid=" + station + "&datefrom=" + datefrom + "&dateto=" + dateto+ "&ymax=" + yymax+ "&ymin=" + yymin+ "&xfreq=" + xxfreq+ "&datafreq=" + ddfreq;
+        // console.log(url);
+        location.href = url;
+        //request.open("GET",url,true);
+        //request.send();
+    }
+
+    function viewMulti() {
+
+        var station = document.getElementById("station").value;
+        var datefrom = $('#datetimepicker6').data('date');
+        var dateto = $('#datetimepicker7').data('date');
+        var ddfreq = document.getElementById("datafreq").value;
+
+
+        var url = "/wl-graph-multi/?stationid=" + station + "&datefrom=" + datefrom + "&dateto=" + dateto + "&datafreq=" + ddfreq;
+
+        // console.log(url);
+        location.href = url;
+
+    }
+
+    function changeStationorDate(){
+        document.getElementById("yaxismax").value="";
+        document.getElementById("yaxismin").value="";
+
+    }
+</script> <!-- function: search new waterlevel data/graph -->
+
+<script type="text/javascript">
+
+    function stringToDate(_date,_format,_delimiter,_delimiter2){
+
+        var formatLowerCase=_format.toLowerCase();
+        var formatItems=formatLowerCase.split(_delimiter);
+
+        var _ndate = _date.split(" ");
+
+        var dateItems=_ndate[0].split(_delimiter);
+        var monthIndex=formatItems.indexOf("mm");
+        var dayIndex=formatItems.indexOf("dd");
+        var yearIndex=formatItems.indexOf("yyyy");
+        var month=parseInt(dateItems[monthIndex]);
+        month-=1;
+
+
+        var timeItems = _ndate[1].split(_delimiter2);
+        var thour = timeItems[0];
+        var tmin = timeItems[1];
+        var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex],thour,tmin);
+        return formatedDate;
+    }
+
+</script> <!-- function: change string to date -->
+
+<script type="text/javascript">
+
+    var readings = {
+        labels: [],
+        WL: [],
+
+        
+        Normal: [],
+        Alert: [],
+        Warning: [],
+        Danger: [],
+        QueryCnt: []
+
+    };
+
+
+    var daydiff = 7;
+    var startdt = moment(outputf, "DD/MM/YYYY HH:mm");
+
+
+    if ((datefrom != "") && (dateto != "")) {
+
+        var url = "/wp-content/themes/enlighten/query/searchresultwaterleveldtlead.php?station=" + station + "&from=" + datefrom + "&to=" + dateto+ "&datafreq=" + datafreq;
+
+        console.log(url);
+        var partsff = datefrom.split(' ');
+        var partsfrom = partsff[0].split('/');
+
+        //please put attention to the month (parts[0]), Javascript counts months from 0:
+        // January - 0, February - 1, etc
+        var mydatefrom = new Date(partsfrom[2], partsfrom[1] - 1, partsfrom[0]);
+        var partstt = dateto.split(' ');
+        var partsto = partstt[0].split('/');
+        //please put attention to the month (parts[0]), Javascript counts months from 0:
+        // January - 0, February - 1, etc
+        var mydateto = new Date(partsto[2], partsto[1] - 1, partsto[0]);
+        //console.log(mydatefrom);
+        //console.log(mydateto);
+        //console.log(Date.daysBetween(mydatefrom, mydateto));
+        daydiff = Date.daysBetween(mydatefrom, mydateto);
+        //console.log(daydiff);
+
+        startdt = moment(datefrom, "DD/MM/YYYY HH:mm");
+
+    } else {
+        var url = "/wp-content/themes/enlighten/query/getwaterlevellast7dayslead.php?extra="+extra+"&station=" + station;
+        console.log(url);
+    }
+
+    var tickinterval = 6;
+
+    if (daydiff >= 30) {
+        tickinterval = 24;
+    } else if ((daydiff >= 14) && (daydiff < 30)) {
+        tickinterval = 12;
+    } else if ((daydiff >= 6) && (daydiff < 14)) {
+        tickinterval = 6;
+    } else if ((daydiff >= 3) && (daydiff < 6)) {
+        tickinterval = 3;
+    } else if (daydiff < 3) {
+        tickinterval = 1;
+    }
+
+    if(xfreq!='0'){
+        tickinterval=Number(xfreq);
+    }
+
+    document.getElementById("xaxisfreq").value = tickinterval;
+
+    console.log("tickinterval" + tickinterval);
+
+    var wlfirst = true;
+    var wlmax = 0;
+    var wlmin = 1000;
+    var wlnum = 0;
+    var wlmiss = 0;
+    var wlprev = 0;
+    var dtcurr = "";
+    var dtnext = new Date();
+    var dtsim = "";
+    var wlcolor = "";
+    var findate = null;
+    var norval = null;
+    var aleval = null;
+    var warval = null;
+    var danval = null;
+    var rawval = null;
+    var data = null;
+    var options = null;
+    var ctx = null;
+    var dfreqmod = 0;
+
+    var td = new Date();
+    td.setDate(td.getDate());
+
+    var tyear = td.getFullYear();
+    var tmonth = td.getMonth()+1;
+    var tday = td.getDate();
+    var thour = td.getHours();
+    var tmin = td.getMinutes();
+
+    var ttoday = (tday<10 ? '0' : '') + tday + '/' +
+        (tmonth<10 ? '0' : '') + tmonth + '/' +
+        tyear + " " + (thour<10 ? '0' : '') + thour + ":"+ (tmin<10 ? '0' : '') + tmin;
+    // console.log("today: " +ttoday);
+
+    document.getElementById("wldata").innerHTML = "";
+
+    var wldataStr = "";
+    // console.log("df:" + datafreq);
+    var dfreq = parseInt(datafreq);
+
+    if(dfreq==60) dfreqmod=0;
+
+   // if(dfreq==60)dfreq=0;
+
+    $.getJSON(url, function(result) {
+
+        var nom = 0;
+        var cnt = 0;
+        var normal = 0;
+        var alert = 0;
+        var warning = 0;
+        var danger = 0;
+        var QueryCnt = 0;
+        var last2c = "";
+        var datadtstr = "";
+        var wlmissprev = 0;
+        var wlmissprev = 0;
+        // console.log("outputf: "+outputf);
+        // console.log("dfreq: "+dfreq);
+
+        var missdt = "";
+
+        $.each(result, function(i, field) {
+
+            /* read the info part for name, threshold and data count */
+            if(i=='info'){
+                cnt=field.count;
+                normal = field.normal;
+                alert = field.alert;
+                warning = field.warning;
+                danger = field.danger;
+                wlmin = field.normal;
+                wlmax = field.danger;
+                QueryCnt = field.QueryCnt;
+
+            }else{ /* data part */
+
+                if ((datafreq==''))
+                {
+                    if(QueryCnt>0)
+                    {dfreq='15';}
+                    else
+                    {dfreq='60';}
+                    console.log("dtfreq: " + dfreq);
+                    document.getElementById("datafreq").value = dfreq;
+                }
+
+                /* loop thru water level values  */
+                for(ii=0;ii<cnt;ii++){
+
+                    last2ch = field[ii]['dt'];
+                    var last2 = Number(last2ch.slice(-2));
+                    if((last2 % dfreq)==0){
+
+                        /* convert dt to moment */
+                        datadtstr = field[ii]['dt'];
+                        var datadt = moment(datadtstr, "DD/MM/YYYY HH:mm");//.add(dfreq, 'minutes');
+
+                        /* compare if datetimefrom is not the same as datetime from wl query */
+                        
+                            readings.labels.push(field[ii]['dt']);
+                            if(field[ii]['final']<-100)
+                            {
+                              readings.WL.push(NaN);
+                              //console.log("-9999 ERROR TESTING: "+moment(startdt).format('DD/MM/YYYY HH:mm') + " data:" + field[ii]['clean1']);
+                            }
+                            else{
+                             readings.WL.push(field[ii]['final']);
+                             //console.log("data: "+moment(startdt).format('DD/MM/YYYY HH:mm') + " data:" + field[ii]['clean1']);
+                            }
+
+                            readings.Normal.push(normal);
+                            readings.Alert.push(alert);
+                            readings.Warning.push(warning);
+                            readings.Danger.push(danger);
+                            readings.QueryCnt.push(QueryCnt);
+                            console.log("QueryCnt4: "+QueryCnt);
+
+                        
+                        /* add datafreq for the next data comparison */
+                        wlnum = Number(field[ii]['final']);
+                        /*console.log("iiiiii: "+ii);
+                        console.log("WLNUMMMMMMM: "+wlnum);
+                        console.log("CNTTTTT: "+cnt);
+                        console.log("WLMAXXX: "+wlmax);
+                        console.log("WLMINNN: "+wlmin);*/
+                        if(wlnum<-1000){
+                            wlnum = null;
+                        }else{
+                            //console.log("iiiiii: "+ii);
+
+                            if(wlmax<wlnum){
+                                //console.log("WLNUMMMMMMM"+wlnum);
+                                wlmax = wlnum;
+                            } else if(wlmax<danger){
+                                //console.log("dangerrrrrr"+danger);
+                                wlmax = danger;
+                            }
+
+                            if(wlmin>wlnum){
+                                wlmin = wlnum;
+                            } else if(wlmin>normal){
+                                wlmin = normal;
+                            }
+
+                            wlmissprev = wlnum;
+                        }
+
+                        startdt = moment(startdt, "DD/MM/YYYY HH:mm").add(dfreq, 'minutes');
+
+                        findate = field[ii]['dt'];
+
+                        wlcolor = 'white;color:black';
+
+                        if ((danger>0) && (warning>0) && (alert>0))
+                        {
+                            if((wlnum >= alert) && (wlnum < warning)) {
+                                wlcolor = 'yellow;color:black';
+                            }else if((wlnum >= warning) && (wlnum < danger)) {
+                                wlcolor = 'orange;color:black';
+                            }else if(wlnum >= danger) {
+                                wlcolor = 'red;color:white';
+                            }
+                        }
+
+                        /* insert into datatable string */
+                        nom++;
+                        var str = field[ii].dt;
+                        var res = str.split(" ");
+                        /* Ternary Operator  */
+                        var clean = (field[ii]['clean'] == -9999 || field[ii]['clean'] === null || field[ii]['clean'] === '' || isNaN(field[ii]['clean'])) ? '-' : field[ii]['clean'];
+                        var raw = (field[ii]['raw'] == -9999 || field[ii]['raw'] === null || field[ii]['raw'] === '' || isNaN(field[ii]['raw'])) ? '-' : field[ii]['raw'];
+                        var ecm = (field[ii]['ecm'] == -9999 || field[ii]['ecm'] === null || field[ii]['ecm'] === '' || isNaN(field[ii]['ecm'])) ? '-' : field[ii]['ecm'];
+
+                        wldataStr += "<tr><td><center>" + nom + "</center></td><td style=\"background-color:" + wlcolor + ";\"><center>" + res[0] + "</center></td><td style=\"background-color:" + wlcolor + ";\"><center>" + res[1] + "</center></td><td  style=\"background-color:" + wlcolor + ";\"><center>" + raw + "</center></td><td  style=\"background-color:" + wlcolor + ";\"><center>" + ecm + "</center></td><td style=\"background-color:" + wlcolor + ";\"><center>" + clean + "</center></td></tr>";
+
+                    }
+
+                }
+
+
+
+            }
+        }); /* end .each */
+
+         /* insert string into datatable */
+        document.getElementById("wldata").innerHTML = wldataStr;
+
+        $('#dataTable').DataTable({
+            "paging": false,
+            "searching": false,
+            "bInfo" : false
+        });
+
+         console.log('wlmax: '+wlmax);
+         console.log('wlmin: '+wlmin);
+
+        if((ymax == '0')&&(ymin == '0')){
+            //ymax = Math.ceil(wlmax+0.5);
+            ymax = parseFloat(Number(wlmax)+0.5);
+            document.getElementById("yaxismax").value = ymax;
+            ymin = Math.floor(wlmin-1);
+            document.getElementById("yaxismin").value = Math.floor(wlmin-1);
+            //console.log("ymax0ymin0");
+
+        } else {
+            document.getElementById("yaxismax").value = ymax;
+            document.getElementById("yaxismin").value = ymin;
+            //console.log("yyyyyyymax0ymin0");
+        }
+
+        // console.log('ymax: '+ymax);
+        // console.log('ymin: '+ymin);
+
+        var new_date = moment(findate, "DD/MM/YYYY HH:mm");//.add(dfreq, 'minutes');
+        //console.log('new date: ' + new_date.format('DD/MM/YYYY HH:mm'));
+
+        // insert missing values
+        var misdate = null;
+        wlval = null;
+
+
+
+
+
+        /* add additional empty data at the end of actual data  */
+        if ((datefrom != "") && (dateto != "")) {
+            var ndate = moment(dateto, "DD/MM/YYYY HH:mm");
+        }else{
+            var ndate = moment(output, "DD/MM/YYYY HH:mm");
+        }
+
+        modval2 = parseInt(new_date.format("mm")) % dfreq;
+
+        // console.log("modval2: "+modval2);
+
+        while(new_date<ndate){
+            new_date = moment(new_date, "DD/MM/YYYY HH:mm").add(dfreq, 'minutes');
+            //console.log('new date: ' + new_date.format('DD/MM/YYYY HH:mm'));
+            //console.log(new_date.format("DD/MM/YYYY HH:mm"));
+            readings.labels.push(new_date.format("DD/MM/YYYY HH:mm"));
+
+            readings.WL.push(NaN);
+
+                        readings.Normal.push(normal);
+            readings.Alert.push(alert);
+            readings.Warning.push(warning);
+            readings.Danger.push(danger);
+            readings.QueryCnt.push(QueryCnt);
+            console.log("QueryCnt5: "+QueryCnt);
+
+        }
+
+
+        /* assign data into data array */
+        data = {
+            labels: readings.labels,
+            datasets: [{
+                label: "Aras Air",
+                data: readings.WL,
+                backgroundColor: "blue",
+                borderColor: "blue",
+                borderWidth: 1.5,
+                fill: false,
+                /*lineTension: 0.5,*/
+                pointRadius: 0,
+                /*hitRadius: 1,
+                hoverRadius: 1,*/
+                /*radius: 0*/
+            },
+
+            
+            {
+                label: "Normal",
+                data: readings.Normal,
+                backgroundColor: "#008000",
+                borderColor: "#008000",
+                fill: false,
+                borderWidth: 1,
+                /*lineTension : 0,
+                radius: 0,*/
+                pointRadius: 0
+            },
+            {
+                label: "Waspada",
+                data: readings.Alert,
+                backgroundColor: "yellow",
+                borderColor: "yellow",
+                fill: false,
+                borderWidth: 1,
+                /*lineTension : 0,
+                radius: 0,*/
+                pointRadius: 0
+            },
+            {
+                label: "Amaran",
+                data: readings.Warning,
+                backgroundColor: "orange",
+                borderColor: "orange",
+                fill: false,
+                borderWidth: 1,
+                /*lineTension : 0,
+                radius: 0,*/
+                pointRadius: 0
+            },
+            {
+                label: "Bahaya",
+                data: readings.Danger,
+                backgroundColor: "red", /*lightcoral */
+                borderColor: "red",
+                fill: false,
+                borderWidth: 1,
+                /*lineTension : 0,
+                radius: 0,*/
+                pointRadius: 0
+            }]
+        };
+
+        /* make current dot disappear */
+        var customTooltips = function(tooltip) {};
+
+        ctx = document.getElementById("chart").getContext("2d");
+
+        var timeFormat = 'DD/MM/YYYY HH:mm';
+        var i=0;
+        var lbl='';
+
+        /* set chart options */
+        options = {
+
+            annotation: {
+                annotations: [
+                  {
+                    type: "line",
+                    mode: "vertical",
+                    scaleID: "x-axis-0",
+                    value: ttoday,
+                    borderColor: "black",
+                    label: {
+                      content: "Semasa",
+                      enabled: true,
+                      position: "top"
+                    }
+                  },
+                ]
+
+            },
+            tooltips: {
+                enabled: false,
+                intersect: false,
+                mode: 'label',
+                position: 'nearest',
+                callbacks: {
+
+                    title: function (tooltipItem, data) {
+                        lbl = data.labels[tooltipItem[0].index];
+
+                    },
+                    label: function (tooltipItem, data) {
+
+                        
+                            document.getElementById('datewl').innerHTML = '<font size="2"><b>Tarikh/Masa' +': '+lbl+ ' Aras Air' + ': ' + data.datasets[0].data[tooltipItem.index]+ 'm</b><br></font>';
+                            document.getElementById('datewl').innerHTML += "<font size='2'><b>Normal: " + data.datasets[1].data[tooltipItem.index] + "m  Waspada: " + data.datasets[2].data[tooltipItem.index]+ "m  Amaran: " + data.datasets[3].data[tooltipItem.index]+ "m  Bahaya: " + data.datasets[4].data[tooltipItem.index] + "m</b></font>";
+
+                        
+                    },
+            },
+                custom: customTooltips
+            },
+            hover: {
+                mode: 'label',
+                intersect: false,
+                /*enabled: false,*/
+            },
+            /*bezierCurve: false,*/
+            elements: {
+                /*line: {
+                    tension: 0, // enable bezier curves
+                }*/
+            },
+            legend: {
+                display:true,
+                labels: {
+                    fontSize: 12,
+                    /*boxWidth: 12,*/
+                    boxHeight: 2,
+                    /*usePointStyle: 'line',*/
+                }
+            },
+            scales: {
+                xAxes: [{
+                    type: "time",
+                    time: {
+                        unit: 'hour',
+                        format: timeFormat,
+                        unitStepSize: tickinterval,
+                        /*unitStepSize: 1,*/
+                        /*suggestedMax: 10,
+                        maxTicksLimit: 10,*/
+                        /*round: 'minute',*/
+                        tooltipFormat: 'DD/MM/YYYY HH:mm',
+                        displayFormats: {
+                            hour: 'DD/MM/YYYY HH:mm',
+
+                        }
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Tarikh/Masa'
+                    },
+                    ticks: {
+                        /*callback: function(value, index, values) {
+                            return parseFloat(value).toFixed(2);
+                        },*/
+                        autoSkip: false,
+                        maxTicksLimit: 20,
+                        /*stepSize: 1,*/
+                        /*autoSkip: false,*/
+                        /*suggestedMin: 25,
+                        stepSize: 1,
+                        unitStepSize: 5,*/
+                        /*suggestedMax: 25,*/
+                        /*maxTicksLimit: 25,*/
+                        /*max: 25,*/
+                        /*minTicksLimit: 20,*/
+                        /*maxRotation: 90,*/
+                        minRotation: 90,
+
+                    }
+                }],
+                yAxes: [{
+                    id: 'yAxis',
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Aras Air (m)'
+                    },
+                    ticks: {
+                        max: Number(ymax),
+                        min: Number(ymin)
+                        /*max: Math.ceil(wlmax+0.5),
+                        min: Math.floor(wlmin-0.5)*/
+                        /*beginAtZero:true*/
+                    },
+                    beginAtZero: true
+                }],
+
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            }
+
+        };  /* end chart options */
+
+        /* draw vertical line showing cursor position/current readings */
+        Chart.defaults.LineWithLine = Chart.defaults.line;
+        Chart.controllers.LineWithLine = Chart.controllers.line.extend({
+            draw: function(ease) {
+                Chart.controllers.line.prototype.draw.call(this, ease);
+
+                if (this.chart.tooltip._active && this.chart.tooltip._active.length) {
+                    var activePoint = this.chart.tooltip._active[0],
+                        ctx = this.chart.ctx,
+                        x = activePoint.tooltipPosition().x,
+                        topY = this.chart.scales['yAxis'].top,
+                        bottomY = this.chart.scales['yAxis'].bottom;
+
+                    // draw line
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, topY);
+                    ctx.lineTo(x, bottomY);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#000';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        });
+
+        /* draw actual chart */
+        var chart = new Chart(ctx, {
+            type: 'LineWithLine',
+            data: data,
+            /*spanGaps:true,*/
+            options: options,
+
+        });
+
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.log("error " + textStatus);
+        console.log("cause " + errorThrown);
+        console.log("incoming Text " + jqXHR.responseText);
+        //location.reload();
+        var ctx = document.getElementById("chart").getContext("2d");
+        var errStr = "Maaf tiada data aras air untuk tempoh masa yang diberikan.";
+        ctx.font = "16px Arial";
+        ctx.fillText(errStr,10,20);
+
+    }); /* end getJSON */
+
+</script> <!-- draw graph -->
