@@ -202,4 +202,20 @@ function kemaman(now) {
   rain.forEach(st => { files['rf-' + st.gid + '.json'] = { v: 1, gid: st.gid, end: end, step: 5, s: st._v }; });
   return { now: nowJson, files };
 }
-module.exports = { kemaman, wlSeries, rfSeries, offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };
+
+/* the river flow tab: real GloFAS answers (Open-Meteo, 21/11/2026, cell 4.225 103.375), dates moved so that "today" is today (GMT) */
+function glofas(url, now) {
+  const u = new URL(url), g = f => JSON.parse(fs.readFileSync(path.join(dir, 'glofas', f), 'utf8'));
+  let j;
+  if (/consolidated_v4/.test(url)) return g('hist.json');
+  if ((u.searchParams.get('latitude') || '').includes(',')) j = g('up.json');
+  else if (u.searchParams.get('ensemble') === 'true') j = g('ens.json');
+  else if (u.searchParams.get('forecast_days') === '210') j = g('long.json');
+  else if (/river_discharge_p25/.test(url) && u.searchParams.get('past_days') === '92') j = g('stats.json');
+  else return null;
+  const shift = Math.round((Date.parse(new Date(now).toISOString().slice(0, 10)) - Date.parse('2026-11-21')) / 86400000);
+  const mv = d => new Date(Date.parse(d) + shift * 86400000).toISOString().slice(0, 10);
+  (Array.isArray(j) ? j : [j]).forEach(o => { o.daily.time = o.daily.time.map(mv); });
+  return j;
+}
+module.exports = { glofas, kemaman, wlSeries, rfSeries, offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };

@@ -102,9 +102,23 @@
      panels share one time axis: [{ h, min, max, unit, d, bands:[{from,to,cls}], hl:[{v,cls,label}], lines:[{pts, cls, dash}], bars:[{t, v, w, cls}], area }]
      crosshair + one tooltip over all panels; drag across = zoom in; double tap / "Semua" = back */
   function el(tag, a, p) { var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  var MON = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
   function niceStep(r, n) { var raw = r / Math.max(1, n), p = Math.pow(10, Math.floor(Math.log10(raw || 1))), m = raw / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
   function timeTicks(t0, t1, w) {
-    var span = t1 - t0, want = Math.max(3, Math.floor(w / 90)), steps = [HOUR, 2 * HOUR, 3 * HOUR, 6 * HOUR, 12 * HOUR, DAY, 2 * DAY, 3 * DAY, 7 * DAY];
+    var span = t1 - t0, want = Math.max(3, Math.floor(w / 90));
+    /* long spans: the first of the month, or every n years */
+    if (span > 60 * DAY) {
+      var out2 = [], a = new Date(t0), yr = a.getUTCFullYear(), mo = a.getUTCMonth();
+      if (span > 3 * 365 * DAY) {
+        var ny = [1, 2, 5, 10].filter(function (n) { return span / (n * 365 * DAY) <= want; })[0] || 10;
+        for (var y2 = Math.ceil(yr / ny) * ny; Date.UTC(y2, 0, 1) <= t1; y2 += ny) if (Date.UTC(y2, 0, 1) >= t0) out2.push(Date.UTC(y2, 0, 1));
+        return { ticks: out2, years: true };
+      }
+      var nm = [1, 2, 3, 6].filter(function (n) { return span / (n * 30.4 * DAY) <= want; })[0] || 6;
+      for (var k = 1; ; k++) { var mm = mo + k; if (mm % nm) continue; var t = Date.UTC(yr + Math.floor(mm / 12), mm % 12, 1) - 8 * HOUR; if (t > t1) break; out2.push(t); }
+      return { ticks: out2, months: true };
+    }
+    var steps = [HOUR, 2 * HOUR, 3 * HOUR, 6 * HOUR, 12 * HOUR, DAY, 2 * DAY, 3 * DAY, 7 * DAY];
     var step = steps.filter(function (s) { return span / s <= want; })[0] || 7 * DAY, off = 8 * HOUR, out = [];
     for (var t = Math.ceil((t0 + off) / step) * step - off; t <= t1; t += step) out.push(t);
     return { ticks: out, daily: step >= DAY };
@@ -124,6 +138,7 @@
         if (p.auto) {
           var vs = []; (p.lines || []).forEach(function (l) { l.pts.forEach(function (q) { if (q.t >= t0 && q.t <= t1) vs.push(q.v); }); });
           (p.bars || []).forEach(function (b) { if (b.t >= t0 && b.t <= t1) vs.push(b.v); });
+          (p.ranges || []).forEach(function (r) { r.hi.concat(r.lo).forEach(function (q) { if (q.t >= t0 && q.t <= t1) vs.push(q.v); }); });
           (p.keep || []).forEach(function (v) { if (v !== null) vs.push(v); });
           if (vs.length) { lo = Math.min.apply(null, vs); hi = Math.max.apply(null, vs); }
           var padY = Math.max((hi - lo) * 0.08, p.minSpan || 0.2); lo = p.floor !== undefined ? Math.max(p.floor, lo - padY) : lo - padY; hi += padY;
@@ -147,6 +162,12 @@
           if (l.v === null || l.v < lo || l.v > hi) return;
           el('line', { x1: padL, x2: W - padR, y1: y(l.v), y2: y(l.v), class: 'kc-hl ' + l.cls }, svg);
           if (l.label) { var t = el('text', { x: W - padR - 4, y: y(l.v) - 4, class: 'kc-hlt ' + l.cls, 'text-anchor': 'end' }, svg); t.textContent = l.label; }
+        });
+        (p.ranges || []).forEach(function (r) {
+          var hi = r.hi.filter(function (q) { return q.t >= t0 - DAY && q.t <= t1 + DAY && q.v !== null; }), lo = r.lo.filter(function (q) { return q.t >= t0 - DAY && q.t <= t1 + DAY && q.v !== null; });
+          if (hi.length < 2 || lo.length < 2) return;
+          var d = hi.map(function (q, i) { return (i ? 'L' : 'M') + x(q.t).toFixed(1) + ' ' + y(q.v).toFixed(1); }).join('') + lo.slice().reverse().map(function (q) { return 'L' + x(q.t).toFixed(1) + ' ' + y(q.v).toFixed(1); }).join('') + 'Z';
+          el('path', { d: d, class: 'kc-range ' + (r.cls || '') }, g);
         });
         (p.bars || []).forEach(function (b) {
           if (b.t + b.w < t0 || b.t > t1 || !b.v) return;
@@ -175,7 +196,7 @@
       tk.ticks.forEach(function (t) {
         el('line', { x1: x(t), x2: x(t), y1: 4, y2: y0 - gap, class: 'kc-vgrid' }, svg);
         var tt = el('text', { x: x(t), y: y0 + 8, class: 'kc-ax', 'text-anchor': 'middle' }, svg);
-        var p = C.myt(t); tt.textContent = tk.daily || (p.h === 0 && p.mi === 0) ? dm(t) : hm(t);
+        var p = C.myt(t); tt.textContent = tk.years ? String(new Date(t).getUTCFullYear()) : tk.months ? MON[p.mo - 1] + (p.mo === 1 ? ' ' + String(p.y).slice(2) : '') : tk.daily || (p.h === 0 && p.mi === 0) ? dm(t) : hm(t);
       });
       /* hover / touch */
       var cross = el('line', { y1: 4, y2: y0 - gap, class: 'kc-cross', visibility: 'hidden' }, svg);
@@ -232,7 +253,7 @@
 
   /* ------------------------------------------------------------------ state */
   var S = {
-    tab: Q.get('tab') === 'rain' ? 'rain' : 'water', data: null, err: null, at: 0,
+    tab: Q.get('tab') === 'rain' ? 'rain' : Q.get('tab') === 'flow' ? 'flow' : 'water', data: null, err: null, at: 0,
     mapMode: load('km_map', 'map'), rainPeriod: load('km_rp', 24), heatSpan: load('km_hs', 24),
     replay: null, frame: null, files: {}, models: null, modelsAt: 0, sel: null, range: 3
   };
@@ -361,6 +382,7 @@
 
   /* ------------------------------------------------------------------ page */
   function head(title, sub) {
+    if (S.tab === 'flow') return headFlow(title, sub);
     var d = S.data, now = Date.now(), lv = d && d.live && d.live.ok ? d.live : null;
     var newest = lv && lv.newest ? lv.newest : d ? Date.parse(d.at) : null, age = newest ? (now - newest) / MIN : null;
     var src = lv ? (PC ? L('Langsung (JPS)') : L('Langsung (relay)')) : PC ? L('Mirror GitHub (JPS gagal)') : relayOn() ? L('Mirror GitHub (relay gagal)') : L('Mirror GitHub');
@@ -372,13 +394,182 @@
       '<button type="button" class="km-btn" data-act="img">🖼️ ' + esc(L('Gambar')) + '</button>' +
       (PC ? '<button type="button" class="km-btn ln" data-act="orig">🌐 ' + esc(L('Laman asal')) + '</button>' : '<a class="km-btn ln" href="' + ORIG[S.tab] + '" target="_blank" rel="noopener">' + esc(L('Laman asal ↗')) + '</a>') + '</div></header>';
   }
-  var ORIG = { water: 'https://infobanjir.terengganu.gov.my/WaterLevel/District/4', rain: 'https://infobanjir.terengganu.gov.my/Rainfall/District/4' };
+  var ORIG = { water: 'https://infobanjir.terengganu.gov.my/WaterLevel/District/4', rain: 'https://infobanjir.terengganu.gov.my/Rainfall/District/4',
+    flow: 'https://sites.research.google/floods/l/4.226693947058215/103.41916850003622/13.39981973087496/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1' };
   function render() {
     var box = $('km');
+    if (S.tab === 'flow') { destroyMap(); renderFlow(box); return; }
     if (!S.data) { box.innerHTML = '<div class="km-loading">' + (S.err ? '⚠️ ' + esc(L('Tidak dapat membaca data mirror: {e}', { e: S.err })) : esc(L('Memuatkan data JPS Kemaman…'))) + '</div>'; return; }
     destroyMap();
     box.innerHTML = S.tab === 'rain' ? rainPage() : waterPage();
     if (S.tab === 'rain') afterRain(); else afterWater();
+  }
+
+
+  /* ---------- river flow (tab "flow" = the app's own "Flood Hub Chukai"): GloFAS v4 (Copernicus / ECMWF) through Open-Meteo, no key.
+     Point: the GloFAS cell of the main Sg. Kemaman below Sg. Cherul (4.225, 103.375; the cell at the mouth has no river).
+     Thresholds from the GloFAS record of this cell (annual peaks, Gumbel): 2-year = Amaran, 5-year = Bahaya, 20-year = Ekstrem -
+     not JPS levels and not Google's model. 50 ensemble members give the chance of passing each threshold. */
+  var FLOW = { lat: 4.225, lon: 103.375 };
+  var FLOW_UP = [{ name: 'Sg. Cherul (Ban Ho)', lat: 4.125, lon: 103.175 }, { name: 'Sg. Kemaman (Air Putih)', lat: 4.275, lon: 103.225 }];
+  var FAPI = 'https://flood-api.open-meteo.com/v1/flood?';
+  var FLV = [{ k: 'normal', n: 'Normal' }, { k: 'warning', n: 'Amaran' }, { k: 'danger', n: 'Bahaya' }, { k: 'extreme', n: 'Ekstrem' }];
+  function dayT(d) { return Date.parse(d + 'T12:00:00+08:00'); }
+  function omGet(u) {
+    if (PC) return viaPc(u);
+    var o = load('mc_om', {}); if (o.block && Date.now() < o.block) return Promise.reject(new Error(L('Open-Meteo: had percuma harian, cuba semula sejam lagi')));
+    omCount(1);
+    return fetch(u, { cache: 'no-store' }).then(function (r) { if (r.status === 429) { var b = load('mc_om', {}); b.block = Date.now() + HOUR; save('mc_om', b); } if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function q(a, p) { if (!a.length) return null; var s2 = a.slice().sort(function (x, y) { return x - y; }), i = (s2.length - 1) * p, lo = Math.floor(i); return s2[lo] + (s2[Math.min(s2.length - 1, lo + 1)] - s2[lo]) * (i - lo); }
+  /* the record of the cell -> thresholds (Gumbel, method of moments), the usual range for each day of the year, the biggest years */
+  function histStats(h) {
+    var d = (h && h.daily) || {}, t = d.time || [], v = d.river_discharge || [], ann = {}, cnt = {}, doy = [];
+    for (var k = 0; k < 366; k++) doy.push([]);
+    t.forEach(function (day, i) {
+      var x = v[i]; if (x === null || x === undefined) return;
+      var yr = day.slice(0, 4); cnt[yr] = (cnt[yr] || 0) + 1;
+      if (!ann[yr] || x > ann[yr].v) ann[yr] = { v: x, d: day };
+      var j = Math.floor((Date.parse(day + 'T00:00:00Z') - Date.parse(yr + '-01-01T00:00:00Z')) / DAY);
+      for (var w = -7; w <= 7; w++) doy[(j + w + 366) % 366].push(x);
+    });
+    var years = Object.keys(ann).filter(function (y) { return cnt[y] >= 330; }).sort(), am = years.map(function (y) { return ann[y].v; });
+    if (am.length < 8) throw new Error(L('Rekod GloFAS terlalu pendek'));
+    var mu = am.reduce(function (a, b) { return a + b; }, 0) / am.length, sd = Math.sqrt(am.reduce(function (a, b) { return a + (b - mu) * (b - mu); }, 0) / (am.length - 1));
+    var gum = function (T) { return Math.round(mu - Math.sqrt(6) / Math.PI * (0.5772 + Math.log(Math.log(T / (T - 1)))) * sd); };
+    return { v: 1, at: Date.now(), from: years[0], to: years[years.length - 1], n: am.length, t2: gum(2), t5: gum(5), t20: gum(20),
+      peaks: years.map(function (y) { return { y: +y, v: Math.round(ann[y].v), d: ann[y].d }; }),
+      p10: doy.map(function (a) { return Math.round(q(a, 0.1)); }), p50: doy.map(function (a) { return Math.round(q(a, 0.5)); }), p90: doy.map(function (a) { return Math.round(q(a, 0.9)); }) };
+  }
+  function flowLevel(x, H) { return x === null || !H ? 0 : x >= H.t20 ? 3 : x >= H.t5 ? 2 : x >= H.t2 ? 1 : 0; }
+  function loadFlow(force) {
+    if (!force && S.flow && Date.now() - S.flowAt < 60 * MIN) return Promise.resolve(S.flow);
+    var p = 'latitude=' + FLOW.lat + '&longitude=' + FLOW.lon, hist = load('km_flow_hist', null), y = new Date().getUTCFullYear() - 1;
+    var needHist = !hist || hist.v !== 1 || Date.now() - hist.at > 30 * DAY;
+    return Promise.all([
+      omGet(FAPI + p + '&daily=river_discharge,river_discharge_median,river_discharge_max,river_discharge_min,river_discharge_p25,river_discharge_p75&past_days=92&forecast_days=30'),
+      omGet(FAPI + p + '&daily=river_discharge&past_days=1&forecast_days=30&ensemble=true'),
+      omGet(FAPI + p + '&daily=river_discharge&past_days=92&forecast_days=210&models=seamless_v4').catch(function () { return null; }),
+      omGet(FAPI + 'latitude=' + FLOW_UP.map(function (u) { return u.lat; }).join(',') + '&longitude=' + FLOW_UP.map(function (u) { return u.lon; }).join(',') + '&daily=river_discharge,river_discharge_median,river_discharge_max,river_discharge_min&past_days=30&forecast_days=30').catch(function () { return null; }),
+      needHist ? omGet(FAPI + p + '&daily=river_discharge&start_date=1984-01-01&end_date=' + y + '-12-31&models=consolidated_v4').then(function (h) { var x = histStats(h); save('km_flow_hist', x); return x; })
+        .catch(function (e) { if (hist) return hist; throw e; }) : Promise.resolve(hist)
+    ]).then(function (res) { S.flow = buildFlow(res); S.flowAt = Date.now(); S.flowErr = null; return S.flow; })
+      .catch(function (e) { S.flowErr = (e && e.message) || String(e); return S.flow; });
+  }
+  function series(d, key) { return (d.time || []).map(function (t, i) { var v = d[key] ? d[key][i] : null; return { t: dayT(t), d: t, v: v === null || v === undefined ? null : Math.round(v * 10) / 10 }; }).filter(function (x) { return x.v !== null; }); }
+  function buildFlow(res) {
+    var st = res[0].daily, ens = res[1].daily, H = res[4], today = new Date().toISOString().slice(0, 10), tT = dayT(today);
+    var main = series(st, 'river_discharge'), past = main.filter(function (x) { return x.d <= today; }), fut = main.filter(function (x) { return x.d >= today; });
+    var band = function (k) { return series(st, k).filter(function (x) { return x.d >= today; }); };
+    var mem = Object.keys(ens).filter(function (k) { return /member/.test(k); }).map(function (k) { return series(ens, k).filter(function (x) { return x.d >= today; }); }).filter(function (m) { return m.length; });
+    var days = (mem[0] || []).map(function (x) { return x.d; }), th = [H.t2, H.t5, H.t20];
+    var daily = days.map(function (d, i) { var vs = mem.map(function (m) { return m[i] ? m[i].v : null; }).filter(function (v) { return v !== null; }); return { d: d, t: dayT(d), p: th.map(function (T) { return vs.length ? vs.filter(function (v) { return v >= T; }).length / vs.length : 0; }) }; });
+    var over = th.map(function (T) { return mem.length ? mem.filter(function (m) { return m.some(function (x) { return x.v >= T; }); }).length / mem.length : 0; });
+    var med = band('river_discharge_median'), mx = band('river_discharge_max');
+    var peak = med.reduce(function (a, b) { return !a || b.v > a.v ? b : a; }, null), top = mx.reduce(function (a, b) { return !a || b.v > a.v ? b : a; }, null);
+    var now = past.length ? past[past.length - 1] : main[0];
+    var cli = function (k) { return main.map(function (x) { var j = Math.floor((Date.parse(x.d + 'T00:00:00Z') - Date.parse(x.d.slice(0, 4) + '-01-01T00:00:00Z')) / DAY); return { t: x.t, v: H[k][Math.min(365, j)] }; }); };
+    var long = res[2] ? series(res[2].daily, Object.keys(res[2].daily).filter(function (k) { return /river_discharge/.test(k); })[0]) : [];
+    var up = res[3] ? (Array.isArray(res[3]) ? res[3] : [res[3]]).map(function (o, i) { return { name: FLOW_UP[i] ? FLOW_UP[i].name : '', main: series(o.daily, 'river_discharge'), med: series(o.daily, 'river_discharge_median'), mx: series(o.daily, 'river_discharge_max'), mn: series(o.daily, 'river_discharge_min') }; }) : [];
+    return { H: H, today: today, tT: tT, now: now, past: past, fut: fut, med: med, mx: mx, mn: band('river_discharge_min'), p25: band('river_discharge_p25'), p75: band('river_discharge_p75'),
+      mem: mem, daily: daily, over: over, peak: peak, top: top, cli10: cli('p10'), cli50: cli('p50'), cli90: cli('p90'), long: long, up: up, runDate: past.length ? dm(past[past.length - 1].t) : '-' };
+  }
+  function headFlow(title, sub) {
+    var F = S.flow, b = F ? '<span class="km-badge ok">● ' + esc(L('GloFAS · data {d}', { d: F.runDate })) + '</span>' : '';
+    return '<header class="km-head"><div><h1>' + esc(title) + '</h1><p>' + esc(sub) + '</p></div><div class="km-act">' + b +
+      '<button type="button" class="km-btn force" data-act="refresh" title="' + esc(L('Baca semula semua data sekarang, tanpa cache')) + '">⚡ ' + esc(L('Paksa kemas kini')) + '</button>' +
+      '<button type="button" class="km-btn" data-act="pdf">🖨️ ' + esc(L('PDF')) + '</button>' +
+      '<button type="button" class="km-btn" data-act="img">🖼️ ' + esc(L('Gambar')) + '</button>' +
+      (PC ? '<button type="button" class="km-btn ln" data-act="orig">🌐 ' + esc(L('Laman asal')) + '</button>' : '<a class="km-btn ln" href="' + ORIG.flow + '" target="_blank" rel="noopener">' + esc(L('Flood Hub ↗')) + '</a>') + '</div></header>';
+  }
+  function fmt0(v) { return v === null || v === undefined ? '-' : Math.round(v).toLocaleString('en-US'); }
+  function renderFlow(box) {
+    var F = S.flow;
+    if (!F) { box.innerHTML = '<div class="km-loading">' + (S.flowErr ? '⚠️ ' + esc(L('Tidak dapat membaca GloFAS: {e}', { e: S.flowErr })) : esc(L('Memuatkan ramalan aliran sungai (GloFAS)…'))) + '</div>'; return; }
+    var H = F.H, lvNow = flowLevel(F.now && F.now.v, H), lvPeak = flowLevel(F.peak && F.peak.v, H), pctTxt = function (p) { return Math.round(p * 100) + '%'; };
+    var h = head(L('Aliran Sungai Kemaman (Chukai)'), L('GloFAS v4 (Copernicus / ECMWF) melalui Open-Meteo · 50 ahli ensemble · ramalan 30 hari, dikemas kini setiap hari'));
+    /* the pictures on top: the river cut across at Chukai, the dial */
+    var ART = root.MCKemamanArt, upNow = function (u) { var p = u ? u.main.filter(function (x) { return x.d <= F.today; }) : []; return p.length ? p[p.length - 1].v : null; };
+    var labs = { title: L('Keratan rentas sungai'), place: L('Sg. Kemaman · Chukai'), level: L(FLV[lvNow].n), peak: L('Puncak ramalan {v} m³/s ({d})', { v: fmt0(F.peak && F.peak.v), d: F.peak ? dm(F.peak.t) : '-' }),
+      t2: L('Amaran') + ' ' + fmt0(H.t2), t5: L('Bahaya') + ' ' + fmt0(H.t5), t20: L('Ekstrem') + ' ' + fmt0(H.t20) };
+    if (ART) h += '<section class="km-hero"><div class="km-card hero-cs">' + ART.crossSection({ q: F.now && F.now.v, peak: F.peak && F.peak.v, t2: H.t2, t5: H.t5, t20: H.t20, level: lvNow, labels: labs }) + '</div>' +
+      '<div class="km-card hero-gg"><h2>' + esc(L('Meter aliran')) + '</h2>' + ART.gauge({ q: F.now && F.now.v, peak: F.peak && F.peak.v, t2: H.t2, t5: H.t5, t20: H.t20, labels: { title: L('Meter aliran'), level: L(FLV[lvNow].n), peak: L('puncak {v}', { v: fmt0(F.peak && F.peak.v) }) } }) +
+      '<div class="gg-leg">' + FLV.map(function (x, i) { return '<span><i class="dot ' + x.k + '"></i>' + esc(L(x.n)) + (i ? ' ≥ ' + fmt0([0, H.t2, H.t5, H.t20][i]) : '') + '</span>'; }).join('') + '</div></div></section>';
+    var ico = function (n, c) { return ART ? ART.icon(n, c) : ''; };
+    h += '<section class="km-sum flow">' +
+      '<div class="km-hi big ' + FLV[lvNow].k + '">' + ico('drop', 'ok') + '<span>' + esc(L('Aliran hari ini')) + '</span><b>' + fmt0(F.now && F.now.v) + ' <small>m³/s</small></b><em><span class="chip ' + FLV[lvNow].k + '">' + esc(L(FLV[lvNow].n)) + '</span> ' + esc(L('julat biasa {a}–{b}', { a: fmt0(F.cli10[F.past.length - 1] && F.cli10[F.past.length - 1].v), b: fmt0(F.cli90[F.past.length - 1] && F.cli90[F.past.length - 1].v) })) + '</em></div>' +
+      '<div class="km-hi ' + FLV[lvPeak].k + '">' + ico('peak', FLV[lvPeak].k) + '<span>' + esc(L('Puncak ramalan (nilai tengah)')) + '</span><b>' + fmt0(F.peak && F.peak.v) + ' <small>m³/s</small></b><em>' + esc(F.peak ? dm(F.peak.t) : '-') + ' · ' + esc(L('paling tinggi {v} ({d})', { v: fmt0(F.top && F.top.v), d: F.top ? dm(F.top.t) : '-' })) + '</em></div>' +
+      [[0, 'warning'], [1, 'danger'], [2, 'extreme']].map(function (x) { return '<div class="km-cnt pr ' + x[1] + '">' + ico(x[0] ? 'warn' : 'cloud', x[1]) + '<b>' + pctTxt(F.over[x[0]]) + '</b><span>' + esc(L('peluang lepasi {n} dalam 30 hari', { n: L(FLV[x[0] + 1].n) })) + '</span></div>'; }).join('') + '</section>';
+    h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Aliran & ramalan 30 hari')) + '</h2><div class="km-seg" id="kmFlowSpan">' + [[30, '30 hari lepas'], [92, '3 bulan lepas']].map(function (x) { return '<button type="button" data-fspan="' + x[0] + '" aria-pressed="' + ((S.fspan || 30) === x[0]) + '">' + esc(L(x[1])) + '</button>'; }).join('') +
+      '<button type="button" data-fens="1" aria-pressed="' + !!S.fens + '">〰️ ' + esc(L('50 ahli')) + '</button></div></div><div id="kmFlow" class="km-chart"></div>' +
+      '<div class="km-legend"><span><i class="sw" style="background:var(--brand-text)"></i>' + esc(L('Aliran (model)')) + '</span><span><i class="sw dash"></i>' + esc(L('Ramalan nilai tengah')) + '</span><span><i class="sw blk iq"></i>' + esc(L('50% ahli')) + '</span><span><i class="sw blk mm"></i>' + esc(L('julat semua ahli')) + '</span><span><i class="sw blk cli"></i>' + esc(L('julat biasa (10–90% sejak {y})', { y: H.from })) + '</span>' +
+      FLV.slice(1).map(function (x, i) { return '<span><i class="dot ' + x.k + '"></i>' + esc(L(x.n)) + ' ' + fmt0([H.t2, H.t5, H.t20][i]) + ' (' + [2, 5, 20][i] + ' ' + esc(L('tahun')) + ')</span>'; }).join('') + '</div></section>';
+    h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Peluang lepasi ambang setiap hari')) + '</h2><span class="muted">' + esc(L('% daripada 50 ahli ensemble')) + '</span></div>' + probStrip(F) + '</section>';
+    if (ART) h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Peta 3D aliran sungai hari ini')) + '</h2><span class="muted">' + esc(L('tebal sungai & laju arus ikut aliran')) + '</span></div>' +
+      ART.map3d({ main: F.now && F.now.v, cherul: upNow(F.up[0]), up: upNow(F.up[1]), t2: H.t2, labels: { title: L('Peta 3D aliran sungai'), cherul: 'Sg. Cherul', up: 'Sg. Kemaman (Air Putih)', main: L('Hilir → Chukai'), sea: L('Laut China Selatan') } }) + '</section>';
+    h += '<section class="km-grid2"><div class="km-card"><div class="km-ct"><h2>' + esc(L('Hulu: gelombang dari atas')) + '</h2></div><div class="km-ups">' + F.up.map(function (u, i) { return '<div><h3>' + esc(u.name) + '</h3><div id="kmUp' + i + '" class="km-chart sm"></div></div>'; }).join('') + '</div>' +
+      '<p class="muted km-tipline">' + esc(L('Air dari Sg. Cherul dan Sg. Kemaman atas sampai ke Chukai lebih kurang 1–2 hari kemudian.')) + '</p></div>' +
+      '<div class="km-card"><div class="km-ct"><h2>' + esc(L('Puncak setiap tahun ({a}–{b})', { a: H.from, b: H.to })) + '</h2></div><div id="kmPeaks" class="km-chart"></div><div class="km-top">' +
+      H.peaks.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 5).map(function (p, i) { var l = flowLevel(p.v, H); return '<span class="chip ' + FLV[l].k + '">' + (i + 1) + '. ' + p.y + ' · ' + fmt0(p.v) + ' m³/s · ' + esc(dm(dayT(p.d))) + '</span>'; }).join('') + '</div></div></section>';
+    if (F.long.length) h += '<section class="km-card"><div class="km-ct"><h2>' + esc(L('Tinjauan bermusim (7 bulan)')) + '</h2><span class="muted">' + esc(L('satu larian model · arah umum sahaja')) + '</span></div><div id="kmLong" class="km-chart"></div></section>';
+    h += '<p class="km-note">' + esc(L('Sumber: GloFAS v4 (Copernicus Emergency Management Service / ECMWF) melalui Open-Meteo, sel sungai 4.225, 103.375 (Sg. Kemaman hilir pertemuan Sg. Cherul). Ambang dikira daripada puncak tahunan rekod GloFAS di sel ini (taburan Gumbel): Amaran = 2 tahun, Bahaya = 5 tahun, Ekstrem = 20 tahun - bukan paras rasmi JPS dan bukan model AI Google Flood Hub. Guna bersama paras JPS (tab Water Level Kemaman).')) + '</p>';
+    box.innerHTML = h;
+    drawFlow(F); drawUps(F); drawPeaks(F); drawLong(F);
+  }
+  function probStrip(F) {
+    var rows = FLV.slice(1).map(function (lv, k) {
+      return '<div class="pb-row"><span class="pb-n"><i class="dot ' + lv.k + '"></i>' + esc(L(lv.n)) + ' ≥ ' + fmt0([F.H.t2, F.H.t5, F.H.t20][k]) + '</span>' + F.daily.map(function (d) {
+        var p = d.p[k], a = Math.round(p * 100);
+        return '<i class="pb ' + lv.k + '" style="--p:' + (p === 0 ? 0 : 0.18 + 0.82 * p).toFixed(2) + '" title="' + esc(dm(d.t) + ': ' + a + '%') + '">' + (a >= 5 ? a : '') + '</i>';
+      }).join('') + '</div>';
+    }).join('');
+    var head2 = '<div class="pb-row pb-head"><span></span>' + F.daily.map(function (d, i) { var p = C.myt(d.t); return '<span>' + (i % 3 === 0 ? p.d + '/' + p.mo : '') + '</span>'; }).join('') + '</div>';
+    return '<div class="km-pb" style="--cols:' + F.daily.length + '">' + head2 + rows + '</div>';
+  }
+  function drawFlow(F) {
+    var host = $('kmFlow'); if (!host) return;
+    var H = F.H, span = S.fspan || 30, t0 = F.tT - span * DAY, t1 = F.tT + 30 * DAY, lines = [];
+    if (S.fens) F.mem.forEach(function (m) { lines.push({ pts: m, cls: 'ens', gapMs: 2 * DAY }); });
+    lines.unshift({ pts: F.past, cls: 'wl', gapMs: 2 * DAY });
+    lines.push({ pts: F.med, cls: 'med dash', gapMs: 2 * DAY });
+    var keep = [H.t2]; var mx = Math.max.apply(null, F.mx.map(function (x) { return x.v; }).concat([0])); if (mx > H.t2 * 0.8) keep.push(H.t5); if (mx > H.t5 * 0.85) keep.push(H.t20);
+    chart(host, { t0: t0, t1: t1, label: L('Aliran sungai'), panels: [{ h: 300, auto: true, floor: 0, minSpan: 50, unit: 'm³/s', keep: keep, nowT: F.tT, fmtY: function (v) { return fmt0(v); },
+      bands: [{ from: H.t2, to: H.t5, cls: 'warning' }, { from: H.t5, to: H.t20, cls: 'danger' }, { from: H.t20, to: null, cls: 'extreme' }],
+      hl: [{ v: H.t2, cls: 'warning', label: L('Amaran') + ' ' + fmt0(H.t2) }, { v: H.t5, cls: 'danger', label: L('Bahaya') + ' ' + fmt0(H.t5) }, { v: H.t20, cls: 'extreme', label: L('Ekstrem') + ' ' + fmt0(H.t20) }],
+      ranges: [{ hi: F.cli90, lo: F.cli10, cls: 'cli' }, { hi: F.mx, lo: F.mn, cls: 'mm' }, { hi: F.p75, lo: F.p25, cls: 'iq' }],
+      lines: lines, marks: F.now ? [{ t: F.now.t, v: F.now.v, cls: FLV[flowLevel(F.now.v, H)].k, r: 5 }] : [] }],
+      tip: function (t) {
+        var near = function (list) { var b = null; list.forEach(function (x) { if (Math.abs(x.t - t) < DAY / 2) b = x; }); return b; };
+        var pa = near(F.past), md = near(F.med), lo = near(F.mn), hi = near(F.mx), c1 = near(F.cli10), c9 = near(F.cli90), dd = near(F.daily);
+        return [pa ? esc(L('Aliran')) + ': <b>' + fmt0(pa.v) + ' m³/s</b>' : '', md ? esc(L('Nilai tengah')) + ': <b>' + fmt0(md.v) + ' m³/s</b>' : '', lo && hi ? esc(L('Julat ahli')) + ': ' + fmt0(lo.v) + '–' + fmt0(hi.v) : '',
+          dd ? esc(L('Peluang')) + ': ' + FLV.slice(1).map(function (x, k) { return esc(L(x.n)) + ' ' + Math.round(dd.p[k] * 100) + '%'; }).join(' · ') : '', c1 && c9 ? '<span class="muted">' + esc(L('Biasa')) + ': ' + fmt0(c1.v) + '–' + fmt0(c9.v) + '</span>' : ''].filter(Boolean);
+      } });
+  }
+  function drawUps(F) {
+    F.up.forEach(function (u, i) {
+      var host = $('kmUp' + i); if (!host) return;
+      var past = u.main.filter(function (x) { return x.d <= F.today; }), fut = (u.med.length ? u.med : u.main).filter(function (x) { return x.d >= F.today; });
+      chart(host, { t0: F.tT - 21 * DAY, t1: F.tT + 30 * DAY, zoom: false, label: u.name, panels: [{ h: 130, auto: true, floor: 0, minSpan: 20, unit: 'm³/s', nowT: F.tT, fmtY: function (v) { return fmt0(v); },
+        ranges: [{ hi: u.mx.filter(function (x) { return x.d >= F.today; }), lo: u.mn.filter(function (x) { return x.d >= F.today; }), cls: 'mm' }],
+        lines: [{ pts: past, cls: 'wl', gapMs: 2 * DAY }, { pts: fut, cls: 'med dash', gapMs: 2 * DAY }] }],
+        tip: function (t) { var b = null; u.main.forEach(function (x) { if (Math.abs(x.t - t) < DAY / 2) b = x; }); return b ? [esc(u.name) + ': <b>' + fmt0(b.v) + ' m³/s</b>'] : []; } });
+    });
+  }
+  function drawPeaks(F) {
+    var host = $('kmPeaks'); if (!host) return;
+    var H = F.H, bars = H.peaks.map(function (p) { return { t: Date.UTC(p.y, 0, 15), v: p.v, w: 330 * DAY, cls: 'peak ' + FLV[flowLevel(p.v, H)].k }; });
+    chart(host, { t0: Date.UTC(+H.from, 0, 1), t1: Date.UTC(+H.to + 1, 0, 1), zoom: false, label: L('Puncak setiap tahun'), panels: [{ h: 190, min: 0, max: Math.max(H.t20 * 1.05, Math.max.apply(null, H.peaks.map(function (p) { return p.v; })) * 1.08), unit: 'm³/s', fmtY: function (v) { return fmt0(v); },
+      hl: [{ v: H.t2, cls: 'warning', label: '2 ' + L('tahun') }, { v: H.t5, cls: 'danger', label: '5 ' + L('tahun') }, { v: H.t20, cls: 'extreme', label: '20 ' + L('tahun') }], bars: bars, lines: [] }],
+      tip: function (t) { var yr = new Date(t).getUTCFullYear(), p = H.peaks.filter(function (x) { return x.y === yr; })[0]; return p ? [yr + ': <b>' + fmt0(p.v) + ' m³/s</b> · ' + esc(dm(dayT(p.d)))] : []; } });
+  }
+  function drawLong(F) {
+    var host = $('kmLong'); if (!host || !F.long.length) return;
+    var H = F.H, l = F.long, t0 = F.tT - 30 * DAY, t1 = l[l.length - 1].t;
+    var cl = function (k) { return l.map(function (x) { var j = Math.floor((Date.parse(x.d + 'T00:00:00Z') - Date.parse(x.d.slice(0, 4) + '-01-01T00:00:00Z')) / DAY); return { t: x.t, v: H[k][Math.min(365, j)] }; }); };
+    chart(host, { t0: t0, t1: t1, zoom: false, label: L('Tinjauan bermusim'), panels: [{ h: 170, auto: true, floor: 0, minSpan: 50, unit: 'm³/s', nowT: F.tT, keep: [H.t2], fmtY: function (v) { return fmt0(v); },
+      hl: [{ v: H.t2, cls: 'warning', label: L('Amaran') + ' ' + fmt0(H.t2) }], ranges: [{ hi: cl('p90'), lo: cl('p10'), cls: 'cli' }],
+      lines: [{ pts: cl('p50'), cls: 'cli50 dash', gapMs: 2 * DAY }, { pts: l, cls: 'wl', gapMs: 2 * DAY }] }],
+      tip: function (t) { var b = null; l.forEach(function (x) { if (Math.abs(x.t - t) < DAY / 2) b = x; }); return b ? [esc(L('Model')) + ': <b>' + fmt0(b.v) + ' m³/s</b>'] : []; } });
   }
 
   /* ---------- water level */
@@ -739,7 +930,7 @@
 
   /* ------------------------------------------------------------------ events */
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-wl],[data-rf],[data-act],[data-map],[data-rp],[data-hs],[data-range]');
+    var t = e.target.closest('[data-wl],[data-rf],[data-act],[data-map],[data-rp],[data-hs],[data-range],[data-fspan],[data-fens]');
     if (!t) return;
     if (t.tagName === 'A') e.preventDefault();
     if (t.dataset.wl) { openWater(t.dataset.wl); return; }
@@ -747,6 +938,8 @@
     if (t.dataset.map) { S.mapMode = t.dataset.map; save('km_map', S.mapMode); render(); return; }
     if (t.dataset.rp) { S.rainPeriod = +t.dataset.rp; save('km_rp', S.rainPeriod); render(); return; }
     if (t.dataset.hs) { S.heatSpan = +t.dataset.hs; save('km_hs', S.heatSpan); render(); return; }
+    if (t.dataset.fspan) { S.fspan = +t.dataset.fspan; render(); return; }
+    if (t.dataset.fens) { S.fens = !S.fens; render(); return; }
     if (t.dataset.range) {
       S.range = +t.dataset.range;
       Array.prototype.forEach.call(document.querySelectorAll('#kmRange button'), function (b) { b.setAttribute('aria-pressed', String(+b.dataset.range === S.range)); });
@@ -769,8 +962,8 @@
 
   /* PDF: the browser's print (A4) of what is on screen; the iPad app shell gives its own PDF if it can */
   function printPage() {
-    var title = S.sel ? S.sel.name : S.tab === 'rain' ? L('Hujan Kemaman') : L('Paras Air Kemaman');
-    var name = 'Kemaman ' + (S.sel ? S.sel.name : S.tab === 'rain' ? 'hujan' : 'paras air') + ' ' + C.dateKey(Date.now());
+    var title = S.sel ? S.sel.name : S.tab === 'rain' ? L('Hujan Kemaman') : S.tab === 'flow' ? L('Aliran Sungai Kemaman (Chukai)') : L('Paras Air Kemaman');
+    var name = 'Kemaman ' + (S.sel ? S.sel.name : S.tab === 'rain' ? 'hujan' : S.tab === 'flow' ? 'aliran sungai' : 'paras air') + ' ' + C.dateKey(Date.now());
     try {
       if (root.parent && root.parent !== root && root.parent.MC && root.parent.MC.printHtml) {
         /* inside the app (tab): the app prints it (the iPad app makes its PDF from the app's own page) */
@@ -778,7 +971,7 @@
         Array.prototype.forEach.call(c.querySelectorAll('.km-act, .km-seg, .km-replay, .kc-tip, .leaflet-control-container'), function (x) { x.remove(); });
         var m = c.querySelector('#kmMap'); if (m && !m.querySelector('svg.km-schema')) m.innerHTML = schemaOrNote();
         Array.prototype.forEach.call(c.querySelectorAll('[id]'), function (x) { x.removeAttribute('id'); });
-        root.parent.MC.printHtml('<header class="km-phead"><b>' + esc(title) + '</b><span>JPS Public Infobanjir · ' + esc(dmhm(S.data.end)) + ' · Dashboard Cuaca Aziz</span></header>' + c.innerHTML, name, 'assets/css/kemaman.css');
+        root.parent.MC.printHtml('<header class="km-phead"><b>' + esc(title) + '</b><span>' + (S.tab === 'flow' ? 'GloFAS / Open-Meteo · ' : 'JPS Public Infobanjir · ') + esc(dmhm(S.data ? S.data.end : Date.now())) + ' · Dashboard Cuaca Aziz</span></header>' + c.innerHTML, name, 'assets/css/kemaman.css');
         return;
       }
     } catch (e) { /* not the app */ }
@@ -790,12 +983,12 @@
   function saveImage() {
     var svgs = Array.prototype.slice.call(document.querySelectorAll((S.sel ? '#kmSheet' : '#km') + ' svg.kc-svg, ' + (S.sel ? '#kmSheet' : '#km') + ' svg.km-schema'));
     if (!svgs.length) return;
-    var cs = getComputedStyle(document.documentElement), W = Math.max.apply(null, svgs.map(function (s) { return s.getBoundingClientRect().width; })), pad2 = 24, title = (S.sel ? S.sel.name : S.tab === 'rain' ? L('Hujan Kemaman') : L('Paras Air Kemaman'));
+    var cs = getComputedStyle(document.documentElement), W = Math.max.apply(null, svgs.map(function (s) { return s.getBoundingClientRect().width; })), pad2 = 24, title = (S.sel ? S.sel.name : S.tab === 'rain' ? L('Hujan Kemaman') : S.tab === 'flow' ? L('Aliran Sungai Kemaman (Chukai)') : L('Paras Air Kemaman'));
     var H = svgs.reduce(function (a, s) { return a + s.getBoundingClientRect().height + 12; }, 60);
     var cv = document.createElement('canvas'), k = 2; cv.width = (W + pad2 * 2) * k; cv.height = (H + pad2) * k;
     var g = cv.getContext('2d'); g.scale(k, k); g.fillStyle = cs.getPropertyValue('--surface') || '#0d182c'; g.fillRect(0, 0, W + pad2 * 2, H + pad2);
     g.fillStyle = cs.getPropertyValue('--ink') || '#fff'; g.font = '700 18px Inter, sans-serif'; g.fillText(title, pad2, 34);
-    g.font = '12px Inter, sans-serif'; g.fillStyle = cs.getPropertyValue('--ink-3') || '#889'; g.fillText('JPS Public Infobanjir · ' + dmhm(S.data.end) + ' · Dashboard Cuaca Aziz', pad2, 52);
+    g.font = '12px Inter, sans-serif'; g.fillStyle = cs.getPropertyValue('--ink-3') || '#889'; g.fillText((S.tab === 'flow' ? 'GloFAS / Open-Meteo · ' : 'JPS Public Infobanjir · ') + dmhm(S.data.end) + ' · Dashboard Cuaca Aziz', pad2, 52);
     var y = 66;
     (function next(i) {
       if (i >= svgs.length) {
@@ -827,11 +1020,18 @@
   /* ------------------------------------------------------------------ start, auto refresh (mirror ~15 min; checked every 5 min while shown) */
   function refresh(force) {
     if (!force && document.hidden) return;
+    if (S.tab === 'flow') { loadFlow(force).then(function () { var y = root.scrollY; render(); root.scrollTo(0, y); }); return; }
     var keep = S.sel;
     loadNow().then(function () { var y = root.scrollY; render(); if (force && keep) (keep.kind === 'wl' ? openWater : openRain)(keep.name); else root.scrollTo(0, y); });
   }
   /* "Paksa kemas kini": everything again now (mirror files, 30-day files, 5 models), then the version and the data times */
   function force() {
+    if (S.tab === 'flow') {
+      note('⚡ ' + L('Paksa kemas kini…'));
+      S.flowAt = 0;
+      loadFlow(true).then(function () { render(); note(S.flowErr ? '⚠️ ' + S.flowErr : '✅ ' + L('Data dikemas kini {t}', { t: hm(Date.now()) }) + ' · ' + L('GloFAS {d}', { d: S.flow ? S.flow.runDate : '-' }) + ' · ' + L('Versi {v}', { v: C.VERSION }), 7000); });
+      return;
+    }
     S.bust = Date.now(); S.files = {}; S.models = null; S.modelsAt = 0;
     note('⚡ ' + L('Paksa kemas kini…'));
     var keep = S.sel;
@@ -847,7 +1047,7 @@
     var n = $('kmNote'); if (!n) { n = document.createElement('div'); n.id = 'kmNote'; n.className = 'km-note-pop'; n.setAttribute('role', 'status'); document.body.appendChild(n); }
     n.textContent = text; n.hidden = false; clearTimeout(note.t); if (ms) note.t = setTimeout(function () { n.hidden = true; }, ms);
   }
-  root.MCKemaman = { S: S, refresh: refresh, force: force, idx: idx, pct: pct, intensity: intensity, rainBin: rainBin, shortName: shortName, pts: pts, setTab: function (t) { S.tab = t === 'rain' ? 'rain' : 'water'; closeSheet(); render(); } };
+  root.MCKemaman = { S: S, refresh: refresh, force: force, idx: idx, pct: pct, intensity: intensity, rainBin: rainBin, shortName: shortName, pts: pts, setTab: function (t) { S.tab = t === 'rain' || t === 'flow' ? t : 'water'; closeSheet(); render(); } };
   window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data) return; if (e.data.kmTab) root.MCKemaman.setTab(e.data.kmTab); if (e.data.kmForce) force(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - S.at > 3 * MIN) refresh(); });
   setInterval(function () { refresh(false); }, 3 * MIN);

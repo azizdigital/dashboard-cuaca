@@ -383,7 +383,8 @@ test('relay worker: removes the framing refusal, keeps the page working, refuses
     assert.strictEqual(core.relayVerdict(502, false), 'down'); assert.strictEqual(core.relayVerdict(403, true), 'refused');
     const rs = core.cleanSettings({ relayUrl: 'https://r.a.workers.dev', relayKey: 'abcdefgh1', relayBad: 'infobanjir.terengganu.gov.my' });
     assert.strictEqual(core.relayFor(core.siteById('infobanjir'), rs), false, 'failed at the last test: browser');
-    assert.strictEqual(core.relayFor(core.siteById('floodhub'), rs), true);
+    assert.strictEqual(core.relayFor(core.siteById('ventusky'), rs), true);
+    assert.strictEqual(core.relayFor(core.siteById('floodhub'), rs), false, 'own river flow page preferred');
     assert.strictEqual(core.relayFor(core.siteById('zoomearth'), rs), false, 'own stand-in preferred');
     /* only the allowed hosts are rewritten in pages */
     assert.strictEqual(R.mod.rewriteText('<a href="https://evil.example.com/x">', 'https://r.dev'), '<a href="https://evil.example.com/x">');

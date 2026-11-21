@@ -282,7 +282,7 @@
         if (on) {
           deskWebview();
           var bar = document.createElement('div'); bar.className = 'altbar origbar';
-          bar.innerHTML = '<span>🌐 ' + esc(L('Laman asal: infobanjir Terengganu')) + '</span><button class="btn sm" type="button">← ' + esc(L(site.id === 'rainfall' ? 'Halaman app (Hujan Kemaman)' : 'Halaman app (Paras Air Kemaman)')) + '</button>';
+          bar.innerHTML = '<span>🌐 ' + esc(site.id === 'floodhub' ? L('Laman asal') + ': Google Flood Hub' : L('Laman asal: infobanjir Terengganu')) + '</span><button class="btn sm" type="button">← ' + esc(L(site.id === 'rainfall' ? 'Halaman app (Hujan Kemaman)' : site.id === 'floodhub' ? 'Halaman app (Aliran Sungai Kemaman)' : 'Halaman app (Paras Air Kemaman)')) + '</button>';
           bar.querySelector('button').onclick = function () { fr.showOrig(false); };
           wrap.insertBefore(bar, fr.view); wrap.classList.add('has-alt');
         } else { wrap.classList.remove('has-alt'); deskOwnPage(); }

@@ -1,0 +1,24 @@
+Dashboard Cuaca Aziz 4.6.0
+
+Tab Flood Hub Chukai: halaman aliran sungai app sendiri (web, iPad & PC)
+- Peta Google Flood Hub tidak berfungsi dalam app; tab ini kini buka halaman app sendiri dengan data GloFAS v4
+  (Copernicus / ECMWF) melalui Open-Meteo - percuma, tanpa kunci API.
+- Sel sungai utama Sg. Kemaman 4.225, 103.375 (hilir pertemuan Sg. Cherul).
+- Gambar di atas (SVG, dilukis app sendiri):
+  - Keratan rentas sungai di Chukai: rumah kampung, pokok kelapa, papan paras; paras air ikut aliran hari ini (ombak bergerak),
+    garis Amaran / Bahaya / Ekstrem, garis puncak ramalan; awan hujan bila ramalan naik, air keruh bila Bahaya.
+  - Meter aliran: jarum, jalur hijau / oren / merah / ungu, penanda puncak ramalan.
+  - Peta 3D sungai sebenar (OpenStreetMap): tebal sungai & laju arus ikut aliran Sg. Cherul, Air Putih dan hilir ke Chukai.
+  - Ikon kecil pada kotak ringkasan.
+- Graf aliran & ramalan 30 hari (30 hari / 3 bulan lepas), 50 ahli ensemble, julat biasa 10-90% sejak 1997.
+- Peluang lepasi Amaran / Bahaya / Ekstrem setiap hari (% daripada 50 ahli).
+- Aliran hulu (Sg. Cherul, Sg. Kemaman atas), puncak setiap tahun 1997-2024 dengan 5 tertinggi, tinjauan bermusim 7 bulan.
+- Ambang = banjir 2 / 5 / 20 tahun dikira daripada rekod GloFAS (Gumbel) - bukan paras rasmi JPS.
+- Butang Paksa kemas kini, PDF, Gambar; Mod dinding.
+- Laman asal: web / iPad = butang "Flood Hub ↗" (tab baru); PC = Google Flood Hub dalam tab yang sama, "← Halaman app" untuk kembali.
+
+Kad aliran sungai di dashboard
+- Titik GloFAS profil Kemaman dibetulkan: 4.225, 103.375 (sebelum ini 4.25, 103.40 jatuh pada anak sungai kecil).
+  Tetapan lama 4.25 / 103.40 ditukar sendiri.
+
+Termasuk 4.5.4 (belum di GitHub sebelum ini): app PC dapat halaman Water Level / Rainfall Kemaman; Laman asal dalam tab yang sama.

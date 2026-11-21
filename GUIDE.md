@@ -181,6 +181,13 @@ own browser; Safari on the iPad cannot. Two ways, both without the PC:
   % to Danger, rain bubbles, gauge × hour heatmap, measured rain vs the 5 models; tap a gauge for big numbers, a 1–30 day hydrograph
   (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). PC app (4.5.4):
   the same page, JPS read straight from the PC every 3 minutes; **Original site** = the infobanjir site in the same tab, **← App page** back.
+- **Flood Hub Chukai tab (4.6, web, iPad & PC):** the app's own river flow page instead of Google's map (which does not work inside the app).
+  GloFAS v4 (Copernicus / ECMWF) through Open-Meteo, free, no key, at the main Kemaman River cell 4.225, 103.375 (below the Cherul
+  junction). Pictures on top: the river cut across at Chukai (water at today's flow, Warning / Danger / Extreme marks, forecast peak),
+  a flow dial and a 3D map of the real rivers (width and current speed follow the flow at Cherul, Air Putih and downstream). Then the
+  30-day forecast with the 50 ensemble members and the usual range since 1997, the daily chance of passing each threshold, upstream
+  flow, yearly peaks and a 7-month outlook. Thresholds = 2 / 5 / 20-year floods from the GloFAS record (not official JPS levels).
+  **Flood Hub ↗** opens Google's site (PC: in the same tab, **← App page** back). The dashboard river card now uses the same cell.
 
 - **GitHub backup through the relay (4.5.2):** GitHub often skips the scheduled runs of free accounts, so the JPS copy on GitHub can
   get old. With relay script v4 + a token, each time the app reads JPS live the relay asks GitHub to run the mirror (at most every

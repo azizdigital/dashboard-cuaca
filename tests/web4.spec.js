@@ -17,7 +17,7 @@ async function sources(page, opts = {}) {
   await page.route(/^https:\/\/api\.open-meteo\.com\//, r => off(r, () => json(r, F.forecast(now, { gust: opts.gust }))));
   await page.route(/^https:\/\/marine-api\.open-meteo\.com\//, r => off(r, () => json(r, F.shiftOpenMeteo('om-marine.json', now))));
   await page.route(/^https:\/\/ensemble-api\.open-meteo\.com\//, r => off(r, () => json(r, F.shiftOpenMeteo('om-ensemble-gfs.json', now))));
-  await page.route(/^https:\/\/flood-api\.open-meteo\.com\//, r => { flood.push(r.request().url()); return json(r, F.shiftOpenMeteo('om-flood.json', now - 7 * 86400000)); });
+  await page.route(/^https:\/\/flood-api\.open-meteo\.com\//, r => { const g = F.glofas(r.request().url(), now); if (g) return json(r, g); flood.push(r.request().url()); return json(r, F.shiftOpenMeteo('om-flood.json', now - 7 * 86400000)); });
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/warning/, r => json(r, F.warnings(now)));
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/forecast/, r => json(r, F.metForecast(now).map(x => Object.assign(x, { location: { location_id: 'Ds065', location_name: 'Kemaman' } }))));
   await page.route(/^https:\/\/api\.data\.gov\.my\/flood-warning/, r => json(r, []));
@@ -62,7 +62,7 @@ test('old look with the new data: mirror JPS stations, full JPS table, 7/14/28 d
   /* river flow forecast (stand-in for Flood Hub) at the river point */
   await expect(page.locator('#floodBody')).toContainText('m³/s');
   await expect(page.locator('#floodBody svg.chart')).toHaveCount(1);
-  expect(flood.some(u => /latitude=4\.25&longitude=103\.4/.test(u))).toBe(true);
+  expect(flood.some(u => /latitude=4\.225&longitude=103\.375/.test(u))).toBe(true);   /* 4.6.0: the main river cell, not the side stream */
   expect(api).toEqual([]);
   await page.screenshot({ path: '/tmp/shots/v41-' + test.info().project.name + '.png', fullPage: true });
 });
@@ -80,8 +80,9 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
     await expect(page.locator(card)).toBeInViewport();
   }
   expect(context.pages().length).toBe(1);
+  /* Flood Hub Chukai: the app's own river flow page (GloFAS) instead of Google's map */
   await page.locator('[data-site="floodhub"]').first().click();
-  await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
+  await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=flow/);
   /* no stand-in: straight to the site in a new tab, no card in between */
   await context.route(/^https:\/\/portalbencana\.nadma\.gov\.my\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: 'x' }));
   const [tab] = await Promise.all([context.waitForEvent('page'), page.locator('[data-site="nadma"]').first().click()]);
@@ -90,7 +91,7 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
   await expect(page.locator('.stab[data-tab="nadma"]')).toHaveCount(0);
 });
 
-test('relay again: a refused site (Flood Hub) shows inside the app through the relay; relay test lists it', async ({ page, baseURL }) => {
+test('relay again: a refused site (Zoom Earth storms) shows inside the app through the relay; relay test lists it', async ({ page, baseURL }) => {
   const harness = require('./relay-harness');
   const core = require('../www/assets/js/core');
   const R = await harness.start('k3y-web-411', { hosts: core.relayHosts(), tweaks: baseURL + 'relay-tweaks.js', route: (u, port) => /sites\.research\.google/.test(u) ? 'http://127.0.0.1:' + port + '/page'
@@ -103,8 +104,8 @@ test('relay again: a refused site (Flood Hub) shows inside the app through the r
     await page.fill('#f_relayKey', 'k3y-web-411');
     await page.click('#setSave');
     await page.waitForFunction(() => MC.state.settings.relayKey === 'k3y-web-411');
-    await page.locator('[data-site="floodhub"]').first().click();
-    await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /\/k3y-web-411\/https\/sites\.research\.google\//);
+    await page.locator('[data-site="storms"]').first().click();
+    await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /\/k3y-web-411\/https\/zoom\.earth\/storms/);
     await page.reload();
     await page.waitForFunction(() => window.MC && MC.state.snap);
     expect(await page.evaluate(() => MC.state.settings.relayKey)).toBe('k3y-web-411');     /* kept */
@@ -357,7 +358,8 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.setViewportSize({ width: 1180, height: 820 });
   await page.addInitScript(() => localStorage.setItem('mc_lang', 'ms'));
   await open(page, baseURL);
-  const cardWater = await page.locator('#cardWater').innerHTML();
+  const noAge = h => h.replace(/\d+ (min|jam) lalu|\d+ (min|h) ago/g, '');
+  const cardWater = noAge(await page.locator('#cardWater').innerHTML());
   await page.locator('[data-site="waterlevel"]').first().click();
   const fr = page.frameLocator('#siteHost .frame.on iframe');
   await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=water/);
@@ -391,17 +393,31 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.5\.4/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.0/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
+  /* Flood Hub Chukai = the app's own river flow page: pictures (river cut across, dial, 3D rivers), GloFAS thresholds, 50 members, chance per day */
+  await page.locator('[data-site="floodhub"]').first().click();
+  await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=flow/);
+  const ff = page.frameLocator('#siteHost .frame.on iframe');
+  await expect(ff.locator('.cs-svg')).toBeVisible({ timeout: 20000 });
+  await expect(ff.locator('.gg-svg')).toBeVisible();
+  await expect(ff.locator('.m3-svg .m3-tag')).toHaveCount(3);
+  await expect(ff.locator('.km-sum.flow .km-hi.big')).toContainText(/\d+\s*m³\/s/);
+  await expect(ff.locator('#kmFlow svg')).toBeVisible();
+  await expect(ff.locator('.km-pb')).toBeVisible();
+  await ff.locator('[data-fens]').click();
+  await expect(ff.locator('#kmFlow .kc-line.ens').first()).toBeAttached();
+  await expect(ff.locator('a.km-btn.ln[href*="sites.research.google"]')).toBeAttached();
+  await page.screenshot({ path: '/tmp/kmshots/app-flow.png' });
   /* wall mode: the Water Level Kemaman pane shows the same page */
   await page.locator('.rbtn[data-view="wall"]').click();
   await expect(page.locator('#view-wall iframe[src*="kemaman.html?tab=water"]').first()).toBeAttached();
   await page.waitForTimeout(800);
   await page.screenshot({ path: '/tmp/kmshots/app-wall.png' });
   await page.locator('.rbtn[data-view="dashboard"]').click();
-  expect(await page.locator('#cardWater').innerHTML()).toBe(cardWater);
+  expect(noAge(await page.locator('#cardWater').innerHTML())).toBe(cardWater);
 });
 
 test('Kemaman page with the relay: the last hours read live through the relay every time, GitHub copy for the rest; the relay is asked to back up to GitHub', async ({ page, baseURL }) => {

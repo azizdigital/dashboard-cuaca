@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.5.4';
+  var VERSION = '4.6.0';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -23,7 +23,7 @@
     { id: 'banjir', name: 'Banjir & Paras Air', icon: '🌊', items: [
       { id: 'waterlevel', title: 'Water Level Kemaman', desc: 'Paras air Daerah Kemaman', icon: '📊', url: 'https://infobanjir.terengganu.gov.my/WaterLevel/District/4' },
       { id: 'rainfall', title: 'Rainfall Kemaman', desc: 'Data hujan real-time', icon: '🌧️', url: 'https://infobanjir.terengganu.gov.my/Rainfall/District/4' },
-      { id: 'floodhub', title: 'Flood Hub Chukai', desc: 'Ramalan banjir AI (Google)', icon: '🤖', url: 'https://sites.research.google/floods/l/4.226693947058215/103.41916850003622/13.39981973087496/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1' },
+      { id: 'floodhub', title: 'Flood Hub Chukai', desc: 'Aliran sungai & ramalan 30 hari (GloFAS)', icon: '💧', url: 'https://sites.research.google/floods/l/4.226693947058215/103.41916850003622/13.39981973087496/p/ChIJYVEG9-SGyDERjwlnnLGhe5E?layers=1' },
       { id: 'infobanjir', title: 'Info Banjir Terengganu', desc: 'Portal banjir Terengganu', icon: '🌊', url: 'https://infobanjir.terengganu.gov.my/' },
       { id: 'jpsaras', title: 'JPS Aras Air Terengganu', desc: 'Public Infobanjir (JPS Malaysia) · daerah profil', icon: '📏', profile: true, url: 'https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/?state=TRG&type=NEGERI&lang=en#dcdistrict={district}', added: true },
       { id: 'jpspeta', title: 'JPS Peta Infobanjir', desc: 'Peta hujan & aras air seluruh negara', icon: '🗺️', url: 'https://publicinfobanjir.water.gov.my/main/', added: true }
@@ -83,7 +83,7 @@
     tideschart: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
     tides4fishing: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
     metmalaysia: { view: 'dashboard', anchor: 'cardMet', title: 'Ramalan & amaran MET di Dashboard (data rasmi MET)' },
-    floodhub: { view: 'dashboard', anchor: 'cardFlood', title: 'Ramalan aliran sungai 30 hari di Dashboard (GloFAS)' },
+    floodhub: { prefer: true, url: 'kemaman.html?tab=flow', local: true, page: true, title: 'Aliran Sungai Kemaman (GloFAS, ramalan 30 hari)' },
     jpspeta: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
     himawari: { prefer: true, url: 'https://www.ventusky.com/?p={lat};{lon};5&l=satellite', title: 'Ventusky - satelit (imej Himawari) - CIRA SLIDER hanya boleh dilihat di lamannya sendiri' },
     windy: { prefer: true, url: WINDY + '&zoom=8&overlay=rain&lat={lat}&lon={lon}&detailLat={lat}&detailLon={lon}', title: 'Windy (versi embed) - hujan & ribut petir' },
@@ -144,7 +144,7 @@
   var DEFAULTS = {
     locationName: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229,
     marineLat: 4.26, marineLon: 103.52,
-    riverLat: 4.25, riverLon: 103.40,  /* a point on the river (GloFAS grid ~5 km): Sungai Kemaman above Chukai */
+    riverLat: 4.225, riverLon: 103.375,  /* GloFAS cell on the main Sungai Kemaman below the Cherul junction (4.25, 103.40 fell on a side stream) */
     metLocationId: 'Ds065',
     warningKeywords: 'Terengganu, Kemaman',
     waterDistrict: 'Kemaman',
@@ -297,6 +297,8 @@
       var v = out[k] === '' || out[k] === null || out[k] === undefined ? NaN : +out[k];
       out[k] = isFinite(v) && Math.abs(v) <= (k === 'riverLat' ? 90 : 180) ? v : (k === 'riverLat' ? out.lat : out.lon);
     });
+    /* up to 4.5.x the Kemaman river point was 4.25, 103.40 - GloFAS takes a small side stream there; move it to the main river */
+    if (+out.riverLat === 4.25 && +out.riverLon === 103.4) { out.riverLat = 4.225; out.riverLon = 103.375; }
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
     try { if (out.advLimits) { var al = JSON.parse(out.advLimits); if (!al || typeof al !== 'object' || Array.isArray(al)) out.advLimits = ''; } } catch (e) { out.advLimits = ''; }
     if (!/^\s*\d{1,2}\s*[-–:]\s*\d{1,2}\s*$/.test(out.advShift)) out.advShift = DEFAULTS.advShift;
@@ -314,7 +316,7 @@
   var OFFSHORE_BASE = { kind: 'offshore', metLocationId: '', warningKeywords: 'Terengganu, Condore, Reef North', waterDistrict: '', tidePlace: 'model',
     scrapeInfobanjir: false, useDataGovFlood: false, rain3hMm: 30, rain24hMm: 80, gustKmh: 50, waveM: 2.5, visKm: 2, thunderAlert: true };
   var DEFAULT_PROFILES = [
-    { id: 'kemaman', name: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229, marineLat: 4.26, marineLon: 103.52, riverLat: 4.25, riverLon: 103.40, metLocationId: 'Ds065',
+    { id: 'kemaman', name: 'Kemaman', kind: 'land', lat: 4.2324, lon: 103.4229, marineLat: 4.26, marineLon: 103.52, riverLat: 4.225, riverLon: 103.375, metLocationId: 'Ds065',
       warningKeywords: 'Terengganu, Kemaman', waterDistrict: 'Kemaman', scrapeInfobanjir: true, useDataGovFlood: true },
     Object.assign({ id: 'irong-barat', name: 'Irong Barat (offshore)', lat: 5.5501, lon: 104.7745, marineLat: 5.5501, marineLon: 104.7745 }, OFFSHORE_BASE)
   ];

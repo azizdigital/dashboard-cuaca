@@ -28,6 +28,12 @@ Rupa sama seperti app lama. Yang baru dalam 4.1:
   - Tekan stesen: nombor besar, hidrograf 1–30 hari (seret untuk zoom), hujan berdekatan, ramalan 5 model dan anggaran paras 4 / 24 jam.
   - Butang **PDF** (A4) dan **Gambar** (PNG untuk WhatsApp); boleh dipilih dalam Mod dinding.
   - **App PC (4.5.4):** halaman yang sama; PC baca JPS terus setiap 3 minit. **Laman asal** = laman infobanjir dalam tab yang sama, **← Halaman app** untuk kembali (diingat bagi setiap tab / pane Mod dinding).
+- **Tab Flood Hub Chukai (4.6, web, iPad & PC):** halaman aliran sungai app sendiri, ganti peta Google (yang tidak berfungsi dalam app).
+  - Data: GloFAS v4 (Copernicus / ECMWF) melalui Open-Meteo, percuma tanpa kunci, sel sungai utama Kemaman 4.225, 103.375 (hilir pertemuan Sg. Cherul).
+  - Gambar di atas: keratan rentas sungai di Chukai (paras air ikut aliran hari ini, garis Amaran / Bahaya / Ekstrem, puncak ramalan), meter aliran, peta 3D sungai sebenar (tebal & laju arus ikut aliran Cherul, Air Putih, hilir).
+  - Graf ramalan 30 hari dengan 50 ahli ensemble dan julat biasa sejak 1997, peluang lepasi ambang setiap hari, aliran hulu, puncak setiap tahun, tinjauan 7 bulan.
+  - Ambang = banjir 2 / 5 / 20 tahun daripada rekod GloFAS (bukan paras rasmi JPS).
+  - **Flood Hub ↗** buka laman Google (PC: dalam tab yang sama, **← Halaman app** untuk kembali). Kad aliran sungai di dashboard kini guna sel yang sama.
   - Kedudukan stesen: koordinat JPS (data.gov.my) atau kampung / jambatan stesen di sungai OpenStreetMap (anggaran, bulatan putus-putus).
 - **Laman yang tidak benarkan dipaparkan dalam app lain:**
   - Kalau ada versi dari sumber yang sama, ia dibuka di dalam app dengan bar "Laman ganti" dan butang **Laman asal ↗**. Contoh: Windy (versi embed), RainViewer, dan kad JPS / MET / pasang surut di Dashboard.
