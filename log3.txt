@@ -1,22 +1,14 @@
-== dg-kemaman 0
-
-== dg-trg 0
-
-curl: (7) Failed to connect to overpass-api.de port 443 after 211 ms: Could not connect to server
-./check.sh: line 13: osm-rivers.json: No such file or directory
-== osm-rivers 
-head: cannot open 'osm-rivers.json' for reading: No such file or directory
-
-curl: (7) Failed to connect to overpass-api.de port 443 after 212 ms: Could not connect to server
-./check.sh: line 16: osm-places.json: No such file or directory
-== osm-places 
-head: cannot open 'osm-places.json' for reading: No such file or directory
-
-curl: (7) Failed to connect to overpass-api.de port 443 after 210 ms: Could not connect to server
-./check.sh: line 19: osm-bridges.json: No such file or directory
-== osm-bridges 
-head: cannot open 'osm-bridges.json' for reading: No such file or directory
-
-curl: (7) Failed to connect to overpass-api.de port 443 after 217 ms: Could not connect to server
-./check.sh: line 22: osm-coast.json: No such file or directory
-== osm-coast 
+== https://api.data.gov.my/flood-warning?limit=3000 -> 200 1177181
+[{"station_id":"_CRAU0042","station_name":"Sg. Dong di Kg. Peruas","latitude":3.94385,"longitude":102.01854,"district":"Raub","state":"PAHANG","sub_basin":"Sg. Dong","main_basin":"Sungai Pahang","station_type":"RF,WL","water_level_current":133.36,"water_level_indicator":"ALERT","water_level_normal_level":133.4,"water_level_alert_level":133.93,"water_level_warning_level":133.33,"water_level_danger_
+== https://api.data.gov.my/flood-warning/?contains=Kemaman@district -> 200 7329
+[{"station_id":"25322","station_name":"Sg. Cherul di Ban Ho Terengganu (RHN)","latitude":4.138889,"longitude":103.170833,"district":"Kemaman","state":"TERENGGANU","sub_basin":"Sg. Cherul","main_basin":"Sungai Kemaman","station_type":"RF,WL","water_level_current":10.7,"water_level_indicator":"NORMAL","water_level_normal_level":10.0,"water_level_alert_level":17.0,"water_level_warning_level":10.0,"wa
+== https://api.data.gov.my/flood-warning -> 200 1177181
+[{"station_id":"_CRAU0042","station_name":"Sg. Dong di Kg. Peruas","latitude":3.94385,"longitude":102.01854,"district":"Raub","state":"PAHANG","sub_basin":"Sg. Dong","main_basin":"Sungai Pahang","station_type":"RF,WL","water_level_current":133.36,"water_level_indicator":"ALERT","water_level_normal_level":133.4,"water_level_alert_level":133.93,"water_level_warning_level":133.33,"water_level_danger_
+curl: (28) Operation timed out after 180002 milliseconds with 0 bytes received
+./check.sh: line 14: osm-rivers.json: No such file or directory
+== https://overpass.kumi.systems/api/interpreter rivers -> 000 
+curl: (28) Operation timed out after 180000 milliseconds with 0 bytes received
+./check.sh: line 14: osm-rivers.json: No such file or directory
+== https://overpass.private.coffee/api/interpreter rivers -> 000 
+== https://maps.mail.ru/osm/tools/overpass/api/interpreter rivers -> 504 695
+== https://overpass-api.de/api/interpreter rivers -> 406 558
