@@ -216,7 +216,7 @@ test('newAlerts: new or escalated only', () => {
 /* ------------------------------------------------------------- languages */
 const I18N = require('../www/assets/js/i18n');
 test('every L(\'...\') text in the code has an English translation', () => {
-  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
+  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
   const missing = [];
   files.forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
@@ -650,6 +650,97 @@ test('offshore comparison: models side by side, chance over the limits, confiden
   assert.ok(core.PROFILE_KEYS.includes('offWindKt') && core.PROFILE_KEYS.includes('offWaveM'));
   assert.strictEqual(core.cleanSettings({ offWindKt: 0 }).offWindKt, 15);
   assert.strictEqual(core.cleanSettings({ offWaveM: '2.2' }).offWaveM, 2.2);
+});
+
+/* ------------------------------------------------ AI suggestion (4.3.0) */
+test('AI suggestion: time blocks, offshore Go / Caution / No-Go with limits, flood risk per area, prompt', async () => {
+  const A = require('../www/assets/js/advisor'), OFF = require('../www/assets/js/offshore'), FX = require('./web-fixtures/make');
+  const now = Date.parse('2026-11-21T12:30:00+08:00');
+  I18N.setLang('ms');
+  /* blocks: shifts, 3 h, whole days; past blocks dropped; never past day 14 */
+  const sh = A.blocks({ from: '2026-11-21', to: '2026-11-22', res: 'shift', shift: '07-19', now });
+  assert.deepStrictEqual(sh.map(b => b.label), ['Siang 07–19', 'Malam 19–07', 'Siang 07–19', 'Malam 19–07']);
+  assert.strictEqual(sh[1].t1 - sh[1].t0, 12 * 3600000);
+  const h3 = A.blocks({ from: '2026-11-21', to: '2026-11-21', res: '3h', now });
+  assert.strictEqual(h3.length, 4); assert.strictEqual(h3[0].label, '12:00–15:00');
+  assert.strictEqual(A.blocks({ from: '2026-11-21', to: '2027-01-30', res: 'day', now }).length, 14);
+  assert.strictEqual(A.blocks({ from: '2026-11-01', to: '2026-11-01', res: 'day', now })[0].day, '2026-11-21');
+  assert.deepStrictEqual(A.parseShift('6-18'), [6, 18]); assert.deepStrictEqual(A.parseShift('x'), [7, 19]);
+  /* limits: defaults + the user's changes, and back to short text */
+  const L0 = A.limits('');
+  assert.strictEqual(L0.acts.length, 10); assert.deepStrictEqual(L0.acts[0].h, [1.5, 2.0]);
+  const L1 = A.limits('{"boat":{"h":[1.8,2.4]},"heli":{"on":false},"diving":{"sw":null},"lq":{"w":[28,38]}}');
+  assert.deepStrictEqual(L1.acts[0].h, [1.8, 2.4]); assert.strictEqual(L1.acts.find(a => a.id === 'heli').on, false);
+  assert.ok(!L1.acts.find(a => a.id === 'diving').sw); assert.deepStrictEqual(L1.overall.w, [28, 38]);
+  assert.deepStrictEqual(JSON.parse(A.limitsText(L1.acts, L1.overall)), { boat: { h: [1.8, 2.4] }, heli: { on: false }, diving: { sw: null }, lq: { w: [28, 38] } });
+  assert.strictEqual(A.limitsText(L0.acts, L0.overall), '');
+  assert.strictEqual(A.limits('not json').acts.length, 10);
+  /* judge: caution / stop, visibility lower is worse, thunder */
+  const boat = L0.acts[0];
+  assert.strictEqual(A.judge(boat, { w: 15, h: 1.0 }).st, 0);
+  assert.strictEqual(A.judge(boat, { w: 22, h: 1.0 }).st, 1);
+  assert.strictEqual(A.judge(boat, { w: 15, h: 2.1 }).st, 2);
+  assert.strictEqual(A.judge(boat, { vis: 1.5 }).st, 2);
+  assert.strictEqual(A.judge(L0.acts.find(a => a.id === 'crane'), { w: 10, thunder: 0.7 }).st, 2);
+  assert.strictEqual(A.judge(boat, { w: 10, thunder: 0.7 }).st, 1);
+  /* offshore on the fixture models */
+  const raw = await OFF.collect(5.55, 104.77, async u => FX.offshore(u, now));
+  const rep = OFF.build(raw, { now });
+  const r = A.assessOffshore({ rep, snap: {}, blocks: sh, limits: L0, now });
+  assert.strictEqual(r.items[0].id, 'lq'); assert.strictEqual(r.items.length, 11);
+  assert.strictEqual(r.cells.length, 4); assert.ok(r.cells.every(row => row.length === 11));
+  const night = r.cells[1], basket = r.items.findIndex(x => x.id === 'basket');
+  assert.strictEqual(night[basket].st, 2); assert.ok(/Siang sahaja/.test(night[basket].why[0]));   /* daylight only */
+  assert.ok(night[0].st < 2, 'night No-Go of daylight jobs does not limit outside work');
+  const day = r.cells[0], swing = r.items.findIndex(x => x.id === 'swing');
+  assert.strictEqual(day[swing].st, 2); assert.ok(day[swing].why.some(w => /Hs .* melebihi had 1.5/.test(w)), day[swing].why.join());
+  assert.ok(day.every(c => c.conf >= 1 && c.conf <= 3));
+  assert.ok(day[swing].prob > 0 && day[swing].prob <= 1);
+  /* strong wind -> stay in the LQ */
+  const storm = JSON.parse(JSON.stringify(rep)); storm.hours.forEach(h => { h.w10 = { m: 42, lo: 40, hi: 45 }; h.g = { m: 55, lo: 50, hi: 60 }; });
+  const rs = A.assessOffshore({ rep: storm, snap: {}, blocks: sh, limits: L0, now });
+  assert.strictEqual(rs.cells[0][0].label, 'Kekal dalam LQ'); assert.strictEqual(rs.cells[0][0].st, 3);
+  /* MET danger warning -> everything No-Go */
+  const metSnap = { met: { warnings: [{ severity: 'critical', title_bm: 'Amaran Ribut', from: now, to: now + 86400000 }] } };
+  const rm = A.assessOffshore({ rep, snap: metSnap, blocks: sh, limits: L0, now });
+  assert.strictEqual(rm.cells[0][0].st, 3); assert.ok(rm.cells[0].slice(1).every(c => c.st === 2));
+  /* land: districts, own places, stations; heavy rain on day 2 in the fixture */
+  const m = FX.mirror(now), snap = { jps: { water: m.jps.water, rain: m.jps.rain }, met: { warnings: [] } };
+  const s = core.cleanSettings({});
+  const dd = A.landAreas('district', s, snap, '');
+  assert.strictEqual(dd.length, 8); assert.ok(dd.find(a => a.name === 'Kemaman').stations.length > 0);
+  const places = A.landAreas('custom', s, snap, 'Chukai; 4.23; 103.42; Chukai; pantai\nbad line\nKg. Air Putih; 4.17; 103.30; Air Putih');
+  assert.strictEqual(places.length, 2); assert.strictEqual(places[0].coastal, true);
+  const st = A.landAreas('station', s, snap, '');
+  assert.ok(st.length >= 1 && st.every(a => a.stations[0].district === 'Kemaman'));
+  assert.strictEqual(A.landUrls(dd).length, 5);
+  assert.ok(/latitude=5\.730,5\.520/.test(A.landUrls(dd)[0].url));
+  const lraw = await A.collectLand(dd, async u => FX.offshore(u, now));
+  assert.ok(Object.values(lraw.models).every(x => x.ok && x.data.length === 8));
+  const days = A.blocks({ from: '2026-11-21', to: '2026-11-23', res: 'day', now });
+  const lr = A.assessLand({ areas: dd, raw: lraw, snap, blocks: days, now });
+  assert.strictEqual(lr.cells.length, 3); assert.strictEqual(lr.cells[0].length, 8);
+  const besut = lr.cells[1][0];
+  assert.ok(besut.level >= 1 && besut.rain > 30, JSON.stringify(besut));
+  assert.ok(besut.why.some(w => /Hujan ramalan/.test(w)));
+  assert.ok(lr.cells[0][0].level <= besut.level);
+  /* a station at Danger now makes the next days High */
+  const hot = JSON.parse(JSON.stringify(snap)); hot.jps.water.filter(x => x.district === 'Kemaman').forEach(x => { x.level = x.danger + 0.2; x.trend = 'rising'; });
+  const lh = A.assessLand({ areas: A.landAreas('district', s, hot, ''), raw: lraw, snap: hot, blocks: days, now });
+  const kem = lh.items.findIndex(x => x.name === 'Kemaman');
+  assert.ok(lh.cells[0][kem].level >= 2, JSON.stringify(lh.cells[0][kem]));
+  assert.ok(lh.cells[0][kem].why.some(w => /Bahaya/.test(w)));
+  assert.ok(lh.cells[1][0].rain > 30, 'rain found without calling landUrls first');
+  /* prompt: role, data, what to check, answer format; Copilot shorter */
+  const p1 = A.prompt({ result: r, settings: core.profileSettings({}, core.DEFAULT_PROFILES[1]), snap: {}, rep, target: 'chatgpt', lang: 'ms', now });
+  assert.ok(/^# Penilaian cuaca & keadaan laut untuk kerja offshore/.test(p1));
+  ['## Peranan & tugas', '## Kerja & had operasi', '## Penilaian automatik app', '## Data', '## Apa yang perlu anda semak', '## Format jawapan', 'IMCA', 'met.gov.my', 'media sosial', 'Go / Caution / No-Go', 'Jangan reka sumber', 'carian web (Search) ChatGPT']
+    .forEach(k => assert.ok(p1.includes(k), k));
+  const p2 = A.prompt({ result: r, settings: core.profileSettings({}, core.DEFAULT_PROFILES[1]), snap: {}, rep, target: 'copilot', lang: 'en', now });
+  assert.ok(p2.length < p1.length && p2.length <= 9000 && /Bahasa Inggeris/.test(p2) && /Bing/.test(p2));
+  const p3 = A.prompt({ result: lr, settings: s, snap, target: 'gemini', lang: 'ms', now });
+  assert.ok(/risiko banjir/.test(p3) && /publicinfobanjir/.test(p3) && /Paras air JPS/.test(p3) && /Google Search/.test(p3));
+  I18N.setLang('en');
 });
 
 (async () => {

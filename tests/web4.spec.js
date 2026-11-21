@@ -164,3 +164,76 @@ test('offshore model comparison card: 3/7/14 days, chance & confidence, every mo
   const before = await page.evaluate(() => MC.state.settings.offWindKt);
   expect(before).toBe(15);
 });
+
+test('AI suggestion tab: offshore jobs Go / Caution / No-Go, limits, prompt; land flood risk by district & own places', async ({ page, baseURL, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await open(page, baseURL);
+  await page.addStyleTag({ content: '#toasts { display: none !important; }' });   /* clean screenshots */
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
+  await page.waitForFunction(() => MC.state.settings.kind === 'offshore');
+  await page.click('.rbtn[data-view="advisor"]');
+  await expect(page.locator('#view-advisor')).toHaveClass(/on/);
+  await expect(page.locator('#topTitle')).toHaveText('AI suggestion');
+  await page.locator('#advQuick [data-q="3"]').click();
+  await page.locator('#advRes [data-res="shift"]').click();
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-mat tbody tr').first()).toBeVisible({ timeout: 30000 });
+  const rows = await page.locator('#advBody .adv-mat tbody tr').count();
+  expect(rows).toBeGreaterThanOrEqual(5); expect(rows).toBeLessThanOrEqual(6);           /* 3 days x 2 shifts, minus a shift already over */
+  await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(12);                 /* time + status + 10 jobs */
+  await expect(page.locator('#advBody .adv-mat')).toContainText('Inter-rig boat');
+  await expect(page.locator('#advBody .adv-sum')).toContainText('Outside work status');
+  await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.getElementById('advOut').offsetTop - 10; });
+  await page.screenshot({ path: '/tmp/shots/adv-off-0.png' });
+  await page.locator('#advBody .adv-c').nth(3).click();
+  await expect(page.locator('#advDetail')).toBeVisible();
+  await expect(page.locator('#advDetail')).toContainText('Confidence');
+  await page.screenshot({ path: '/tmp/shots/adv-off-1.png' });
+  /* limits: change the boat Hs limit, the result follows */
+  await expect(page.locator('#advLimitsBody tbody tr')).toHaveCount(11);
+  await page.locator('#advLimitsBody tr[data-id="swing"] [data-k="h0"]').fill('3');
+  await page.locator('#advLimitsBody tr[data-id="swing"] [data-k="h1"]').fill('4');
+  await page.click('#advLimSave');
+  await expect(page.locator('#advLimMsg')).toHaveText('Saved ✓');
+  expect(JSON.parse(await page.evaluate(() => MC.state.settings.advLimits))).toEqual({ swing: { h: [3, 4] } });
+  /* prompt */
+  await page.click('#advPromptBtn');
+  await expect(page.locator('#advPromptCard')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#advPrompt')).toHaveValue(/carian web \(Search\) ChatGPT/);
+  await page.locator('#advTarget [data-t="claude"]').click();
+  const text = await page.locator('#advPrompt').inputValue();
+  expect(text).toMatch(/^# Penilaian cuaca & keadaan laut untuk kerja offshore — Irong Barat/);
+  expect(text).toContain('web search) Claude'); expect(text).toContain('Swing rope: berhati-hati/henti pada');
+  await expect(page.locator('#advOpenAI')).toHaveText('Open Claude ↗');
+  await page.click('#advCopy');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(text);
+  await page.locator('#advPromptCard').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/shots/adv-off-prompt.png' });
+  await page.locator('#advLimitsBody').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/shots/adv-off-limits.png' });
+  /* land: districts */
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
+  await page.waitForFunction(() => MC.state.settings.kind === 'land');
+  await page.click('.rbtn[data-view="advisor"]');
+  await page.locator('#advArea [data-area="district"]').click();
+  await page.locator('#advRes [data-res="day"]').click();
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(9, { timeout: 30000 });   /* time + 8 districts */
+  await expect(page.locator('#advBody .adv-mat')).toContainText('Hulu Terengganu');
+  await expect(page.locator('#advOutTitle')).toHaveText('Flood risk');
+  await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.getElementById('advOut').offsetTop - 10; });
+  await page.screenshot({ path: '/tmp/shots/adv-land-1.png' });
+  await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.querySelector('#advBody .adv-mat').offsetTop + document.getElementById('advOut').offsetTop - 60; });
+  await page.screenshot({ path: '/tmp/shots/adv-land-2.png' });
+  /* own places */
+  await page.locator('#advPlaces').fill('Chukai; 4.23; 103.42; Chukai; pantai\nKg. Air Putih; 4.17; 103.30; Air Putih');
+  await page.click('#advPlacesSave');
+  await expect(page.locator('#advPlacesMsg')).toHaveText('Saved: 2 valid places.');
+  await page.locator('#advArea [data-area="custom"]').click();
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(3, { timeout: 30000 });
+  await page.locator('#advArea [data-area="station"]').click();
+  await page.click('#advPromptBtn');
+  await expect(page.locator('#advPrompt')).toHaveValue(/Penilaian risiko banjir — Kemaman/, { timeout: 30000 });
+});

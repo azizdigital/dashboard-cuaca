@@ -409,3 +409,23 @@ test('MET warning card: tiles, your areas, full text folded; same in BM', async 
   await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
   await expect(page.locator('#profName')).toHaveText('Kemaman');
 });
+
+test('AI suggestion through the PC: /api/fetch for the rain models & the JPS mirror, offshore from /api/offshore', async ({ page }) => {
+  const problems = [];
+  await guard(page, problems);
+  await ready(page);
+  await page.click('.rbtn[data-view="advisor"]');
+  await page.locator('#advArea [data-area="district"]').click();
+  await page.locator('#advRes [data-res="day"]').click();
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(9, { timeout: 30000 });
+  const bad = await page.evaluate(() => fetch('/api/fetch?url=' + encodeURIComponent('https://example.com/x')).then(r => r.status));
+  expect(bad).toBe(403);
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
+  await page.waitForFunction(() => MC.state.settings.kind === 'offshore', null, { timeout: 15000 });
+  await page.click('.rbtn[data-view="advisor"]');
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(12, { timeout: 30000 });
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="kemaman"]');
+  expect(problems).toEqual([]);
+});

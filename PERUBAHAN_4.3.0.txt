@@ -1,0 +1,17 @@
+Dashboard Cuaca Aziz 4.3.0
+
+Tab baru: Cadangan AI (ikon bintang di menu kiri)
+- Pilih tarikh (hari ini hingga 14 hari), atau butang cepat: Hari ini / Esok / 3 / 7 / 14 hari.
+- Paparan: syif siang / malam (jam syif boleh ubah, contoh 07-19), setiap 3 jam, atau harian.
+- Nilai sekarang (automatik): app menilai sendiri dengan peraturan, percuma, tanpa AI luar.
+  Offshore: Go / Caution / No-Go untuk 10 kerja (bot antara rig, personnel basket, swing rope, crane ke vesel,
+  crane atas platform, kerja tinggi, overside, helikopter, selam, vesel bekalan) + status kerja luar
+  (Normal / Berhati-hati / Kerja luar dihadkan / Kekal dalam LQ). Had lazim industri, boleh ubah di jadual
+  "Had operasi offshore". Ribut petir, siang sahaja, penglihatan dan amaran MET diambil kira.
+  Darat: risiko banjir (Rendah / Sederhana / Tinggi / Sangat tinggi) ikut stesen JPS, daerah Terengganu,
+  atau senarai tempat sendiri: hujan 5 model, tanah basah, paras JPS, GloFAS, amaran MET, air pasang besar.
+  Setiap keputusan ada % peluang, tahap keyakinan dan sebab (tekan petak).
+- Jana prompt untuk AI: semua data + penilaian app + arahan semak sumber rasmi, media sosial, berita,
+  panduan industri / jurnal, dan format jawapan Go / Caution / No-Go. Untuk ChatGPT, Claude, Gemini,
+  Copilot (versi pendek) atau AI lain. Butang Salin, Kongsi dan Buka AI.
+- App PC & telefon melalui PC: data tambahan diambil oleh PC (/api/fetch, hanya Open-Meteo & mirror GitHub app).

@@ -75,7 +75,7 @@
   /* ---------------------------------------------------------------- views */
   var TITLES = {
     dashboard: ['🌤️', 'Dashboard', 'Kemaman, Terengganu'], site: ['🌐', L('Laman web'), ''], wall: ['🧱', L('Mod dinding'), L('Beberapa laman serentak')],
-    history: ['📈', L('Sejarah & graf'), L('Paras air, hujan & suhu')], alerts: ['🔔', 'Alert', L('Ambang & log')], settings: ['⚙️', L('Tetapan'), '']
+    history: ['📈', L('Sejarah & graf'), L('Paras air, hujan & suhu')], advisor: ['🤖', L('Cadangan AI'), L('Penilaian automatik & prompt untuk AI')], alerts: ['🔔', 'Alert', L('Ambang & log')], settings: ['⚙️', L('Tetapan'), '']
   };
   function show(view) {
     if (!TITLES[view]) view = 'dashboard';
@@ -88,6 +88,7 @@
     if (view === 'history') History.load();
     if (view === 'alerts') Alerts.renderView();
     if (view === 'settings') Settings.fill();
+    if (view === 'advisor') Adv.render();
     if (view !== 'site') renderSideActive();
     if (window.innerWidth <= 820) toggleSide(false);
   }
@@ -656,14 +657,14 @@
     },
     load: function (force) {
       var s = state.settings;
-      if (s.kind !== 'offshore' || this.busy || !window.MCOffshore) return;
+      if (s.kind !== 'offshore' || !window.MCOffshore) return Promise.resolve();
+      if (this.busy) return this.busy;
       var mine = this.mine();
-      if (!force && mine && Date.now() - mine.at < 30 * 60000) return;
-      if (!force && this.err && Date.now() - this.errAt < 5 * 60000) return;
-      this.busy = true; renderOffCmp();
+      if (!force && mine && Date.now() - mine.at < 30 * 60000) return Promise.resolve();
+      if (!force && this.err && Date.now() - this.errAt < 5 * 60000) return Promise.resolve();
       var get = function (u) { return fetchT(u, 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); };
       var p = state.mode === 'pc' ? get('/api/offshore' + (force ? '?force=1' : '')) : window.MCOffshore.collect(s.marineLat, s.marineLon, get);
-      p.then(function (raw) {
+      this.busy = p.then(function (raw) {
         var ok = 0;
         ['wind', 'wave', 'ens'].forEach(function (g) { Object.keys(raw[g] || {}).forEach(function (k) { if (raw[g][k].ok) ok++; }); });
         if (!ok) throw new Error(L('Tiada model menjawab'));
@@ -672,6 +673,8 @@
         save('mc_oc_raw', raw);
       }).catch(function (e) { Off.err = (e && e.message) || String(e); Off.errAt = Date.now(); })
         .then(function () { Off.busy = false; renderOffCmp(); });
+      renderOffCmp();
+      return this.busy;
     },
     report: function () {
       var raw = this.mine(), s = state.settings;
@@ -849,6 +852,240 @@
       d.addEventListener('toggle', function () { Off.open[d.getAttribute('data-k')] = d.open; save('mc_oc_open', Off.open); });
     });
   }
+  /* ------------------------------------------------------- AI suggestion (tab "Cadangan AI")
+     automatic: the app's own rules (advisor.js) on the app's data; prompt: all the data + what to check, for an outside AI */
+  var Adv = {
+    ui: load('mc_adv', {}), result: null, landRaw: null, busy: false, wired: false,
+    get: function (u) {
+      var url = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(u) : u;
+      return fetchT(url, 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    },
+    opt: function () {
+      var u = this.ui, today = C.dateKey(Date.now());
+      if (!u.from || u.from < today) u.from = today;
+      if (!u.to || u.to < u.from) u.to = u.from;
+      var last = C.dateKey(Date.now() + 13 * 86400000);
+      if (u.to > last) u.to = last;
+      u.res = ['shift', '3h', 'day'].indexOf(u.res) >= 0 ? u.res : 'shift';
+      u.area = ['station', 'district', 'custom'].indexOf(u.area) >= 0 ? u.area : 'station';
+      u.target = window.MCAdvisor && window.MCAdvisor.TARGETS[u.target] ? u.target : 'chatgpt';
+      u.lang = u.lang === 'en' ? 'en' : 'ms';
+      return u;
+    },
+    keep: function () { save('mc_adv', this.ui); },
+    wire: function () {
+      if (this.wired) return;
+      this.wired = true;
+      var A = this;
+      $('advFrom').onchange = function () { A.ui.from = this.value; if (A.ui.to < A.ui.from) A.ui.to = A.ui.from; A.keep(); A.render(); };
+      $('advTo').onchange = function () { A.ui.to = this.value; A.keep(); A.render(); };
+      [].forEach.call(document.querySelectorAll('#advQuick [data-q]'), function (b) {
+        b.onclick = function () {
+          var q = +b.getAttribute('data-q'), d0 = Date.now();
+          A.ui.from = C.dateKey(q === 1 ? d0 + 86400000 : d0);
+          A.ui.to = C.dateKey(q <= 1 ? (q === 1 ? d0 + 86400000 : d0) : d0 + (q - 1) * 86400000);
+          A.keep(); A.render();
+        };
+      });
+      [['advRes', 'res'], ['advArea', 'area'], ['advTarget', 't']].forEach(function (x) {
+        [].forEach.call(document.querySelectorAll('#' + x[0] + ' button'), function (b) {
+          b.onclick = function () { A.ui[x[1] === 't' ? 'target' : x[1]] = b.getAttribute('data-' + x[1]); A.keep(); A.render(); if (x[1] === 't') A.showPrompt(); };
+        });
+      });
+      $('advLang').onchange = function () { A.ui.lang = this.value; A.keep(); A.showPrompt(); };
+      $('advShift').onchange = function () {
+        var v = this.value.trim();
+        if (!/^\d{1,2}\s*-\s*\d{1,2}$/.test(v)) { this.value = state.settings.advShift; return; }
+        Data.saveSettings(Object.assign({}, state.settings, { advShift: v, profileName: state.settings.locationName })).then(function () { A.render(); });
+      };
+      $('advRun').onclick = function () { A.run(false); };
+      $('advPromptBtn').onclick = function () { A.run(true); };
+      $('advCopy').onclick = function () { A.copy(); };
+      $('advShare').onclick = function () {
+        var t = $('advPrompt').value;
+        if (navigator.share) navigator.share({ title: L('Prompt Cadangan AI'), text: t }).catch(function () { });
+        else A.copy();
+      };
+      $('advOpenAI').onclick = function () { var T = window.MCAdvisor.TARGETS[A.ui.target]; if (T.url) openExternal(T.url); };
+      $('advPlacesSave').onclick = function () {
+        var v = $('advPlaces').value, n = window.MCAdvisor.parsePlaces(v).length;
+        Data.saveSettings(Object.assign({}, state.settings, { advPlaces: v, profileName: state.settings.locationName })).then(function () {
+          $('advPlacesMsg').textContent = L('Disimpan: {n} tempat sah.', { n: n }); A.landRaw = null;
+        });
+      };
+      $('advBody').addEventListener('click', function (e) {
+        var c = e.target.closest('[data-ac]');
+        if (c) A.detail(+c.getAttribute('data-ab'), +c.getAttribute('data-ac'));
+      });
+    },
+    render: function () {
+      if (!$('view-advisor') || !window.MCAdvisor) return;
+      this.wire();
+      var u = this.opt(), s = state.settings, off = s.kind === 'offshore';
+      $('advFrom').value = u.from; $('advTo').value = u.to;
+      $('advFrom').min = $('advTo').min = C.dateKey(Date.now()); $('advFrom').max = $('advTo').max = C.dateKey(Date.now() + 13 * 86400000);
+      [['advRes', 'res', u.res], ['advArea', 'area', u.area], ['advTarget', 't', u.target]].forEach(function (x) {
+        [].forEach.call(document.querySelectorAll('#' + x[0] + ' button'), function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-' + x[1]) === x[2])); });
+      });
+      $('advLang').value = u.lang;
+      if (document.activeElement !== $('advShift')) $('advShift').value = s.advShift;
+      if (document.activeElement !== $('advPlaces') && !$('advPlaces').value) $('advPlaces').value = s.advPlaces || '';
+      $('advSub').textContent = (s.locationName || '') + ' · ' + (off ? L('kerja offshore: Go / Caution / No-Go') : L('risiko banjir & kawasan'));
+      $('advOpenAI').textContent = L('Buka {n} ↗', { n: window.MCAdvisor.TARGETS[u.target].name });
+      $('advOpenAI').hidden = !window.MCAdvisor.TARGETS[u.target].url;
+      if (off) this.renderLimits();
+    },
+    /* gather the data, judge, show; prompt = also build the text for the outside AI */
+    run: function (withPrompt) {
+      var A = this, s = state.settings, u = this.opt(), M = window.MCAdvisor;
+      if (A.busy) { if (withPrompt) A.wantPrompt = true; return; }
+      A.busy = true; A.wantPrompt = !!withPrompt;
+      $('advOut').hidden = false;
+      $('advBody').innerHTML = '<div class="empty">' + L('Mengumpul data…') + '</div>';
+      var B = M.blocks({ from: u.from, to: u.to, res: u.res, shift: s.advShift, now: Date.now() });
+      var job;
+      if (s.kind === 'offshore') {
+        job = Off.load(false).then(function () {
+          var rep = Off.report();
+          if (!rep) throw new Error(Off.err || L('Tiada data model offshore'));
+          return M.assessOffshore({ rep: rep, snap: state.snap || {}, blocks: B, limits: M.limits(s.advLimits), now: Date.now() });
+        });
+      } else {
+        var snap = state.snap || {};
+        var needJps = !(snap.jps && snap.jps.water && snap.jps.water.length) && u.area !== 'station';
+        job = (needJps ? A.get(C.mirrorUrls(s, MIRROR).jpsMirror + '?m=' + Math.floor(Date.now() / 600000)).then(function (j) {
+          return Object.assign({}, snap, { jps: { water: j.water || [], rain: j.rain || { days: [], stations: [] }, waterAt: j.waterAt ? Date.parse(j.waterAt) : null } });
+        }, function () { return snap; }) : Promise.resolve(snap)).then(function (sn) {
+          var areas = M.landAreas(u.area, s, sn, s.advPlaces);
+          if (!areas.length) throw new Error(u.area === 'custom' ? L('Belum ada tempat. Tambah di kotak "Tempat saya" di bawah.') : L('Tiada stesen / kawasan dalam data.'));
+          var key = areas.map(function (a) { return (+a.lat).toFixed(3) + ',' + (+a.lon).toFixed(3); }).join(';');
+          var have = A.landRaw && A.landRaw.areaKey === key && Date.now() - A.landRaw.at < 30 * 60000 ? Promise.resolve(A.landRaw)
+            : M.collectLand(areas, function (x) { return A.get(x); }).then(function (raw) { raw.areaKey = key; A.landRaw = raw; return raw; });
+          return have.then(function (raw) {
+            if (!Object.keys(raw.models).some(function (k) { return raw.models[k].ok; })) throw new Error(L('Tiada model hujan menjawab'));
+            M.landUrls(areas);   /* gives each area its place in the answers (also when the answers were kept) */
+            var r = M.assessLand({ areas: areas, raw: raw, snap: sn, blocks: B, now: Date.now() });
+            r.snap = sn;
+            return r;
+          });
+        });
+      }
+      job.then(function (r) {
+        A.result = r;
+        A.show(r);
+        if (A.wantPrompt) A.showPrompt(true);
+      }).catch(function (e) {
+        $('advBody').innerHTML = '<div class="empty">' + esc(L('Tidak dapat menilai: ') + ((e && e.message) || e)) + '</div>';
+      }).then(function () { A.busy = false; A.wantPrompt = false; });
+    },
+    icon: function (r, c) {
+      if (c.st === null || (c.level === undefined && c.st === undefined)) return '⚪';
+      if (r.kind === 'land') return ['🟢', '🟡', '🟠', '🔴'][c.level];
+      return ['🟢', '🟡', '🔴', '⛔'][c.st];
+    },
+    sev: function (r, c) { return r.kind === 'land' ? c.level : c.st === null ? -1 : c.st; },
+    show: function (r) {
+      var A = this, M = window.MCAdvisor, off = r.kind === 'offshore', B = r.blocks;
+      $('advOutTitle').textContent = off ? L('Keputusan kerja offshore') : L('Risiko banjir');
+      $('advOutSub').textContent = (B.length ? M.shortDay(B[0].day) + (B[B.length - 1].day !== B[0].day ? ' – ' + M.shortDay(B[B.length - 1].day) : '') : '') + ' · ' + L('{n} blok masa', { n: B.length }) + (r.at ? ' · ' + L('data model ') + C.fmtTime(r.at) : '');
+      if (!B.length) { $('advBody').innerHTML = '<div class="empty">' + L('Tiada blok masa dalam julat ini.') + '</div>'; return; }
+      var dot = function (c) { return c.conf ? ['', '●○○', '●●○', '●●●'][c.conf] : ''; };
+      var pct = function (c) { return c.prob === null || c.prob === undefined ? '' : Math.round(c.prob * 100) + '%'; };
+      /* summary: worst of each item, and how many blocks are fine */
+      var sum = '<div class="oc-scroll"><table class="tbl adv-sum"><thead><tr><th>' + (off ? L('Kerja') : L('Kawasan')) + '</th><th>' + L('Paling teruk') + '</th><th>' + L('Bila') + '</th><th>' + L('Sebab') + '</th><th class="num">' + (off ? 'Go / Caution / No-Go' : L('Rendah / Sederhana / Tinggi+')) + '</th></tr></thead><tbody>' +
+        r.items.map(function (it, i) {
+          var w = r.worst[i], cnt = [0, 0, 0];
+          r.cells.forEach(function (row) { var v = A.sev(r, row[i]); if (v >= 0) cnt[off ? Math.min(2, it.kind === 'overall' ? (v >= 2 ? 2 : v) : v) : Math.min(2, v)]++; });
+          return '<tr' + (it.kind === 'overall' ? ' class="adv-ov"' : '') + '><td><b>' + esc(it.name) + '</b></td><td>' + (w ? A.icon(r, w.c) + ' ' + esc(w.c.label) : '-') + '</td><td>' + (w ? esc(M.shortDay(w.b.day) + ' ' + w.b.label) : '-') + '</td>' +
+            '<td class="adv-why">' + (w ? esc(w.c.why[0] || '') : '') + '</td><td class="num">' + cnt.join(' / ') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+      /* the matrix: one row per time block, one column per job / area; tap a cell for the reasons */
+      var lastDay = '', mat = '<div class="oc-scroll"><table class="tbl adv-mat"><thead><tr><th>' + L('Masa') + '</th>' + r.items.map(function (it) { return '<th' + (it.kind === 'overall' ? ' class="adv-ov"' : '') + '>' + esc(it.name) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        B.map(function (b, j) {
+          var first = b.day !== lastDay; lastDay = b.day;
+          return '<tr' + (first ? ' class="dstart"' : '') + '><td class="adv-t">' + (first ? '<b>' + esc(M.shortDay(b.day)) + '</b><br>' : '') + '<small>' + esc(b.label) + '</small></td>' + r.cells[j].map(function (c, i) {
+            return '<td><button type="button" class="adv-c s' + A.sev(r, c) + '" data-ab="' + j + '" data-ac="' + i + '">' + A.icon(r, c) + ' ' + esc(c.label) + '<small>' + [pct(c), dot(c)].filter(Boolean).join(' · ') + '</small></button></td>';
+          }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>';
+      var legend = off ? L('🟢 Go · 🟡 Caution · 🔴 No-Go · ⛔ Kekal dalam LQ. % = bahagian model yang memberi No-Go. ●●● keyakinan tinggi (model sepakat), ●○○ rendah. Tekan petak untuk sebab.')
+        : L('🟢 Rendah · 🟡 Sederhana · 🟠 Tinggi · 🔴 Sangat tinggi. % = bahagian model hujan yang memberi risiko Tinggi atau lebih. ●●● keyakinan tinggi, ●○○ rendah. Tekan petak untuk sebab.');
+      $('advBody').innerHTML = '<h4 class="adv-h">' + L('Ringkasan') + '</h4>' + sum + '<h4 class="adv-h">' + L('Setiap blok masa') + '</h4><p class="note" style="margin-top:0">' + legend + '</p>' + mat +
+        '<div id="advDetail" class="adv-detail" hidden></div>' +
+        '<p class="note">' + (off ? L('Had ialah nilai lazim industri yang boleh ditukar di bawah. Keputusan akhir oleh OIM / Marine mengikut keadaan sebenar dan prosedur syarikat.')
+          : L('Penilaian ini daripada ramalan hujan 5 model, paras & hujan JPS, GloFAS, amaran MET dan air pasang. Bukan amaran rasmi - ikut arahan APM / NADMA / JPS.')) + '</p>';
+    },
+    detail: function (j, i) {
+      var r = this.result, M = window.MCAdvisor;
+      if (!r || !r.cells[j]) return;
+      var c = r.cells[j][i], b = r.blocks[j], it = r.items[i], v = c.values || {};
+      var vals = r.kind === 'offshore' && v.w !== undefined ? '<p class="note">' + L('Nilai tengah model: angin {w} kt, tiupan {g} kt, Hs {h} m, alun {s} m', { w: f(v.w, 0), g: f(v.g, 0), h: f(v.h, 1), s: f(v.sw, 1) }) + (v.vis !== null && v.vis !== undefined ? L(', penglihatan {v} km', { v: f(v.vis, 1) }) : '') + '</p>'
+        : r.kind === 'land' && c.rain !== null && c.rain !== undefined ? '<p class="note">' + L('Hujan: nilai tengah {m} mm, model {lo}–{hi} mm', { m: f(c.rain, 0), lo: f(c.rainLo, 0), hi: f(c.rainHi, 0) }) + '</p>' : '';
+      var d = $('advDetail');
+      d.hidden = false;
+      d.innerHTML = '<div class="adv-dh"><b>' + this.icon(r, c) + ' ' + esc(it.name) + ' — ' + esc(c.label) + '</b><span>' + esc(M.shortDay(b.day) + ' ' + b.label) + '</span><button type="button" class="ibtn" aria-label="Tutup" onclick="this.parentNode.parentNode.hidden=true">✕</button></div>' +
+        '<div class="kv"><div><span>' + L('Peluang') + '</span><b>' + (c.prob === null || c.prob === undefined ? '-' : Math.round(c.prob * 100) + '%') + '</b></div><div><span>' + L('Keyakinan') + '</span><b>' + esc(c.confLabel) + '</b></div></div>' +
+        '<ul>' + c.why.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + vals;
+      d.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    },
+    showPrompt: function (scroll) {
+      var r = this.result, u = this.opt(), M = window.MCAdvisor;
+      if (!r) return;
+      var text = M.prompt({ result: r, settings: state.settings, snap: r.snap || state.snap || {}, rep: r.kind === 'offshore' ? Off.report() : null, target: u.target, lang: u.lang, now: Date.now() });
+      $('advPromptCard').hidden = false;
+      $('advPrompt').value = text;
+      $('advCount').textContent = L('{n} aksara', { n: text.length.toLocaleString() });
+      $('advPromptSub').textContent = L('untuk {n}', { n: M.TARGETS[u.target].name });
+      if (scroll) $('advPromptCard').scrollIntoView({ block: 'start' });
+    },
+    copy: function () {
+      var t = $('advPrompt'), done = function () { toast(L('Prompt disalin'), L('Buka AI dan tampal (Ctrl+V / tekan lama › Tampal).')); };
+      var fallback = function () { t.removeAttribute('readonly'); t.select(); t.setSelectionRange(0, t.value.length); try { document.execCommand('copy'); done(); } catch (e) { toast(L('Tidak dapat salin'), L('Pilih teks dan salin sendiri.'), 'warning'); } t.setAttribute('readonly', ''); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback();
+    },
+    /* limits editor: one row per job, caution / stop for each value; blank = not used */
+    renderLimits: function () {
+      var M = window.MCAdvisor, lim = M.limits(state.settings.advLimits), host = $('advLimitsBody');
+      if (!host || host.contains(document.activeElement)) return;
+      var P = [['w', L('Angin kt')], ['g', L('Tiupan kt')], ['h', 'Hs m'], ['sw', L('Alun m')], ['vis', L('Penglihatan km')]];
+      var row = function (a, ov) {
+        return '<tr data-id="' + a.id + '"><td>' + (ov ? '<b>' + esc(L(a.name)) + '</b>' : '<label><input type="checkbox" data-k="on"' + (a.on !== false ? ' checked' : '') + '> ' + esc(L(a.name)) + '</label>') + '</td>' +
+          P.map(function (p) {
+            var v = a[p[0]] || ['', ''];
+            if (ov && (p[0] === 'sw' || p[0] === 'vis')) return '<td></td>';
+            return '<td class="adv-lim"><input class="inp" inputmode="decimal" data-k="' + p[0] + '0" value="' + v[0] + '"><input class="inp" inputmode="decimal" data-k="' + p[0] + '1" value="' + v[1] + '"></td>';
+          }).join('') +
+          '<td>' + (ov ? '' : '<input type="checkbox" data-k="day"' + (a.day ? ' checked' : '') + '>') + '</td>' +
+          '<td>' + (ov ? '' : '<select class="sel" data-k="lt"><option value="c"' + (a.lt === 'c' ? ' selected' : '') + '>' + L('Berhati-hati') + '</option><option value="s"' + (a.lt === 's' ? ' selected' : '') + '>' + L('Henti') + '</option></select>') + '</td></tr>';
+      };
+      host.innerHTML = '<p class="note" style="margin-top:0">' + L('Setiap nilai: berhati-hati / henti. Penglihatan: lebih rendah = lebih teruk. Kosong = tidak digunakan. Baris "Status kerja luar": berhati-hati = kerja luar dihadkan, henti = kekal dalam LQ.') + '</p>' +
+        '<div class="oc-scroll"><table class="tbl adv-limits"><thead><tr><th>' + L('Kerja') + '</th>' + P.map(function (p) { return '<th>' + p[1] + '</th>'; }).join('') + '<th>' + L('Siang sahaja') + '</th><th>' + L('Ribut petir') + '</th></tr></thead><tbody>' +
+        row(lim.overall, true) + lim.acts.map(function (a) { return row(a, false); }).join('') + '</tbody></table></div>' +
+        '<div class="adv-row"><button class="btn pri" type="button" id="advLimSave">' + L('Simpan had') + '</button><button class="btn" type="button" id="advLimReset">' + L('Guna nilai asal') + '</button><small id="advLimMsg" class="muted"></small></div>';
+      var A = this;
+      $('advLimSave').onclick = function () {
+        var acts = [], ov = null;
+        [].forEach.call(host.querySelectorAll('tbody tr'), function (tr) {
+          var id = tr.getAttribute('data-id'), a = { id: id }, g = function (k) { var e = tr.querySelector('[data-k="' + k + '"]'); return e ? e : null; };
+          P.forEach(function (p) {
+            var x = g(p[0] + '0'), y = g(p[0] + '1');
+            if (!x || !y) return;
+            var c = parseFloat(String(x.value).replace(',', '.')), st = parseFloat(String(y.value).replace(',', '.'));
+            if (isFinite(c) && isFinite(st)) a[p[0]] = [c, st];
+          });
+          if (id === 'lq') { ov = a; return; }
+          a.on = g('on').checked; a.day = g('day').checked; a.lt = g('lt').value;
+          acts.push(a);
+        });
+        var text = M.limitsText(acts, ov);
+        Data.saveSettings(Object.assign({}, state.settings, { advLimits: text, profileName: state.settings.locationName })).then(function () {
+          $('advLimMsg').textContent = L('Disimpan ✓'); if (A.result && A.result.kind === 'offshore') A.run(false);
+        });
+      };
+      $('advLimReset').onclick = function () {
+        Data.saveSettings(Object.assign({}, state.settings, { advLimits: '', profileName: state.settings.locationName })).then(function () { host.innerHTML = ''; A.renderLimits(); });
+      };
+    }
+  };
   function renderDashboard() {
     var s = state.snap || {};
     var alerts = activeAlerts(), open = alerts.filter(function (a) { return !a.acked; });
@@ -1954,5 +2191,5 @@
   if (!isDesktop) takeSetupLink();
 
   Data.start();
-  window.MC = { state: state, Off: Off, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
+  window.MC = { state: state, Off: Off, Adv: Adv, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
 })();

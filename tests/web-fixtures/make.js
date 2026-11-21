@@ -83,6 +83,13 @@ function offshore(url, now) {
   }
   const H = { time: [] };
   for (let i = 0; i < days * 24; i++) H.time.push(local(start + i * 3600000));
+  /* advisor (land): rain only, several places in one request -> one answer per place; heavy rain on day 2 afternoon */
+  if (u.searchParams.get('hourly') === 'precipitation') {
+    const lats = (u.searchParams.get('latitude') || '').split(','), [off] = OFF_W[model] || [0];
+    const one = k => ({ utc_offset_seconds: 28800, hourly: { time: H.time, precipitation: H.time.map((t, i) => i >= 24 + 12 && i < 24 + 18 ? Math.max(0, 14 + off * 3 - k) : i % 24 === 15 ? 1.5 : 0) } });
+    const list = lats.map((x, k) => one(k));
+    return list.length > 1 ? list : list[0];
+  }
   if (/marine-api/.test(url)) {
     const [off, len, step] = OFF_V[model] || [0, 7, 1], f = (i, v) => (i >= len * 24 || i % step ? null : Math.round(v * 100) / 100);
     H.wave_height = H.time.map((t, i) => f(i, 1.35 + 0.45 * Math.sin(i / 40) + off));

@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.2.0';
+  var VERSION = '4.3.0';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -152,7 +152,10 @@
     waterAlertLevel: 'alert',        /* alert = Waspada, warning = Amaran, danger = Bahaya */
     waterRiseM: 0.5,                 /* naik >= x m dalam ~1 jam */
     rain3hMm: 20, rain24hMm: 60, gustKmh: 50, waveM: 2.5,
-    offWindKt: 15, offWaveM: 1.5,    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
+    offWindKt: 15, offWaveM: 1.5,
+    advLimits: '',                   /* AI suggestion: the user's changes to the offshore job limits (short JSON, see advisor.js) */
+    advPlaces: '',                   /* AI suggestion: own places for the flood check, one per line "Name; lat; lon; JPS station; pantai" */
+    advShift: '07-19',               /* AI suggestion: day shift hours (the night shift is the rest) */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
     sound: true, notify: true, keepInTray: false, startWithWindows: false,   /* keepInTray off: closing the window quits the app (3.3.1) */
@@ -172,7 +175,7 @@
   var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
     'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace',
     'offWindKt', 'offWaveM'];
-  var CAN_BE_EMPTY = ['adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
+  var CAN_BE_EMPTY = ['advLimits', 'advPlaces', 'adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
   var JPS_STATES = ['PLS', 'KDH', 'PNG', 'PRK', 'SEL', 'WLH', 'PTJ', 'NSN', 'MLK', 'JHR', 'PHG', 'TRG', 'KEL', 'SRK', 'SAB', 'WLP'];
   /* ---- site relay (iPad / phone): sites that refuse to be shown inside another app go through the user's relay */
@@ -246,7 +249,7 @@
       if (v === undefined || v === null || v === '') { out[k] = d; continue; }
       if (typeof d === 'number') { v = Number(v); out[k] = isFinite(v) ? v : d; }
       else if (typeof d === 'boolean') out[k] = v === true || v === 'true' || v === 1 || v === 'on';
-      else out[k] = String(v).slice(0, k === 'adblockExcept' ? 2000 : 200);
+      else out[k] = String(v).slice(0, k === 'adblockExcept' ? 2000 : k === 'advLimits' || k === 'advPlaces' ? 4000 : 200);
     }
     if (REFRESH_CHOICES.indexOf(out.refreshMin) < 0) out.refreshMin = DEFAULTS.refreshMin;
     if (['alert', 'warning', 'danger'].indexOf(out.waterAlertLevel) < 0) out.waterAlertLevel = 'alert';
@@ -265,6 +268,8 @@
       out[k] = isFinite(v) && Math.abs(v) <= (k === 'riverLat' ? 90 : 180) ? v : (k === 'riverLat' ? out.lat : out.lon);
     });
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
+    try { if (out.advLimits) { var al = JSON.parse(out.advLimits); if (!al || typeof al !== 'object' || Array.isArray(al)) out.advLimits = ''; } } catch (e) { out.advLimits = ''; }
+    if (!/^\s*\d{1,2}\s*[-–:]\s*\d{1,2}\s*$/.test(out.advShift)) out.advShift = DEFAULTS.advShift;
     if (!(out.offWindKt >= 1 && out.offWindKt <= 80)) out.offWindKt = DEFAULTS.offWindKt;
     if (!(out.offWaveM >= 0.1 && out.offWaveM <= 15)) out.offWaveM = DEFAULTS.offWaveM;
     out.jpsState = String(out.jpsState).toUpperCase();
