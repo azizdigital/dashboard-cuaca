@@ -19,6 +19,7 @@
     return String(s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] !== undefined ? v[k] : m; });
   }
   var HOUR = 3600000, DAY = 86400000, TZ = 8 * HOUR, DAYS = 14;
+  var RISK = function () { return typeof module === 'object' && module.exports ? require('./risk') : (typeof self !== 'undefined' ? self : this).MCRisk; };
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function dateKey(t) { return new Date(t + TZ).toISOString().slice(0, 10); }
   function dayStart(key) { return Date.parse(key + 'T00:00:00Z') - TZ; }
@@ -185,11 +186,19 @@
     var w = ((snap && snap.met) || {}).warnings || [];
     return w.filter(function (x) {
       var hay = lc([x.title_bm, x.title_en, x.heading_bm, x.heading_en, x.text_bm, x.text_en].join(' '));
-      if (rainOnly && !/hujan|rain|banjir|flood|ribut|storm/.test(hay)) return false;
+      var title = lc([x.title_bm, x.title_en].join(' '));
+      /* for floods on land: rain warnings and thunderstorms, not the sea warnings (strong winds & rough seas) */
+      if (rainOnly && (/laut|sea|angin kencang|strong wind|ombak|wave/.test(title) || !/hujan|rain|banjir|flood|ribut petir|thunderstorm/.test(hay))) return false;
       if (area && area.kind !== 'station' && hay.indexOf(lc(area.name)) < 0 && hay.indexOf('terengganu') < 0) return false;
       var a = x.from || 0, b = x.to || (x.issued ? x.issued + DAY : Infinity);
       return a < t1 && b > t0;
     });
+  }
+  /* a thunderstorm warning on land: short heavy showers, counted as 'info'; rain / flood warnings at their own level */
+  function metForLand(w) {
+    var hay = lc([w.title_bm, w.title_en, w.heading_bm, w.heading_en].join(' '));
+    var rain = /hujan|rain|banjir|flood/.test(hay);
+    return { severity: rain ? w.severity : 'info', title: metTitle(w) };
   }
   function sevPts(w) { return w.severity === 'critical' ? 3 : w.severity === 'warning' ? 2 : 1; }
   function metTitle(w) { return (I18N && I18N.lang() === 'en' ? w.title_en || w.title_bm : w.title_bm || w.title_en) || 'MET'; }
@@ -209,66 +218,55 @@
     return hit || null;
   }
   function confLabel(level) { return ['-', L('Rendah'), L('Sederhana'), L('Tinggi')][level || 0]; }
+  /* coast: sea level (model) and waves near the coast, from the land profile's marine point */
+  function coastFor(snap, t0, t1) {
+    var M = (snap && snap.marine && snap.marine.hourly) || [], H = M.filter(function (h) { return h.t >= t0 && h.t < t1; });
+    var seaTop = maxOf(M.map(function (h) { return h.sea; })), sea = maxOf(H.map(function (h) { return h.sea; }));
+    var top = H.reduce(function (a, b) { return b.wave !== null && (!a || b.wave > a.wave) ? b : a; }, null);
+    var ev = (snap && snap.tide && snap.tide.events && snap.tide.events.length ? snap.tide.events : (snap && snap.marine && snap.marine.tidesAll) || []).filter(function (e) { return e.type === 'high' && e.sea !== null; });
+    var tideTop = ev.length >= 4 ? maxOf(ev.map(function (e) { return e.sea; })) : null;
+    var tide = ev.filter(function (e) { return e.t >= t0 && e.t < t1; }).reduce(function (a, b) { return !a || b.sea > a.sea ? b : a; }, null);
+    return { tide: tideTop === null ? null : tide, top: tideTop, sea: sea, seaTop: seaTop, wave: top ? top.wave : null, waveDir: top ? top.waveDir : null };
+  }
+  /* Flood Risk Score per area and time block: Weather (rain models + MET), River (JPS level & trend, GloFAS), Coastal (tide, waves) */
   function assessLand(o) {
     var areas = o.areas || [], raw = o.raw || { models: {} }, snap = o.snap || {}, now = o.now || Date.now(), B = o.blocks || [];
+    var R = RISK(), trends = o.trends || snap.trends || {};
     var ids = LAND_MODELS.map(function (m) { return m.id; }).filter(function (id) { return raw.models[id] && raw.models[id].ok; });
     locations(areas);   /* each area's place in the answers */
     var items = areas.map(function (a) { return { id: a.id, name: a.name, kind: a.kind }; });
     var cells = B.map(function (b) {
-      var hours = (b.t1 - b.t0) / HOUR, near = b.t0 - now < 2 * DAY ? 1 : b.t0 - now < 4 * DAY ? 0.5 : 0;
+      var hours = (b.t1 - b.t0) / HOUR, leadH = Math.max(0, (b.t0 - now) / HOUR), coast = coastFor(snap, b.t0, b.t1);
       return areas.map(function (a) {
-        var why = [], fixed = 0;
         /* rain per model in this block, and from now until it starts */
         var per = ids.map(function (id) { return sumModel(raw.models[id].data[a.loc], b.t0, b.t1); }).filter(function (v) { return v !== null; });
         var before = quant(ids.map(function (id) { return sumModel(raw.models[id].data[a.loc], now, b.t0); }), 0.5) || 0;
         var rm = quant(per, 0.5), rlo = minOf(per), rhi = maxOf(per);
-        if (rm !== null && rm >= 1) why.push(L('Hujan ramalan {m} mm (model {lo}–{hi}) dalam {h} jam.', { m: r0(rm), lo: r0(rlo), hi: r0(rhi), h: Math.round(hours) }));
-        /* ground already wet: rain gauges, last 2 days + today, then the forecast up to this block */
         var obs = maxOf(a.rains.map(function (r) { var d = r.daily || []; return (d[d.length - 1] || 0) + (d[d.length - 2] || 0) + (r.today || 0); }));
-        var wet = (obs || 0) + before, wp = wet >= 300 ? 3 : wet >= 200 ? 2 : wet >= 100 ? 1 : 0;
-        if (wp) why.push(L('Tanah sudah basah: ~{v} mm hujan (3 hari lalu + ramalan sebelum masa ini).', { v: r0(wet) }));
-        fixed += wp;
-        /* rivers now: only counts for the next 2 days (half for days 3-4) */
-        var lv = maxOf(a.stations.map(stationLevel)), rising = a.stations.some(function (x) { return x.trend === 'rising'; });
-        var nearAlert = a.stations.filter(function (x) { return stationLevel(x) === 0 && num(x.alert) !== null && num(x.level) !== null && x.alert - x.level <= 0.3; });
-        if (lv !== null && near) {
-          var sp = (lv >= 1 ? lv + 1 : nearAlert.length ? 1 : 0) + (rising && lv >= 1 ? 1 : 0);
-          fixed += Math.round(sp * near);
-          if (lv >= 1) {
-            var worst = a.stations.filter(function (x) { return stationLevel(x) === lv; })[0];
-            why.push(L('Paras {n}: {lv} ({v} m){r}.', { n: worst.name, lv: L(['Normal', 'Waspada', 'Amaran', 'Bahaya'][lv]), v: r1(num(worst.level)), r: rising ? L(', sedang naik') : '' }));
-          } else if (nearAlert.length) why.push(L('Paras {n} hampir tahap Waspada ({v} m, Waspada {a} m).', { n: nearAlert[0].name, v: r1(num(nearAlert[0].level)), a: r1(num(nearAlert[0].alert)) }));
-        }
-        if (!a.stations.length && a.kind !== 'district') why.push(L('Tiada stesen paras air JPS dipadankan untuk tempat ini.'));
-        /* GloFAS river flow (the profile's river point only) */
-        if (a.river) {
-          var rr = riverRatio(snap, b.day);
-          var gp = rr === null ? 0 : rr >= 3 ? 3 : rr >= 2 ? 2 : rr >= 1.5 ? 1 : 0;
-          if (gp) why.push(L('GloFAS: aliran sungai ~{x}× biasa.', { x: r1(rr) }));
-          fixed += gp;
-        }
-        /* MET warnings for rain / storms in this block */
-        var mw = metActive(snap, b.t0, b.t1, a, true);
-        if (mw.length) { var mp = maxOf(mw.map(sevPts)); fixed += mp; why.push(L('Amaran MET: {t}.', { t: metTitle(mw[0]) })); }
-        /* spring high tide on the coast makes river mouths drain slowly */
-        var tide = a.coastal ? springTide(snap, b.t0, b.t1) : null;
-        var tidePts = function (rp) { return tide && rp >= 2 ? 1 : 0; };
-        var score = function (mm) { var rp = rainPts(mm, hours); return fixed + rp + tidePts(rp); };
-        var lvl = function (sc) { return sc >= 6 ? 3 : sc >= 4 ? 2 : sc >= 2 ? 1 : 0; };
-        var sc = score(rm), level = lvl(sc);
-        if (tide && tidePts(rainPts(rm, hours))) why.push(L('Air pasang besar {v} m pukul {t} (pantai).', { v: r1(tide.sea), t: hhmm(tide.t) }));
-        var levels = per.map(function (v) { return lvl(score(v)); });
-        var prob = levels.length ? levels.filter(function (x) { return x >= 2; }).length / levels.length : null;
-        var spread = levels.length ? maxOf(levels) - minOf(levels) : null;
+        var met = metActive(snap, b.t0, b.t1, a, true).map(metForLand);
+        var wo = { rain: rm, hours: hours, wet: (obs || 0) + before, met: met, range: per.length > 1 ? r0(rlo) + '–' + r0(rhi) + ' mm' : '' };
+        var river = R.riverPart({ stations: a.stations, trends: trends, leadH: leadH, glofas: a.river ? riverRatio(snap, b.day) : null });
+        var coastal = R.coastalPart(Object.assign({ coastal: a.coastal }, coast));
+        var weather = R.weatherPart(wo);
+        var sc = R.landScore(weather, river, coastal);
+        /* the same with each model's rain: the share that gives High or more, and how far apart they are */
+        var lv = per.map(function (v) { return R.landScore(R.weatherPart(Object.assign({}, wo, { rain: v, range: '' })), river, coastal).level; });
+        var prob = lv.length ? lv.filter(function (x) { return x >= 2; }).length / lv.length : null;
+        var spread = lv.length ? maxOf(lv) - minOf(lv) : null;
         var conf = spread === null ? 1 : spread === 0 ? 3 : spread === 1 ? 2 : 1;
         if (b.lead >= 7) conf = Math.min(conf, 2);
         if (b.lead >= 10) conf = 1;
         if (!a.stations.length && !a.rains.length) conf = Math.min(conf, 2);
-        if (!why.length) why.push(L('Tiada hujan lebat atau paras sungai tinggi dalam data.'));
-        return { level: level, label: L(LEVELS[level]), score: sc, prob: prob, n: levels.length, conf: conf, confLabel: confLabel(conf), why: why, rain: rm, rainLo: rlo, rainHi: rhi };
+        var why = [];
+        sc.parts.slice().sort(function (x, y) { return y.score - x.score; }).forEach(function (p) {
+          p.why.slice(0, p.score >= 25 ? 3 : 1).forEach(function (w) { why.push(p.name + ': ' + w); });
+        });
+        if (sc.boost) why.unshift(L('Dua risiko tinggi serentak: skor dinaikkan satu tahap.'));
+        return { level: sc.level, label: sc.label, score: sc.score, parts: sc.parts, boost: sc.boost, prob: prob, n: lv.length, conf: conf, confLabel: confLabel(conf), why: why, rain: rm, rainLo: rlo, rainHi: rhi };
       });
     });
-    return { kind: 'land', items: items, blocks: B, cells: cells, models: ids, at: raw.at, worst: worstOf(items, cells, B, 'level') };
+    var early = R.earlyFlood([].concat.apply([], areas.map(function (a) { return a.stations; })).filter(function (x, i, all) { return all.indexOf(x) === i; }), trends, now);
+    return { kind: 'land', items: items, blocks: B, cells: cells, models: ids, at: raw.at, worst: worstOf(items, cells, B, 'score'), early: early };
   }
   function worstOf(items, cells, B, key) {
     return items.map(function (it, i) {
@@ -280,23 +278,24 @@
 
   /* ------------------------------------------------------------ offshore */
   /* typical industry limits, a starting point only: change them to your company's MOS / SIMOPS / vessel limits.
-     w = mean wind 10 m (kt), g = gusts (kt), h = significant wave height Hs (m), sw = swell (m), vis = visibility (km, lower is worse);
+     w = mean wind 10 m (kt), g = gusts (kt), h = significant wave height Hs (m), sw = swell (m), tp = swell period (s, only when the swell is
+     0.8 m or more: long swell moves boats and loads), vis = visibility (km, lower is worse);
      each [caution, stop]. day = daylight only. lt = 'c' thunder -> caution, 's' thunder -> caution, very likely -> stop */
   var ACTIVITIES = [
-    { id: 'boat', name: 'Bot antara rig (crew boat / FCB)', w: [20, 25], g: [28, 35], h: [1.5, 2.0], sw: [1.5, 2.0], vis: [3, 1.85], day: false, lt: 'c' },
-    { id: 'basket', name: 'Personnel basket (crane)', w: [15, 20], g: [22, 28], h: [1.5, 2.0], vis: [3, 1.85], day: true, lt: 's' },
-    { id: 'swing', name: 'Swing rope', w: [15, 20], g: [22, 28], h: [1.2, 1.5], day: true, lt: 's' },
-    { id: 'cargo', name: 'Crane: platform ↔ vesel', w: [20, 25], g: [28, 35], h: [2.0, 2.5], day: false, lt: 's' },
+    { id: 'boat', name: 'Bot antara rig (crew boat / FCB)', w: [20, 25], g: [28, 35], h: [1.5, 2.0], sw: [1.5, 2.0], tp: [9, 12], vis: [3, 1.85], day: false, lt: 'c' },
+    { id: 'basket', name: 'Personnel basket (crane)', w: [15, 20], g: [22, 28], h: [1.5, 2.0], tp: [9, 12], vis: [3, 1.85], day: true, lt: 's' },
+    { id: 'swing', name: 'Swing rope', w: [15, 20], g: [22, 28], h: [1.2, 1.5], tp: [8, 10], day: true, lt: 's' },
+    { id: 'cargo', name: 'Crane: platform ↔ vesel', w: [20, 25], g: [28, 35], h: [2.0, 2.5], tp: [9, 12], day: false, lt: 's' },
     { id: 'crane', name: 'Crane: atas platform', w: [25, 30], g: [32, 38], day: false, lt: 's' },
     { id: 'height', name: 'Kerja tinggi / scaffolding', w: [20, 30], g: [30, 38], day: false, lt: 's' },
-    { id: 'overside', name: 'Kerja overside (FRC sedia)', w: [20, 25], g: [28, 35], h: [1.5, 2.0], day: true, lt: 's' },
+    { id: 'overside', name: 'Kerja overside (FRC sedia)', w: [20, 25], g: [28, 35], h: [1.5, 2.0], tp: [10, 13], day: true, lt: 's' },
     { id: 'heli', name: 'Helikopter (helideck)', w: [35, 45], g: [45, 55], vis: [5, 1.5], day: true, lt: 's' },
-    { id: 'diving', name: 'Selam (air diving)', w: [15, 20], g: [22, 28], h: [1.2, 1.5], sw: [1.2, 1.5], day: true, lt: 's' },
-    { id: 'supply', name: 'Vesel bekalan (standby / kargo)', w: [25, 30], g: [35, 42], h: [2.5, 3.0], day: false, lt: 'c' }
+    { id: 'diving', name: 'Selam (air diving)', w: [15, 20], g: [22, 28], h: [1.2, 1.5], sw: [1.2, 1.5], tp: [8, 10], day: true, lt: 's' },
+    { id: 'supply', name: 'Vesel bekalan (standby / kargo)', w: [25, 30], g: [35, 42], h: [2.5, 3.0], tp: [10, 13], day: false, lt: 'c' }
   ];
   /* the overall line: caution = outside work limited, stop = everyone stays in the living quarters */
   var OVERALL = { id: 'lq', name: 'Status kerja luar', w: [30, 40], g: [40, 50], h: [3.5, 5.0] };
-  var PARAMS = ['w', 'g', 'h', 'sw', 'vis'];
+  var PARAMS = ['w', 'g', 'h', 'sw', 'tp', 'vis'];
   function copyAct(a) { var o = {}; Object.keys(a).forEach(function (k) { o[k] = Array.isArray(a[k]) ? a[k].slice() : a[k]; }); return o; }
   /* the user's changes, kept as a short JSON text: { boat: { h: [1.5, 2.2], on: false }, lq: { w: [30, 40] } } */
   function limits(text) {
@@ -339,8 +338,8 @@
     });
     return Object.keys(out).length ? JSON.stringify(out) : '';
   }
-  var PNAME = function (p) { return { w: L('Angin'), g: L('Tiupan'), h: 'Hs', sw: L('Alun'), vis: L('Penglihatan') }[p]; };
-  var PUNIT = { w: 'kt', g: 'kt', h: 'm', sw: 'm', vis: 'km' };
+  var PNAME = function (p) { return { w: L('Angin'), g: L('Tiupan'), h: 'Hs', sw: L('Alun'), tp: L('Tempoh alun'), vis: L('Penglihatan') }[p]; };
+  var PUNIT = { w: 'kt', g: 'kt', h: 'm', sw: 'm', tp: 's', vis: 'km' };
   /* one job against the worst values of a block: 0 go, 1 caution, 2 no-go */
   function judge(a, v, words) {
     var st = 0, why = [];
@@ -349,6 +348,7 @@
       if (!lim || x === null || x === undefined) return;
       var low = p === 'vis', s = low ? x <= lim[1] : x >= lim[1], c = low ? x <= lim[0] : x >= lim[0];
       var d = p === 'h' || p === 'sw' || p === 'vis' ? r1(x) : r0(x);
+      if (p === 'tp' && (v.sw === null || v.sw === undefined || v.sw < 0.8)) return;
       if (s) { st = 2; if (words) why.push(L('{p} {v} {u} melebihi had {l}', { p: PNAME(p), v: d, u: PUNIT[p], l: lim[1] })); }
       else if (c) { st = Math.max(st, 1); if (words) why.push(L('{p} {v} {u} (berhati-hati dari {l})', { p: PNAME(p), v: d, u: PUNIT[p], l: lim[0] })); }
     });
@@ -374,6 +374,8 @@
       function vals(list, which) {
         var g = function (k) { return maxOf(list.map(function (h) { return h[k] ? h[k][which] : null; })); };
         return { w: g('w10'), g: g('g'), h: g('hs'), sw: maxOf(list.map(function (h) { return h.wh; })),
+          tp: maxOf(list.filter(function (h) { return h.wh !== null && h.wh >= 0.8; }).map(function (h) { return h.wt; })),
+          rain: list.reduce(function (a, h) { return h.p !== null ? (a || 0) + h.p : a; }, null),
           vis: minOf(vis.filter(function (x) { return x.t >= b.t0 && x.t < b.t1 && list.some(function (h) { return Math.abs(h.t - x.t) < HOUR; }); }).map(function (x) { return x.vis; })),
           thunder: maxOf(list.map(function (h) { return h.thunder; })), lightning: list.some(function (h) { return h.cape !== null && h.cape >= 1000 && (h.p || 0) >= 1; }) };
       }
@@ -388,7 +390,8 @@
         ok.wave.forEach(function (id) {
           var v = list.map(function (h) { return h.by.v[id]; }).filter(Boolean);
           if (!v.length) return;
-          n++; if (judge(a, { h: maxOf(v.map(function (x) { return x.hs; })), sw: maxOf(v.map(function (x) { return x.wh; })) }).st === 2) bad++;
+          n++; if (judge(a, { h: maxOf(v.map(function (x) { return x.hs; })), sw: maxOf(v.map(function (x) { return x.wh; })),
+            tp: maxOf(v.filter(function (x) { return x.wh !== null && x.wh >= 0.8; }).map(function (x) { return x.wt; })) }).st === 2) bad++;
         });
         return n ? bad / n : null;
       }
@@ -417,9 +420,26 @@
       var olo = judge(lim.overall, vals(H, 'lo')).st, ohi = judge(lim.overall, vals(H, 'hi')).st, oc = conf3(olo, ov.st, ohi);
       if (lead >= 7) oc = Math.min(oc, 2);
       if (lead >= 10) oc = 1;
-      return [{ st: level, label: L(OV[level]), why: why, conf: oc, confLabel: confLabel(oc), prob: share(lim.overall, H), values: vm }].concat(jobs);
+      /* Operational Risk Score: Wind / Sea / Weather, the worst plus one level when two are high */
+      var risk = RISK().offScore(Object.assign({}, vm, { met: met.map(function (w) { return { severity: w.severity, title: metTitle(w) }; }) }));
+      return [{ st: level, label: L(OV[level]), why: why, conf: oc, confLabel: confLabel(oc), prob: share(lim.overall, H), values: vm, risk: risk }].concat(jobs);
     });
-    return { kind: 'offshore', items: items, blocks: B, cells: cells, at: rep ? rep.at : null, worst: worstOf(items, cells, B, 'st'), limits: lim };
+    /* weather windows: the stretches inside the chosen dates that are Go for each job, hour by hour */
+    var from = B.length ? Math.max(B[0].t0, now) : now, to = B.length ? B[B.length - 1].t1 : now;
+    var visAt = function (t) { var x = vis.filter(function (v) { return Math.abs(v.t - t) < HOUR; })[0]; return x ? x.vis : null; };
+    var metStop = function (t) { return metActive(snap, t, t + HOUR, null, false).some(function (w) { return w.severity === 'critical'; }); };
+    var win = rep ? acts.map(function (a) {
+      var list = RISK().windows(rep, from, to, function (h) {
+        var hr = hourOf(h.t);
+        if (a.day && (hr < 7 || hr >= 19)) return false;
+        if (metStop(h.t)) return false;
+        return judge(a, { w: h.w10.m, g: h.g.m, h: h.hs.m, sw: h.wh, tp: h.wh !== null && h.wh >= 0.8 ? h.wt : null, vis: visAt(h.t), thunder: h.thunder,
+          lightning: h.cape !== null && h.cape >= 1000 && (h.p || 0) >= 1 }).st === 0;
+      }, o.minWindow || 4);
+      return { id: a.id, name: L(a.name), list: list };
+    }) : [];
+    var early = RISK().earlyOffshore(rep, now, o.early || {});
+    return { kind: 'offshore', items: items, blocks: B, cells: cells, at: rep ? rep.at : null, worst: worstOf(items, cells, B, 'st'), limits: lim, windows: win, early: early };
   }
 
   /* ---------------------------------------------------------------- prompt
@@ -470,11 +490,25 @@
     B.forEach(function (b, j) {
       var row = r.cells[j].map(function (c, i) {
         var p = c.prob === null || c.prob === undefined ? '' : Math.round(c.prob * 100) + '%';
-        return r.items[i].name + ' → ' + c.label + (p || c.confLabel !== '-' ? ' (' + [p, c.confLabel].filter(Boolean).join(' · ') + ')' : '') + (short && c.st === 0 ? '' : ' : ' + c.why.slice(0, short ? 1 : 3).map(function (x) { return String(x).replace(/\.$/, ''); }).join('; '));
+        var sc = c.score !== undefined ? c.score : c.risk ? c.risk.score : null;
+        var parts = (c.parts || (c.risk && c.risk.parts) || []).map(function (x) { return x.name + ' ' + x.score; }).join(', ');
+        return r.items[i].name + ' → ' + c.label + (sc !== null ? ' [skor ' + sc + '/100' + (parts ? ': ' + parts : '') + ']' : '') + (p || c.confLabel !== '-' ? ' (' + [p, c.confLabel].filter(Boolean).join(' · ') + ')' : '') + (short && c.st === 0 ? '' : ' : ' + c.why.slice(0, short ? 1 : 3).map(function (x) { return String(x).replace(/\.$/, ''); }).join('; '));
       });
       line('- ' + shortDay(b.day) + ' ' + b.label + ' | ' + row.join(' || '));
     });
     line('Peluang = ' + (off ? 'bahagian model (angin & ombak) yang memberi No-Go' : 'bahagian model hujan yang memberi risiko Tinggi atau lebih') + '. Keyakinan Tinggi = model sepakat; Rendah = model berbeza jauh atau terlalu jauh ke hadapan.');
+    line(off ? 'Skor risiko operasi 0–100 = gabungan Risiko angin (angin purata & tiupan), Risiko laut (Hs, alun panjang ≥9 s) dan Risiko cuaca (ribut petir, penglihatan, hujan, amaran MET): ambil yang paling tinggi, naik satu tahap (+25) bila dua bahagian ≥50. 25/50/75 = Sederhana/Tinggi/Sangat tinggi.'
+      : 'Skor risiko banjir 0–100 = gabungan Risiko cuaca (hujan 5 model, tanah basah, amaran MET), Risiko sungai (paras & trend JPS, GloFAS) dan Risiko pantai (air pasang besar, paras laut, ombak ke pantai): ambil yang paling tinggi, naik satu tahap (+25) bila dua bahagian ≥50. 25/50/75 = Sederhana/Tinggi/Sangat tinggi.');
+    if ((r.early || []).length) { line('Amaran awal app:'); r.early.forEach(function (e) { line('- ' + e.title + ': ' + e.body); }); }
+    else line('Amaran awal app: tiada (' + (off ? 'angin / ombak tidak naik cepat dalam 24 jam' : 'tiada sungai naik cepat') + ').');
+    if (off && (r.windows || []).length) {
+      line('Weather window (jam-jam Go berturut-turut, dalam tarikh dipilih):');
+      r.windows.forEach(function (w) { line('- ' + w.name + ': ' + (w.list.length ? w.list.slice(0, 4).map(function (x) { return shortDay(dateKey(x.t0)) + ' ' + hhmm(x.t0) + '–' + (dateKey(x.t1) !== dateKey(x.t0) ? shortDay(dateKey(x.t1)) + ' ' : '') + hhmm(x.t1) + ' (' + x.hours + ' j)'; }).join('; ') : 'tiada') ); });
+    }
+    if (!off && snap.trends && Object.keys(snap.trends).length) {
+      line('Trend sungai JPS (stesen | paras m | kadar m/jam | naik 3 jam m | anggaran jam ke Waspada):');
+      Object.keys(snap.trends).slice(0, short ? 6 : 20).forEach(function (n) { var t = snap.trends[n]; line('- ' + n + ' | ' + r1(t.level) + ' | ' + (t.rate === null ? '-' : t.rate.toFixed(2)) + ' | ' + (t.rise3h === null ? '-' : t.rise3h.toFixed(2)) + ' | ' + (t.tta === null ? '-' : r1(t.tta))); });
+    }
     line('');
     line('## Data');
     if (off && rep) {
@@ -523,6 +557,7 @@
     var fc = ((snap.met || {}).forecast || []).slice(0, short ? 3 : 7);
     if (fc.length) line('Ramalan MET Malaysia (' + fc[0].name + '): ' + fc.map(function (d) { return d.date.slice(5) + ' ' + d.summary + (d.when ? ' (' + d.when + ')' : ''); }).join('; ') + '.');
     line('');
+    var instr = out.length;
     line('## Apa yang perlu anda semak');
     if (off) {
       line('1. Sumber rasmi: MET Malaysia (met.gov.my — ramalan marin & amaran laut kawasan ' + (s.warningKeywords || 'Terengganu') + ', amaran angin kencang & laut bergelora, ribut tropika), JTWC / JMA / PAGASA jika ada sistem tropika, serta peta ECMWF / Windy untuk tempoh ini.');
@@ -546,11 +581,15 @@
     line('G. Tahap keyakinan keseluruhan dan sebabnya.');
     line('Nota: keputusan akhir dibuat oleh ' + (off ? 'OIM / Marine / pihak berkuasa di lokasi' : 'pihak berkuasa (APM, NADMA, JPS)') + ' berdasarkan keadaan sebenar.');
     var text = out.join('\n');
-    if (short && text.length > 9000) text = text.slice(0, 8900) + '\n... (dipendekkan untuk Copilot)';
+    if (short && text.length > 8800) {
+      /* Copilot takes a shorter prompt: keep the instructions and the answer format whole, shorten the data above them */
+      var tail = out.slice(instr).join('\n'), head = out.slice(0, instr).join('\n');
+      text = head.slice(0, Math.max(1000, 8700 - tail.length)).replace(/\n[^\n]*$/, '') + '\n... (data dipendekkan untuk Copilot)\n\n' + tail;
+    }
     return text;
   }
 
   return { DAYS: DAYS, LEVELS: LEVELS, ACTIVITIES: ACTIVITIES, OVERALL: OVERALL, DISTRICTS_TRG: DISTRICTS_TRG, LAND_MODELS: LAND_MODELS, TARGETS: TARGETS,
     blocks: blocks, parseShift: parseShift, parsePlaces: parsePlaces, landAreas: landAreas, landUrls: landUrls, collectLand: collectLand, assessLand: assessLand,
-    limits: limits, limitsText: limitsText, judge: judge, assessOffshore: assessOffshore, prompt: prompt, shortDay: shortDay, dateKey: dateKey, stationLevel: stationLevel };
+    limits: limits, limitsText: limitsText, judge: judge, coastFor: coastFor, metActive: metActive, metTitle: metTitle, metForLand: metForLand, riverRatio: riverRatio, assessOffshore: assessOffshore, prompt: prompt, shortDay: shortDay, dateKey: dateKey, stationLevel: stationLevel };
 });

@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.3.0';
+  var VERSION = '4.4.0';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -155,7 +155,11 @@
     offWindKt: 15, offWaveM: 1.5,
     advLimits: '',                   /* AI suggestion: the user's changes to the offshore job limits (short JSON, see advisor.js) */
     advPlaces: '',                   /* AI suggestion: own places for the flood check, one per line "Name; lat; lon; JPS station; pantai" */
-    advShift: '07-19',               /* AI suggestion: day shift hours (the night shift is the rest) */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
+    advShift: '07-19',               /* AI suggestion: day shift hours (the night shift is the rest) */
+    coastal: true,                   /* land: the place is by the sea (Coastal Risk: tide, waves at the coast) */
+    advWindowH: 4,                   /* AI suggestion: shortest weather window worth showing (hours) */
+    ewRate: 0.3, ewRise3h: 0.5, ewHours: 6,   /* Early Flood Warning: rising m/h, or m in 3 h, or Waspada within this many hours */
+    ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
     sound: true, notify: true, keepInTray: false, startWithWindows: false,   /* keepInTray off: closing the window quits the app (3.3.1) */
@@ -174,7 +178,7 @@
   };
   var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
     'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace',
-    'offWindKt', 'offWaveM'];
+    'offWindKt', 'offWaveM', 'coastal'];
   var CAN_BE_EMPTY = ['advLimits', 'advPlaces', 'adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
   var JPS_STATES = ['PLS', 'KDH', 'PNG', 'PRK', 'SEL', 'WLH', 'PTJ', 'NSN', 'MLK', 'JHR', 'PHG', 'TRG', 'KEL', 'SRK', 'SAB', 'WLP'];
@@ -270,6 +274,9 @@
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
     try { if (out.advLimits) { var al = JSON.parse(out.advLimits); if (!al || typeof al !== 'object' || Array.isArray(al)) out.advLimits = ''; } } catch (e) { out.advLimits = ''; }
     if (!/^\s*\d{1,2}\s*[-–:]\s*\d{1,2}\s*$/.test(out.advShift)) out.advShift = DEFAULTS.advShift;
+    [['advWindowH', 1, 24], ['ewRate', 0.05, 3], ['ewRise3h', 0.1, 5], ['ewHours', 1, 24], ['ewWindRise', 2, 30], ['ewSwellTp', 5, 20]].forEach(function (r) {
+      if (!(out[r[0]] >= r[1] && out[r[0]] <= r[2])) out[r[0]] = DEFAULTS[r[0]];
+    });
     if (!(out.offWindKt >= 1 && out.offWindKt <= 80)) out.offWindKt = DEFAULTS.offWindKt;
     if (!(out.offWaveM >= 0.1 && out.offWaveM <= 15)) out.offWaveM = DEFAULTS.offWaveM;
     out.jpsState = String(out.jpsState).toUpperCase();
@@ -1065,6 +1072,8 @@
     var m = snap.marine;
     if (m && m.maxWave24h !== null && m.maxWave24h !== undefined && m.maxWave24h >= s.waveM)
       out.push({ key: 'wave:' + dateKey(now), cat: 'sea', level: 'warning', title: L('Ombak tinggi'), body: L('Sehingga {v} m dalam 24 jam', { v: f1(m.maxWave24h) }) + (m.maxSwell24h ? L(', alun {s} m', { s: f1(m.maxSwell24h) }) : '') + L(' (ambang {t} m)', { t: s.waveM }) });
+    /* early warnings worked out by the page / the PC (risk.js): river rising fast, wind / waves rising offshore */
+    (snap.early || []).forEach(function (e) { if (e && e.key && e.title) out.push({ key: e.key, cat: e.cat || 'water', level: e.level || 'info', title: e.title, body: e.body || '' }); });
     ((snap.met || {}).warnings || []).forEach(function (wn) {
       var en = I18N && I18N.lang() !== 'ms';
       out.push({ key: 'met:' + wn.id, cat: 'met', level: wn.severity, title: 'MET: ' + (en ? (wn.title_en || wn.title_bm) : (wn.title_bm || wn.title_en)),

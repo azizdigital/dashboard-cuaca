@@ -1,0 +1,22 @@
+Dashboard Cuaca Aziz 4.4.0
+
+Darat (Kemaman)
+- Flood Risk Score 0-100 daripada tiga bahagian:
+  Risiko cuaca  : hujan ramalan (5 model dalam tab AI), tanah sudah basah, amaran MET hujan.
+  Risiko sungai : paras JPS berbanding Waspada / Amaran / Bahaya, trend naik / turun, GloFAS.
+  Risiko pantai : air pasang besar (Cukai), paras laut model, ombak ke pantai.
+  Gabungan: paling tinggi antara tiga, naik satu tahap (+25) bila dua bahagian tinggi (>=50) serentak.
+- Early Flood Warning: sungai naik >= 0.3 m/jam, atau >= 0.5 m dalam 3 jam, atau dijangka capai Waspada
+  dalam <= 6 jam, walaupun masih bawah Waspada (nilai boleh ubah di Tetapan). Berbunyi seperti alert lain.
+  Data: sejarah 5 minit JPS (halaman graf stesen) melalui relay; tanpa relay, bacaan yang app simpan.
+  App PC: guna bacaan yang PC kumpul sendiri setiap beberapa minit (24 jam).
+- Kad baru "Skor risiko banjir" di dashboard (24 jam) + jadual trend sungai.
+- Tab Cadangan AI: setiap petak tunjuk skor & tiga bahagian; senarai amaran awal; prompt AI dengan skor & trend.
+- Tetapan: Kawasan pantai (hidup/mati), had amaran awal.
+
+Offshore
+- Skor risiko operasi 0-100: Risiko angin (angin, tiupan), Risiko laut (Hs, alun panjang >= 9 s),
+  Risiko cuaca (ribut petir, penglihatan, hujan, amaran MET); gabungan sama.
+- Had tempoh alun untuk bot, basket, swing rope, crane ke vesel, overside, selam, vesel bekalan (boleh ubah).
+- Amaran awal: angin naik >= 8 kt dalam 6 jam (tanda cold surge), angin / ombak capai had dalam 24 jam, alun panjang.
+- Weather window: tempoh Go paling awal untuk setiap kerja (>= 4 jam, boleh ubah), di dashboard (3 hari) & tab AI.

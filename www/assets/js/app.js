@@ -672,7 +672,7 @@
         Off.raw = raw; Off.rep = null; Off.err = '';
         save('mc_oc_raw', raw);
       }).catch(function (e) { Off.err = (e && e.message) || String(e); Off.errAt = Date.now(); })
-        .then(function () { Off.busy = false; renderOffCmp(); });
+        .then(function () { Off.busy = false; renderOffCmp(); try { renderRiskCard(); } catch (e) { /* */ } });
       renderOffCmp();
       return this.busy;
     },
@@ -948,7 +948,7 @@
         job = Off.load(false).then(function () {
           var rep = Off.report();
           if (!rep) throw new Error(Off.err || L('Tiada data model offshore'));
-          return M.assessOffshore({ rep: rep, snap: state.snap || {}, blocks: B, limits: M.limits(s.advLimits), now: Date.now() });
+          return M.assessOffshore({ rep: rep, snap: state.snap || {}, blocks: B, limits: M.limits(s.advLimits), now: Date.now(), minWindow: s.advWindowH, early: Early.offCfg(s) });
         });
       } else {
         var snap = state.snap || {};
@@ -964,7 +964,7 @@
           return have.then(function (raw) {
             if (!Object.keys(raw.models).some(function (k) { return raw.models[k].ok; })) throw new Error(L('Tiada model hujan menjawab'));
             M.landUrls(areas);   /* gives each area its place in the answers (also when the answers were kept) */
-            var r = M.assessLand({ areas: areas, raw: raw, snap: sn, blocks: B, now: Date.now() });
+            var r = M.assessLand({ areas: areas, raw: raw, snap: sn, blocks: B, now: Date.now(), trends: (state.snap || {}).trends || {} });
             r.snap = sn;
             return r;
           });
@@ -1004,12 +1004,20 @@
         B.map(function (b, j) {
           var first = b.day !== lastDay; lastDay = b.day;
           return '<tr' + (first ? ' class="dstart"' : '') + '><td class="adv-t">' + (first ? '<b>' + esc(M.shortDay(b.day)) + '</b><br>' : '') + '<small>' + esc(b.label) + '</small></td>' + r.cells[j].map(function (c, i) {
-            return '<td><button type="button" class="adv-c s' + A.sev(r, c) + '" data-ab="' + j + '" data-ac="' + i + '">' + A.icon(r, c) + ' ' + esc(c.label) + '<small>' + [pct(c), dot(c)].filter(Boolean).join(' · ') + '</small></button></td>';
+            var sc = c.score !== undefined ? c.score : c.risk ? c.risk.score : null;
+            return '<td><button type="button" class="adv-c s' + A.sev(r, c) + '" data-ab="' + j + '" data-ac="' + i + '">' + A.icon(r, c) + ' ' + esc(c.label) + '<small>' + [sc !== null ? L('skor {s}', { s: sc }) : '', pct(c), dot(c)].filter(Boolean).join(' · ') + '</small></button></td>';
           }).join('') + '</tr>';
         }).join('') + '</tbody></table></div>';
       var legend = off ? L('🟢 Go · 🟡 Caution · 🔴 No-Go · ⛔ Kekal dalam LQ. % = bahagian model yang memberi No-Go. ●●● keyakinan tinggi (model sepakat), ●○○ rendah. Tekan petak untuk sebab.')
         : L('🟢 Rendah · 🟡 Sederhana · 🟠 Tinggi · 🔴 Sangat tinggi. % = bahagian model hujan yang memberi risiko Tinggi atau lebih. ●●● keyakinan tinggi, ●○○ rendah. Tekan petak untuk sebab.');
-      $('advBody').innerHTML = '<h4 class="adv-h">' + L('Ringkasan') + '</h4>' + sum + '<h4 class="adv-h">' + L('Setiap blok masa') + '</h4><p class="note" style="margin-top:0">' + legend + '</p>' + mat +
+      var R = window.MCRisk, now = Date.now();
+      var early = '<h4 class="adv-h">' + L('Amaran awal') + '</h4>' + ((r.early || []).length ? r.early.map(function (e) {
+        return '<div class="rk-ewi lv-' + e.level + '">' + (e.level === 'warning' ? '⚠️' : '🔔') + ' <b>' + esc(e.title) + '</b><span>' + esc(e.body) + '</span></div>';
+      }).join('') : '<p class="note" style="margin-top:0">' + (off ? L('Tiada angin / ombak naik cepat dalam 24 jam.') : L('Tiada sungai naik cepat.')) + '</p>');
+      var wins = off ? '<h4 class="adv-h">' + L('Weather window (≥{h} jam, dalam tarikh dipilih)', { h: state.settings.advWindowH }) + '</h4><div class="oc-scroll"><table class="tbl adv-sum"><tbody>' + (r.windows || []).map(function (w) {
+        return '<tr><td><b>' + esc(w.name) + '</b></td><td>' + (w.list.length ? w.list.slice(0, 4).map(function (x) { return '🟢 ' + esc(R.when(x.t0, now) + ' – ' + R.when(x.t1, now)) + ' <small class="muted">(' + x.hours + L(' jam') + ')</small>'; }).join('<br>') : '<span class="muted">' + L('Tiada tempoh selamat yang cukup panjang') + '</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : '';
+      $('advBody').innerHTML = '<h4 class="adv-h">' + L('Ringkasan') + '</h4>' + sum + early + wins + '<h4 class="adv-h">' + L('Setiap blok masa') + '</h4><p class="note" style="margin-top:0">' + legend + '</p>' + mat +
         '<div id="advDetail" class="adv-detail" hidden></div>' +
         '<p class="note">' + (off ? L('Had ialah nilai lazim industri yang boleh ditukar di bawah. Keputusan akhir oleh OIM / Marine mengikut keadaan sebenar dan prosedur syarikat.')
           : L('Penilaian ini daripada ramalan hujan 5 model, paras & hujan JPS, GloFAS, amaran MET dan air pasang. Bukan amaran rasmi - ikut arahan APM / NADMA / JPS.')) + '</p>';
@@ -1024,6 +1032,7 @@
       d.hidden = false;
       d.innerHTML = '<div class="adv-dh"><b>' + this.icon(r, c) + ' ' + esc(it.name) + ' — ' + esc(c.label) + '</b><span>' + esc(M.shortDay(b.day) + ' ' + b.label) + '</span><button type="button" class="ibtn" aria-label="Tutup" onclick="this.parentNode.parentNode.hidden=true">✕</button></div>' +
         '<div class="kv"><div><span>' + L('Peluang') + '</span><b>' + (c.prob === null || c.prob === undefined ? '-' : Math.round(c.prob * 100) + '%') + '</b></div><div><span>' + L('Keyakinan') + '</span><b>' + esc(c.confLabel) + '</b></div></div>' +
+        (c.parts ? '<div class="adv-parts">' + c.parts.map(rkBar).join('') + '</div>' : c.risk ? '<p class="note">' + L('Skor risiko operasi: {s}/100 ({l})', { s: c.risk.score, l: c.risk.label }) + '</p><div class="adv-parts">' + c.risk.parts.map(rkBar).join('') + '</div>' : '') +
         '<ul>' + c.why.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + vals;
       d.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     },
@@ -1046,12 +1055,12 @@
     renderLimits: function () {
       var M = window.MCAdvisor, lim = M.limits(state.settings.advLimits), host = $('advLimitsBody');
       if (!host || host.contains(document.activeElement)) return;
-      var P = [['w', L('Angin kt')], ['g', L('Tiupan kt')], ['h', 'Hs m'], ['sw', L('Alun m')], ['vis', L('Penglihatan km')]];
+      var P = [['w', L('Angin kt')], ['g', L('Tiupan kt')], ['h', 'Hs m'], ['sw', L('Alun m')], ['tp', L('Tempoh alun s')], ['vis', L('Penglihatan km')]];
       var row = function (a, ov) {
         return '<tr data-id="' + a.id + '"><td>' + (ov ? '<b>' + esc(L(a.name)) + '</b>' : '<label><input type="checkbox" data-k="on"' + (a.on !== false ? ' checked' : '') + '> ' + esc(L(a.name)) + '</label>') + '</td>' +
           P.map(function (p) {
             var v = a[p[0]] || ['', ''];
-            if (ov && (p[0] === 'sw' || p[0] === 'vis')) return '<td></td>';
+            if (ov && (p[0] === 'sw' || p[0] === 'tp' || p[0] === 'vis')) return '<td></td>';
             return '<td class="adv-lim"><input class="inp" inputmode="decimal" data-k="' + p[0] + '0" value="' + v[0] + '"><input class="inp" inputmode="decimal" data-k="' + p[0] + '1" value="' + v[1] + '"></td>';
           }).join('') +
           '<td>' + (ov ? '' : '<input type="checkbox" data-k="day"' + (a.day ? ' checked' : '') + '>') + '</td>' +
@@ -1086,6 +1095,70 @@
       };
     }
   };
+  /* ------------------------------------------- risk score card (dashboard): the next 24 hours
+     land: Weather / River / Coastal -> Flood Risk Score + Early Flood Warning; offshore: Wind / Sea / Weather -> Operational Risk Score,
+     early warnings and the first weather window of each job */
+  function rkBar(p) {
+    return '<div class="rk-part lv' + p.level + '"><div class="rk-ph"><b>' + esc(p.name) + '</b><span>' + esc(p.label) + ' · ' + p.score + '</span></div>' +
+      '<div class="rk-bar"><i style="width:' + Math.max(3, p.score) + '%"></i></div><small>' + esc(p.why[0] || '') + '</small></div>';
+  }
+  function rkHead(sc, title) {
+    return '<div class="rk-top lv' + sc.level + '"><div class="rk-score"><b>' + sc.score + '</b><small>/100</small></div><div><span class="rk-k">' + esc(title) + '</span><span class="rk-lv">' +
+      ['🟢', '🟡', '🟠', '🔴'][sc.level] + ' ' + esc(sc.label) + '</span>' + (sc.boost ? '<small>' + L('Dua risiko tinggi serentak: dinaikkan satu tahap.') + '</small>' : '') + '</div></div>';
+  }
+  function rkEarly(list, none) {
+    return '<div class="rk-ew"><h4>' + L('Amaran awal') + '</h4>' + (list.length ? list.map(function (e) {
+      return '<div class="rk-ewi lv-' + e.level + '">' + (e.level === 'warning' ? '⚠️' : '🔔') + ' <b>' + esc(e.title) + '</b><span>' + esc(e.body) + '</span></div>';
+    }).join('') : '<div class="muted">' + none + '</div>') + '</div>';
+  }
+  function renderRiskCard() {
+    var body = $('rkBody'), s = state.settings, snap = state.snap || {}, R = window.MCRisk, A = window.MCAdvisor, now = Date.now();
+    if (!body || !R || !A) return;
+    $('rkMore').onclick = function () { show('advisor'); };
+    var t1 = now + 24 * 3600000, h = '';
+    if (s.kind === 'offshore') {
+      $('rkTitle').textContent = '📊 ' + L('Skor risiko operasi offshore');
+      var rep = Off.report();
+      if (!rep) { body.innerHTML = '<div class="empty">' + (Off.busy ? L('Membaca model…') : L('Belum ada data model offshore.')) + '</div>'; return; }
+      var met = A.metActive(snap, now, t1, null, false).map(function (w) { return { severity: w.severity, title: A.metTitle(w) }; });
+      var vals = R.offValues(rep, now, t1);
+      var vis = ((snap.weather && snap.weather.hourly) || []).filter(function (x) { return x.t >= now && x.t < t1 && x.vis !== null && x.vis !== undefined; }).map(function (x) { return x.vis; });
+      if (vis.length) vals.vis = Math.min.apply(null, vis);
+      var sc = R.offScore(Object.assign(vals, { met: met }));
+      /* first weather window of each job in the next 3 days */
+      var lim = A.limits(s.advLimits), B = A.blocks({ from: C.dateKey(now), to: C.dateKey(now + 2 * 86400000), res: 'day', now: now });
+      var res = A.assessOffshore({ rep: rep, snap: snap, blocks: B, limits: lim, now: now, minWindow: s.advWindowH, early: Early.offCfg(s) });
+      var early = res.early || [];
+      h = rkHead(sc, L('24 jam akan datang')) + '<div class="rk-parts">' + sc.parts.map(rkBar).join('') + '</div>' +
+        '<div class="rk-cols">' + rkEarly(early, L('Tiada angin / ombak naik cepat dalam 24 jam.')) +
+        '<div class="rk-win"><h4>' + L('Weather window (3 hari, ≥{h} jam)', { h: s.advWindowH }) + '</h4><table class="tbl"><tbody>' + res.windows.map(function (w) {
+          var x = w.list[0];
+          return '<tr><td>' + esc(w.name) + '</td><td>' + (x ? '🟢 ' + esc(R.when(x.t0, now) + ' – ' + R.when(x.t1, now)) + ' <small class="muted">(' + x.hours + L(' jam') + ')</small>' : '<span class="muted">' + L('Tiada dalam 3 hari') + '</span>') + '</td></tr>';
+        }).join('') + '</tbody></table></div></div>';
+      $('rkSub').textContent = L('angin · laut · cuaca, gabungan model');
+    } else {
+      $('rkTitle').textContent = '📊 ' + L('Skor risiko banjir');
+      var w = snap.weather && snap.weather.summary, rain = w && w.next24h !== undefined ? w.next24h : null;
+      var hist = [], rains = ((snap.jps && snap.jps.rain && snap.jps.rain.stations) || []).filter(function (r) { return !s.waterDistrict || String(r.district).toLowerCase() === String(s.waterDistrict).toLowerCase(); });
+      var obs = rains.length ? Math.max.apply(null, rains.map(function (r) { var d = r.daily || []; return (d[d.length - 1] || 0) + (d[d.length - 2] || 0) + (r.today || 0); })) : 0;
+      var metW = A.metActive(snap, now, t1, { kind: 'district', name: s.waterDistrict || s.locationName }, true).map(A.metForLand);
+      var weather = R.weatherPart({ rain: rain, hours: 24, wet: obs, met: metW });
+      var gl = Math.max(A.riverRatio(snap, C.dateKey(now)) || 0, A.riverRatio(snap, C.dateKey(now + 86400000)) || 0) || null;
+      var river = R.riverPart({ stations: snap.stations || [], trends: snap.trends || {}, leadH: 0, glofas: gl });
+      var coastal = R.coastalPart(Object.assign({ coastal: s.coastal !== false }, A.coastFor(snap, now, t1)));
+      var sc2 = R.landScore(weather, river, coastal), early2 = snap.early || [];
+      var tr = snap.trends || {}, sts = (snap.stations || []).filter(function (x) { return !x.stale && tr[x.name]; });
+      h = rkHead(sc2, s.locationName + ' · ' + L('24 jam akan datang')) + '<div class="rk-parts">' + sc2.parts.map(rkBar).join('') + '</div>' +
+        '<div class="rk-cols">' + rkEarly(early2, L('Tiada sungai naik cepat.')) +
+        '<div class="rk-win"><h4>' + L('Trend sungai (JPS)') + '</h4>' + (sts.length ? '<table class="tbl"><thead><tr><th>' + L('Stesen') + '</th><th class="num">m</th><th class="num">' + L('m/jam') + '</th><th class="num">' + L('Ke Waspada') + '</th></tr></thead><tbody>' + sts.map(function (st) {
+          var t = tr[st.name];
+          return '<tr><td>' + esc(st.name) + '</td><td class="num">' + f(t.level, 2) + '</td><td class="num ' + (t.early ? 'hot' : '') + '">' + (t.rate === null ? '-' : (t.rate > 0 ? '+' : '') + f(t.rate, 2)) + '</td><td class="num">' + (t.gap !== null && t.gap <= 0 ? L('sudah') : t.tta !== null ? '~' + f(t.tta, 1) + L(' j') : '-') + '</td></tr>';
+        }).join('') + '</tbody></table><p class="note">' + (sts.some(function (st) { return tr[st.name].src === 'jps'; }) ? L('Kadar naik daripada data 5 minit JPS (12 jam terakhir).') : L('Kadar naik daripada bacaan yang app simpan; lebih tepat bila relay dipasang.')) + '</p>'
+          : '<div class="muted">' + L('Belum cukup bacaan untuk kira kadar naik.') + '</div>') + '</div></div>';
+      $('rkSub').textContent = L('cuaca · sungai · pantai');
+    }
+    body.innerHTML = h;
+  }
   function renderDashboard() {
     var s = state.snap || {};
     var alerts = activeAlerts(), open = alerts.filter(function (a) { return !a.acked; });
@@ -1097,6 +1170,8 @@
     } else if (s.at) {
       $('dashBanner').innerHTML = '<div class="banner lv-ok"><span class="bi">✅</span><div><b>Tiada alert aktif</b><span>Semua bacaan di bawah ambang yang ditetapkan.</span></div></div>';
     } else $('dashBanner').innerHTML = '';
+
+    try { renderRiskCard(); } catch (e) { $('rkBody').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
 
     /* tiles */
     var w = s.weather, cur = w && w.current, sum = w && w.summary, m = s.marine, sts = s.stations || [];
@@ -1599,6 +1674,42 @@
     renderAll();
   }
 
+  /* early warnings (risk.js): rivers rising fast (5-minute JPS history through the relay, else the app's own readings),
+     wind / waves rising offshore; they ring like the other alerts */
+  var Early = {
+    cache: {},
+    cfg: function (s) { return { rate: s.ewRate, rise3h: s.ewRise3h, hours: s.ewHours }; },
+    offCfg: function (s) { return { windRise: s.ewWindRise, swellTp: s.ewSwellTp, windKt: s.offWindKt, waveM: s.offWaveM, ahead: 24 }; },
+    add: function (snap, s, hist, now, viaRelay) {
+      var R = window.MCRisk;
+      if (!R) return Promise.resolve();
+      if (s.kind === 'offshore') {
+        var rep = Off.report();
+        snap.early = rep ? R.earlyOffshore(rep, now, Early.offCfg(s)) : [];
+        return Promise.resolve();
+      }
+      var cfg = Early.cfg(s), sts = (snap.stations || []).filter(function (x) { return !x.stale && x.level !== null; });
+      var water = (snap.jps && snap.jps.water) || [];
+      var gidOf = function (name) { var w = water.filter(function (x) { return x.name === name; })[0]; return w && w.gid; };
+      return Promise.all(sts.slice(0, 15).map(function (st) {
+        var gid = gidOf(st.name), c = Early.cache[st.name];
+        var fromHist = function () { return [st.name, R.trend(R.histPoints(hist, st, now), st, now, cfg), 'app']; };
+        if (!gid || !viaRelay || !window.MCParse) return Promise.resolve(fromHist());
+        if (c && now - c.at < 10 * 60000) return Promise.resolve([st.name, R.trend(c.pts, st, now, cfg), 'jps']);
+        return viaRelay(R.seriesUrl(gid, now, 12)).then(function (txt) {
+          var pts = window.MCParse.wlSeries(txt);
+          if (pts.length < 3) throw new Error('no series');
+          Early.cache[st.name] = { at: now, pts: pts };
+          return [st.name, R.trend(pts, st, now, cfg), 'jps'];
+        }).catch(fromHist);
+      })).then(function (list) {
+        var tr = {};
+        list.forEach(function (x) { if (x[1]) { x[1].src = x[2]; tr[x[0]] = x[1]; } });
+        snap.trends = tr;
+        snap.early = R.earlyFlood(sts, tr, now);
+      });
+    }
+  };
   function histKey() { return 'mc_d_hist_' + (state.profiles.active || 'kemaman'); }
   /* phone with no PC: fetch the public APIs directly (they allow it, except where the browser blocks) */
   var Direct = {
@@ -1651,6 +1762,7 @@
         var now = Date.now(), prev = state.snap || {};
         var snap = C.assemble(raw, s, prev, now);
         var hist = load(histKey(), []);
+        return Early.add(snap, s, hist, now, live ? viaRelay : null).catch(function () { }).then(function () {
         var cur = C.evaluateAlerts(snap, s, hist, now);
         var prevA = (prev.alerts && prev.alerts.active) || [], since = {};
         prevA.forEach(function (a) { since[a.key] = a.since; });
@@ -1667,6 +1779,7 @@
         if (fresh.length) { var log = load('mc_d_log', []); fresh.forEach(function (a) { log.unshift(Object.assign({ t: now }, a)); }); save('mc_d_log', log.slice(0, 200)); }
         onSnap(snap);
         onAlerts(fresh);
+        });
       }).finally(function () { Direct.busy = false; state.refreshing = false; renderStatus(); Direct.schedule(); });
     },
     schedule: function () { clearTimeout(Direct.timer); Direct.timer = setTimeout(Direct.run, state.settings.refreshMin * 60000); },

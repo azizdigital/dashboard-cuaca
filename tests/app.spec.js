@@ -235,7 +235,8 @@ test('profile switch: Irong Barat offshore dashboard, sites follow the profile, 
   await expect(page.locator('#dashTiles')).toContainText('HIGH');
   await expect(page.locator('#offTable tbody tr')).toHaveCount(9);
   await expect(page.locator('#chartWave svg .th')).toHaveCount(1);
-  await expect(page.locator('#bellBadge')).toHaveText('6');
+  await expect(page.locator('#bellBadge')).toHaveText('7');   /* 6 + the offshore early warning worked out by the PC */
+  expect(await page.evaluate(() => MC.state.snap.alerts.active.some(a => /^oew:/.test(a.key)))).toBe(true);
   await expect(page.locator('#topSub')).toContainText('offshore 5.5501, 104.7745');
   /* the open map moved to the profile's point */
   await page.click('.site[data-site="windywave"]');

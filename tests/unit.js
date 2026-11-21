@@ -216,7 +216,7 @@ test('newAlerts: new or escalated only', () => {
 /* ------------------------------------------------------------- languages */
 const I18N = require('../www/assets/js/i18n');
 test('every L(\'...\') text in the code has an English translation', () => {
-  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
+  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'www/assets/js/risk.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
   const missing = [];
   files.forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
@@ -740,6 +740,92 @@ test('AI suggestion: time blocks, offshore Go / Caution / No-Go with limits, flo
   assert.ok(p2.length < p1.length && p2.length <= 9000 && /Bahasa Inggeris/.test(p2) && /Bing/.test(p2));
   const p3 = A.prompt({ result: lr, settings: s, snap, target: 'gemini', lang: 'ms', now });
   assert.ok(/risiko banjir/.test(p3) && /publicinfobanjir/.test(p3) && /Paras air JPS/.test(p3) && /Google Search/.test(p3));
+  I18N.setLang('en');
+});
+
+/* ------------------------------------------------ risk scores & early warnings (4.4.0) */
+test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / River / Coastal -> Flood Risk Score', () => {
+  const R = require('../www/assets/js/risk'), P = require('../www/assets/js/mirror-parse');
+  I18N.setLang('ms');
+  /* the JPS table gives each station its graph id; the graph data is a time series */
+  const W = P.jpsWater(fs.readFileSync(path.join(__dirname, 'web-fixtures/jps-water-TRG.html'), 'utf8'));
+  assert.ok(W.every(x => x.gid)); assert.strictEqual(W.find(x => /Ban Ho/.test(x.name)).gid, '4131001_');
+  const body = fs.readFileSync(path.join(__dirname, 'web-fixtures/jps-wl-series.json'), 'utf8');
+  const pts = P.wlSeries('<style>a{b:1}</style><script>var x={y:2}</script>' + body);   /* as it comes through the relay */
+  assert.ok(pts.length > 100); assert.strictEqual(pts[0].t, Date.parse('2026-11-20T00:00:00+08:00'));
+  const u = R.seriesUrl('4131001_', Date.parse('2026-11-21T12:00:00+08:00'), 12);
+  assert.ok(u.includes('searchresultwaterleveldtlead.php?station=4131001_&from=21%2F11%2F2026%2000%3A00&to=21%2F11%2F2026%2012%3A00&datafreq=15'), u);
+  /* the fixture river is falling: no warning */
+  const st = { name: 'Sg. Setiu di Kg. Besut (RHN)', level: 14.17, alert: 16, warning: 17, danger: 17.5 };
+  const fall = R.trend(pts, st, pts[pts.length - 1].t + 60000, { rate: 0.3, rise3h: 0.5, hours: 6 });
+  assert.ok(fall && fall.rate < 0 && !fall.early, JSON.stringify(fall));
+  /* made-up rising river: +0.25 m/h for 4 hours, 1.2 m below Waspada -> ~4.8 h to Waspada -> early warning */
+  const t0 = Date.parse('2026-11-21T08:00:00+08:00'), rise = [];
+  for (let i = 0; i <= 16; i++) rise.push({ t: t0 + i * 15 * 60000, v: 13.8 + 0.0625 * i });
+  const tr = R.trend(rise, st, t0 + 4 * 3600000 + 60000, { rate: 0.3, rise3h: 0.5, hours: 6 });
+  assert.ok(Math.abs(tr.rate - 0.25) < 0.01 && Math.abs(tr.rise3h - 0.75) < 0.01 && tr.tta > 4 && tr.tta < 5, JSON.stringify(tr));
+  assert.ok(tr.early && tr.jump && tr.soon && !tr.fast);
+  const ew = R.earlyFlood([st], { [st.name]: tr }, t0 + 4 * 3600000);
+  assert.strictEqual(ew.length, 1); assert.ok(/^Amaran awal banjir: Sg. Setiu/.test(ew[0].title)); assert.ok(/Waspada \(16.0 m\) dalam ~4.\d jam/.test(ew[0].body), ew[0].body);
+  /* already above Waspada: the normal alerts handle it, no early warning */
+  assert.strictEqual(R.trend(rise.map(p => ({ t: p.t, v: p.v + 3 })), st, t0 + 4 * 3600000, {}).early, false);
+  /* old readings: nothing */
+  assert.strictEqual(R.trend(rise, st, t0 + 9 * 3600000, {}), null);
+  /* readings the app kept itself */
+  const hist = [0, 1, 2, 3].map(i => ({ t: t0 + i * 3600000, levels: { S1: 13.8 + 0.4 * i } }));
+  const hp = R.histPoints(hist, { id: 'S1', level: 15.4, updated: new Date(t0 + 4 * 3600000).toISOString() }, t0 + 4 * 3600000);
+  assert.strictEqual(hp.length, 5); assert.ok(R.trend(hp, { alert: 16 }, t0 + 4 * 3600000, { rate: 0.3 }).fast);
+  /* parts and the combined score */
+  const wp = R.weatherPart({ rain: 70, hours: 24, wet: 210, met: [] });
+  assert.ok(wp.score >= 55 && wp.score <= 70 && wp.level === 2, JSON.stringify(wp));
+  assert.strictEqual(R.weatherPart({ rain: 2, hours: 24, met: [{ severity: 'warning', title: 'Hujan berterusan' }] }).score, 55);
+  const rp = R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 0 });
+  assert.strictEqual(rp.score, 55); assert.ok(/Waspada/.test(rp.why[0]));
+  assert.strictEqual(R.riverPart({ stations: [st], trends: { [st.name]: tr }, leadH: 0 }).score, 50);   /* early warning counts */
+  assert.ok(R.riverPart({ stations: [Object.assign({}, st, { level: 16.2 })], trends: {}, leadH: 100 }).score < 20);   /* days ahead: fades */
+  const cp = R.coastalPart({ coastal: true, tide: { t: t0, sea: 2.9 }, top: 2.95, wave: 2.6, waveDir: 45 });
+  assert.ok(cp.score >= 60, JSON.stringify(cp));
+  assert.strictEqual(R.coastalPart({ coastal: false }).score, 0);
+  const sc = R.landScore(wp, rp, cp);
+  assert.strictEqual(sc.boost, true); assert.ok(sc.score >= 85 && sc.level === 3, JSON.stringify(sc));
+  const one = R.landScore(wp, R.riverPart({ stations: [st], trends: {}, leadH: 0 }), R.coastalPart({ coastal: false }));
+  assert.strictEqual(one.boost, false); assert.strictEqual(one.score, wp.score);
+  /* offshore parts: long swell raises the sea part */
+  const a = R.offScore({ w: 18, g: 24, h: 1.4, sw: 1.0, tp: 7 }), b = R.offScore({ w: 18, g: 24, h: 1.4, sw: 1.0, tp: 11 });
+  assert.ok(b.parts[1].score - a.parts[1].score === 15 && b.parts[1].why.some(w => /Alun panjang/.test(w)));
+  assert.strictEqual(R.offScore({ w: 40, g: 52, h: 4.5 }).level, 3);
+  I18N.setLang('en');
+});
+
+test('risk offshore: early warnings (wind rising, reaching limits, long swell) and weather windows', async () => {
+  const R = require('../www/assets/js/risk'), OFF = require('../www/assets/js/offshore'), A = require('../www/assets/js/advisor'), FX = require('./web-fixtures/make');
+  const now = Date.parse('2026-11-21T12:30:00+08:00');
+  I18N.setLang('ms');
+  const raw = await OFF.collect(5.55, 104.77, async u => FX.offshore(u, now));
+  const rep = OFF.build(raw, { now });
+  /* the fixture wind swings 7..17 kt in a 30-hour wave: up to ~5.9 kt in 6 hours */
+  const ew = R.earlyOffshore(rep, now, { windRise: 5, swellTp: 6.5, windKt: 15, waveM: 1.5 });
+  assert.ok(ew.some(e => e.key.startsWith('oew:wind:') && /naik \d+ kt dalam 6 jam/.test(e.body)), JSON.stringify(ew));
+  assert.ok(ew.some(e => e.key.startsWith('oew:swell:')));
+  assert.ok(!R.earlyOffshore(rep, now, { windRise: 8, swellTp: 15 }).some(e => /oew:(wind|swell):/.test(e.key)));
+  /* calm sea: windows are long; a strict limit leaves none */
+  const all = R.windows(rep, now, now + 2 * 86400000, h => h.w10.m < 30, 4);
+  assert.strictEqual(all.length, 1); assert.ok(all[0].hours >= 46);
+  const none = R.windows(rep, now, now + 2 * 86400000, h => h.hs.m < 0.5, 4);
+  assert.strictEqual(none.length, 0);
+  const some = R.windows(rep, now, now + 3 * 86400000, h => h.w10.m < 14, 3);
+  assert.ok(some.length >= 2 && some.every(w => w.hours >= 3 && w.t1 > w.t0));
+  /* in the AI suggestion: a window list per job, the score on the overall line, swell period limits */
+  const B = A.blocks({ from: '2026-11-21', to: '2026-11-23', res: 'day', now });
+  const r = A.assessOffshore({ rep, snap: {}, blocks: B, limits: A.limits(''), now, minWindow: 4 });
+  assert.strictEqual(r.windows.length, 10); assert.ok(r.windows.find(w => w.id === 'crane').list.length >= 1);
+  assert.ok(r.windows.find(w => w.id === 'basket').list.every(w => { const h0 = new Date(w.t0 + 8 * 3600000).getUTCHours(), h1 = new Date(w.t1 + 8 * 3600000).getUTCHours(); return h0 >= 7 && (h1 <= 19 && h1 >= 7); }), 'basket: daylight only');
+  assert.ok(r.cells[0][0].risk && r.cells[0][0].risk.parts.length === 3);
+  assert.deepStrictEqual(A.limits('').acts[0].tp, [9, 12]);
+  assert.strictEqual(A.judge(A.limits('').acts[0], { w: 10, h: 1.0, sw: 1.0, tp: 12.5 }).st, 2);
+  assert.strictEqual(A.judge(A.limits('').acts[0], { w: 10, h: 1.0, sw: 0.5, tp: 12.5 }).st, 0);   /* small swell: period ignored */
+  const p = A.prompt({ result: r, settings: core.profileSettings({}, core.DEFAULT_PROFILES[1]), snap: {}, rep, target: 'claude', lang: 'ms', now });
+  assert.ok(/Weather window/.test(p) && /Skor risiko operasi 0–100/.test(p) && /\[skor \d+\/100: Risiko angin \d+/.test(p));
   I18N.setLang('en');
 });
 

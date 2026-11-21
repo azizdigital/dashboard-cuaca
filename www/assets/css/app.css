@@ -626,3 +626,33 @@ textarea.inp.adv-ta.sm { min-height: 90px; height: 110px; }
 .adv-lim input { width: 52px; height: 30px; padding: 0 6px; font-size: 12.5px; }
 .adv-lim input + input { margin-left: 4px; }
 .adv-limits select { height: 30px; font-size: 12.5px; }
+
+/* ---- 4.4.0 risk score card */
+.rk-top { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 14px; background: var(--fill); border: 1px solid var(--line); }
+.rk-top.lv1 { background: var(--soft-alert); } .rk-top.lv2 { background: var(--soft-warning); } .rk-top.lv3 { background: var(--soft-danger); }
+.rk-score { display: flex; align-items: baseline; gap: 2px; min-width: 76px; }
+.rk-score b { font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+.rk-score small { color: var(--ink-3); }
+.rk-k { display: block; font-size: 12px; color: var(--ink-3); }
+.rk-lv { display: block; font-size: 17px; font-weight: 800; }
+.rk-top small { display: block; color: var(--ink-2); font-size: 12px; }
+.rk-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+@media (max-width: 760px) { .rk-parts { grid-template-columns: 1fr; } }
+.rk-part { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+.rk-ph { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.rk-ph span { color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.rk-bar { height: 6px; border-radius: 4px; background: var(--line); margin: 6px 0; overflow: hidden; }
+.rk-bar i { display: block; height: 100%; border-radius: 4px; background: var(--st-normal); }
+.rk-part.lv1 .rk-bar i { background: var(--st-alert); } .rk-part.lv2 .rk-bar i { background: var(--st-warning); } .rk-part.lv3 .rk-bar i { background: var(--st-danger); }
+.rk-part small { color: var(--ink-2); font-size: 12px; line-height: 1.4; display: block; }
+.rk-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
+@media (max-width: 900px) { .rk-cols { grid-template-columns: 1fr; } }
+.rk-cols h4 { margin: 0 0 6px; font-size: 13px; }
+.rk-ewi { border-left: 3px solid var(--st-alert); padding: 4px 8px; margin-bottom: 6px; font-size: 12.5px; }
+.rk-ewi.lv-warning { border-color: var(--st-warning); }
+.rk-ewi b, .rk-ewi span { display: block; }
+.rk-ewi span { color: var(--ink-2); }
+.rk-win td { padding: 5px 8px; font-size: 12.5px; }
+.rk-win td.hot { color: var(--st-warning); font-weight: 700; }
+.adv-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+@media (max-width: 760px) { .adv-parts { grid-template-columns: 1fr; } }

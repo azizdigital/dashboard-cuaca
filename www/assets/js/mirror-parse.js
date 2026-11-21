@@ -50,15 +50,40 @@ function isoDate(s) { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(s ||
 /* JPS water level: No | Station ID | Station Name | District | Main Basin | Sub River Basin | Last Updated | Water Level (m) | Normal | Alert | Warning | Danger */
 function jpsWater(html) {
   const seen = new Set(), out = [];
+  /* the level cell links to the station's graph page: /wl-graph/?stationid=25318 (that id gives the 5-minute history) */
+  const gid = {};
+  String(html || '').split(/data-th\s*=\s*["']?No["'\s>]/i).forEach(chunk => {
+    const n = /data-th\s*=\s*["']?Station Name["']?\s*>([\s\S]*?)<\/td>/i.exec(chunk), g = /stationid=([A-Za-z0-9_-]+)/i.exec(chunk);
+    if (n && g && !gid[text(n[1])]) gid[text(n[1])] = g[1];
+  });
   for (const r of rows(html)) {
     if (r.length < 12 || !/^\d+$/.test(r[0]) || !r[2]) continue;
     const key = r[1] + '|' + r[2];
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ no: +r[0], id: r[1], name: r[2], district: r[3], basin: r[4], subBasin: r[5], updated: mytIso(r[6]),
-      level: num(r[7]), normal: num(r[8]), alert: num(r[9]), warning: num(r[10]), danger: num(r[11]) });
+      level: num(r[7]), normal: num(r[8]), alert: num(r[9]), warning: num(r[10]), danger: num(r[11]), gid: gid[r[2]] || null });
   }
   return out;
+}
+
+/* one station's history (JPS graph page data, JSON): {"info": {...}, "values": [{"dt":"20/11/2026 00:05","final":"15.28"}, ...]}
+   -> [{ t: ms, v: metres }] oldest first; -9999 and empty readings dropped */
+function wlSeries(body) {
+  let j = body;
+  if (typeof body === 'string') {
+    /* through the relay the answer may start with the relay's own <style>/<script>: read from {"info" to the last } */
+    const a = body.search(/\{\s*"info"/), b = body.lastIndexOf('}');
+    try { j = JSON.parse(a >= 0 && b > a ? body.slice(a, b + 1) : body.trim()); } catch (e) { return []; }
+  }
+  const out = [];
+  ((j && j.values) || []).forEach(x => {
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/.exec(String(x.dt || ''));
+    const v = num(x.final !== undefined ? x.final : x.clean);
+    if (!m || v === null || v < -100) return;
+    out.push({ t: Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 8, +m[5]), v });
+  });
+  return out.sort((a, b) => a.t - b.t);
 }
 
 /* JPS rainfall: No | Station ID | Station | District | Last Updated | 6 x daily | Rainfall from Midnight | Total 1 Hour */
@@ -110,5 +135,5 @@ function tides(html, nowMs) {
   return out.sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
 }
 
-return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides };
+return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides, wlSeries: wlSeries };
 }));

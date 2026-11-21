@@ -183,7 +183,7 @@ test('AI suggestion tab: offshore jobs Go / Caution / No-Go, limits, prompt; lan
   expect(rows).toBeGreaterThanOrEqual(5); expect(rows).toBeLessThanOrEqual(6);           /* 3 days x 2 shifts, minus a shift already over */
   await expect(page.locator('#advBody .adv-mat thead th')).toHaveCount(12);                 /* time + status + 10 jobs */
   await expect(page.locator('#advBody .adv-mat')).toContainText('Inter-rig boat');
-  await expect(page.locator('#advBody .adv-sum')).toContainText('Outside work status');
+  await expect(page.locator('#advBody .adv-sum').first()).toContainText('Outside work status');
   await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.getElementById('advOut').offsetTop - 10; });
   await page.screenshot({ path: '/tmp/shots/adv-off-0.png' });
   await page.locator('#advBody .adv-c').nth(3).click();
@@ -236,4 +236,56 @@ test('AI suggestion tab: offshore jobs Go / Caution / No-Go, limits, prompt; lan
   await page.locator('#advArea [data-area="station"]').click();
   await page.click('#advPromptBtn');
   await expect(page.locator('#advPrompt')).toHaveValue(/Penilaian risiko banjir — Kemaman/, { timeout: 30000 });
+});
+
+test('risk score card: Flood Risk Score with Weather / River / Coastal, Early Flood Warning from the readings; offshore score, early warnings, windows', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await open(page, baseURL);
+  await expect(page.locator('#rkTitle')).toHaveText('📊 Flood risk score');
+  await expect(page.locator('#rkBody .rk-part')).toHaveCount(3);
+  await expect(page.locator('#rkBody .rk-parts')).toContainText('Weather risk');
+  await expect(page.locator('#rkBody .rk-parts')).toContainText('River risk');
+  await expect(page.locator('#rkBody .rk-parts')).toContainText('Coastal risk');
+  expect(+(await page.locator('#rkBody .rk-score b').textContent())).toBeGreaterThanOrEqual(0);
+  /* a river rising 0.3 m/h for 3 hours, still below Waspada -> early flood warning (from the app's own readings) */
+  const st = await page.evaluate(() => {
+    const x = MC.state.snap.stations.find(s => !s.stale && s.level !== null && s.alert && s.level < s.alert - 0.4);
+    const now = Date.now(), key = 'mc_d_hist_' + MC.state.profiles.active;
+    const hist = [3, 2, 1].map(h => ({ t: now - h * 3600000, levels: { [x.id]: x.level - 0.3 * h } }));
+    localStorage.setItem(key, JSON.stringify(hist));
+    return { name: x.name, id: x.id };
+  });
+  await page.click('#btnRefresh');
+  await expect(page.locator('#rkBody .rk-ew')).toContainText('Early flood warning: ' + st.name, { timeout: 20000 });
+  await expect(page.locator('#rkBody .rk-win')).toContainText('+0.30');
+  expect(await page.evaluate(n => MC.state.snap.alerts.active.some(a => a.title === 'Early flood warning: ' + n), st.name)).toBe(true);
+  await page.addStyleTag({ content: '#toasts { display: none !important; }' });
+  await page.locator('#cardRisk').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/shots/risk-land.png' });
+  /* AI tab: the score and its three parts in each cell */
+  await page.click('.rbtn[data-view="advisor"]');
+  await page.locator('#advArea [data-area="station"]').click();
+  await page.locator('#advRes [data-res="day"]').click();
+  await page.click('#advRun');
+  await expect(page.locator('#advBody .adv-c').first()).toContainText('score', { timeout: 30000 });
+  await expect(page.locator('#advBody')).toContainText('Early flood warning');
+  await page.locator('#advBody .adv-c').first().click();
+  await expect(page.locator('#advDetail .rk-part')).toHaveCount(3);
+  /* offshore */
+  await page.click('#profBtn'); await page.click('#profMenu [data-prof="irong-barat"]');
+  await page.waitForFunction(() => MC.state.settings.kind === 'offshore');
+  await page.click('.rbtn[data-view="dashboard"]');
+  await expect(page.locator('#rkTitle')).toHaveText('📊 Offshore operational risk score');
+  await expect(page.locator('#rkBody .rk-part')).toHaveCount(3, { timeout: 30000 });
+  await expect(page.locator('#rkBody .rk-parts')).toContainText('Sea risk');
+  await expect(page.locator('#rkBody .rk-win tbody tr')).toHaveCount(10);
+  await expect(page.locator('#rkBody .rk-win')).toContainText('Crane: on the platform');
+  await page.locator('#cardRisk').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/shots/risk-off.png' });
+  await page.click('.rbtn[data-view="advisor"]');
+  await page.click('#advRun');
+  await expect(page.locator('#advBody')).toContainText('Weather windows', { timeout: 30000 });
+  await expect(page.locator('#advLimitsBody thead')).toContainText('Swell period s');
+  await page.locator('#view-advisor').evaluate(e => { e.scrollTop = document.getElementById('advOut').offsetTop - 10; });
+  await page.screenshot({ path: '/tmp/shots/risk-adv-off.png' });
 });

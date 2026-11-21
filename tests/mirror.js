@@ -11,7 +11,7 @@ test('mirror: JPS water level page (real sample, missing <tr> tags)', () => {
   assert.strictEqual(w.length, 46);
   const k = w.filter(s => s.district === 'Kemaman');
   assert.strictEqual(k.length, 8);
-  assert.deepStrictEqual(k[0], { no: 30, id: '4131453', name: 'Sg. Cherul di Jambatan Ban Ho', district: 'Kemaman', basin: 'Sungai Kemaman', subBasin: 'Sg. Cherul', updated: '2026-11-20T20:55:00+08:00', level: 10.92, normal: 10, alert: 17, warning: 18, danger: 19 });
+  assert.deepStrictEqual(k[0], { no: 30, id: '4131453', name: 'Sg. Cherul di Jambatan Ban Ho', district: 'Kemaman', basin: 'Sungai Kemaman', subBasin: 'Sg. Cherul', updated: '2026-11-20T20:55:00+08:00', level: 10.92, normal: 10, alert: 17, warning: 18, danger: 19, gid: '4131001_' });
 });
 test('mirror: JPS rainfall page (rows without <tr>, -9999 = no reading, dates from the header)', () => {
   const r = P.jpsRain(fx('jps-rain-TRG.html'));
