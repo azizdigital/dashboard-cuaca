@@ -660,10 +660,10 @@
       if (s.kind !== 'offshore' || !window.MCOffshore) return Promise.resolve();
       if (this.busy) return this.busy;
       var mine = this.mine();
-      if (!force && mine && Date.now() - mine.at < 30 * 60000) return Promise.resolve();
+      if (!force && mine && Date.now() - mine.at < (state.mode === 'pc' ? 3 * 60000 : OM.every())) return Promise.resolve();
       if (!force && this.err && Date.now() - this.errAt < 5 * 60000) return Promise.resolve();
       var get = function (u) { return fetchT(u, 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); };
-      var p = state.mode === 'pc' ? get('/api/offshore' + (force ? '?force=1' : '')) : window.MCOffshore.collect(s.marineLat, s.marineLon, get);
+      var p = state.mode === 'pc' ? get('/api/offshore' + (force ? '?force=1' : '')) : window.MCOffshore.collect(s.marineLat, s.marineLon, function (u) { return OM.json(u, 45000); });
       this.busy = p.then(function (raw) {
         var ok = 0;
         ['wind', 'wave', 'ens'].forEach(function (g) { Object.keys(raw[g] || {}).forEach(function (k) { if (raw[g][k].ok) ok++; }); });
@@ -857,8 +857,8 @@
   var Adv = {
     ui: load('mc_adv', {}), result: null, landRaw: null, busy: false, wired: false,
     get: function (u) {
-      var url = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(u) : u;
-      return fetchT(url, 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      if (state.mode !== 'pc') return OM.json(u, 60000);
+      return fetchT('/api/fetch?url=' + encodeURIComponent(u), 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
     },
     opt: function () {
       var u = this.ui, today = C.dateKey(Date.now());
@@ -1679,18 +1679,35 @@
 
   /* early warnings (risk.js): rivers rising fast (5-minute JPS history through the relay, else the app's own readings),
      wind / waves rising offshore; they ring like the other alerts */
+  /* Open-Meteo is free for ~10,000 calls a day for one internet address (all devices at home together): this device counts its calls
+     and model data (5 rain models, offshore models) comes every omEveryMin minutes, slower near its share of the limit */
+  var OM = {
+    BUDGET: 4000,
+    get: function () { var o = load('mc_om', {}); if (o.day !== C.dateKey(Date.now())) o = { day: C.dateKey(Date.now()), n: 0, block: o.block || 0 }; return o; },
+    count: function (url, k) { if (!/open-meteo\.com\//.test(String(url))) return; var o = OM.get(); o.n += k || 1; save('mc_om', o); },
+    refused: function () { var o = OM.get(); o.block = Date.now() + 3600000; save('mc_om', o); },
+    every: function () { var o = OM.get(); return C.omEvery(o.n, OM.BUDGET, state.settings.omEveryMin, o.block, Date.now()); },
+    /* fetch JSON, counting Open-Meteo calls; refused (429) = an hour's pause */
+    json: function (u, ms) {
+      var o = OM.get();
+      if (/open-meteo\.com\//.test(u) && o.block && Date.now() < o.block) return Promise.reject(new Error(L('Open-Meteo: had percuma harian, cuba semula sejam lagi')));
+      OM.count(u, /marine-api/.test(u) ? 1.2 : 1);
+      return fetchT(u, ms || 45000).then(function (r) { if (r.status === 429) OM.refused(); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    }
+  };
   var Early = {
     cache: {}, rainCache: null,
     offCfg: function (s) { return { windRise: s.ewWindRise, swellTp: s.ewSwellTp, windKt: s.offWindKt, waveM: s.offWaveM, ahead: 24 }; },
     get: function (u) {
-      var url = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(u) : u;
-      return fetchT(url, 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      if (state.mode !== 'pc') return OM.json(u, 45000);
+      return fetchT('/api/fetch?url=' + encodeURIComponent(u), 45000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
     },
-    /* rain of the 5 models at the profile's place, the next 4 / 24 hours (kept 30 minutes) */
+    rainDue: function (s, now) { var c = Early.rainCache; return !c || c.key !== s.lat + ',' + s.lon || now - c.at >= OM.every(); },
+    /* rain of the 5 models at the profile's place, the next 4 / 24 hours (every omEveryMin minutes) */
     rain: function (s, now) {
       var A = window.MCAdvisor, R = window.MCRisk, key = s.lat + ',' + s.lon, c = Early.rainCache;
       if (!A) return Promise.resolve({});
-      if (c && c.key === key && now - c.at < 30 * 60000) return Promise.resolve(R.rainAhead(c.raw, now));
+      if (c && c.key === key && now - c.at < OM.every()) return Promise.resolve(R.rainAhead(c.raw, now));
       return A.collectLand([{ lat: s.lat, lon: s.lon }], Early.get).then(function (raw) { Early.rainCache = { key: key, at: now, raw: raw }; return R.rainAhead(raw, now); }).catch(function () { return {}; });
     },
     add: function (snap, s, hist, now, viaRelay) {
@@ -1709,7 +1726,7 @@
         var gid = gidOf(st.name), c = Early.cache[st.name], tidal = R.isTidal(rivers, st);
         var fromHist = function () { return [st.name, R.trend(R.histPoints(hist, st, now), st, now, { stepMin: s.refreshMin, tidal: tidal }), 'app']; };
         if (!gid || !viaRelay || !window.MCParse) return Promise.resolve(fromHist());
-        if (c && now - c.at < 10 * 60000) return Promise.resolve([st.name, R.trend(c.pts, st, now, { stepMin: 5, tidal: tidal }), 'jps']);
+        if (c && now - c.at < 3 * 60000) return Promise.resolve([st.name, R.trend(c.pts, st, now, { stepMin: 5, tidal: tidal }), 'jps']);
         return viaRelay(R.seriesUrl(gid, now, 26)).then(function (txt) {
           var pts = window.MCParse.wlSeries(txt);
           if (pts.length < 3) throw new Error('no series');
@@ -1741,7 +1758,8 @@
       function why(e) { return e.name === 'AbortError' ? L('Tamat masa') : /fetch|load failed|network/i.test(e.message) ? L('Tiada internet atau disekat pelayar') : e.message; }
       var jobs = keys.map(function (k) {
         var t0 = Date.now();
-        return fetchT(u[k], 20000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        OM.count(u[k]);
+        return fetchT(u[k], 20000).then(function (r) { if (r.status === 429) OM.refused(); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .then(function (d) { raw[k] = { ok: true, data: d, at: Date.now(), ms: Date.now() - t0 }; },
             function (e) { raw[k] = { ok: false, error: why(e) }; });
       });
@@ -1753,9 +1771,7 @@
           .then(function (d) { raw[k] = { ok: true, data: d, at: Date.now(), ms: Date.now() - t0 }; }, function (e) { raw[k] = { ok: false, error: why(e), ms: Date.now() - t0 }; });
       }
       /* with the relay: the JPS and Tide Forecast pages are read live, now; the GitHub copy is the fallback */
-      function viaRelay(url) {
-        return fetchT(C.relayUrlFor(url, s), 30000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
-      }
+      var viaRelay = Direct.viaRelay;
       var live = C.relayReady(s) && window.MCParse;
       Object.keys(mu).forEach(function (k) {
         if (!live) { jobs.push(getMirror(k)); return; }
@@ -1802,6 +1818,33 @@
         });
       }).finally(function () { Direct.busy = false; state.refreshing = false; renderStatus(); Direct.schedule(); });
     },
+    viaRelay: function (url) {
+      return fetchT(C.relayUrlFor(url, state.settings), 30000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+    },
+    /* between the full refreshes: when the model data is due (every omEveryMin minutes), read it again and
+       work out the early warnings only; they ring like the other alerts */
+    earlyOnly: function () {
+      var s = state.settings, now = Date.now(), snap = state.snap;
+      if (Direct.busy || Direct.early || !snap || !snap.at || document.visibilityState === 'hidden') return Promise.resolve();
+      var due = s.kind === 'offshore' ? !Off.mine() || now - Off.mine().at >= OM.every() : Early.rainDue(s, now);
+      if (!due) return Promise.resolve();
+      Direct.early = true;
+      var first = s.kind === 'offshore' ? Off.load(false) : Promise.resolve();
+      return first.then(function () {
+        return Early.add(snap, s, load(histKey(), []), now, C.relayReady(s) && window.MCParse ? Direct.viaRelay : null);
+      }).then(function () {
+        if (state.snap !== snap) return;
+        var prevA = (snap.alerts && snap.alerts.active) || [], others = prevA.filter(function (a) { return !/^o?ew:/.test(a.key); });
+        var cur = C.evaluateAlerts({ early: snap.early }, s, [], now), since = {};
+        prevA.forEach(function (a) { since[a.key] = a.since; });
+        cur.forEach(function (a) { a.since = since[a.key] || now; });
+        var fresh = C.newAlerts(prevA, cur);
+        snap.alerts = { active: others.concat(cur).sort(function (a, b) { return C.LEVEL_RANK[b.level] - C.LEVEL_RANK[a.level]; }), acked: (snap.alerts && snap.alerts.acked) || {} };
+        if (fresh.length) { var log = load('mc_d_log', []); fresh.forEach(function (a) { log.unshift(Object.assign({ t: now }, a)); }); save('mc_d_log', log.slice(0, 200)); }
+        onSnap(snap);
+        onAlerts(fresh);
+      }).catch(function () { }).then(function () { Direct.early = false; });
+    },
     schedule: function () { clearTimeout(Direct.timer); Direct.timer = setTimeout(Direct.run, state.settings.refreshMin * 60000); },
     stop: function () { clearTimeout(Direct.timer); },
     ack: function (key) {
@@ -1831,8 +1874,8 @@
       return fetchT(C.relayUrlFor(url, state.settings), 90000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
     },
     jsonGet: function (url) {
-      var u = state.mode === 'pc' ? '/api/fetch?url=' + encodeURIComponent(url) : url;
-      return fetchT(u, 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+      if (state.mode !== 'pc') return OM.json(url, 60000);
+      return fetchT('/api/fetch?url=' + encodeURIComponent(url), 60000).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
     },
     /* JPS station lists with their graph ids */
     jps: function () {
@@ -2440,5 +2483,11 @@
   if (!isDesktop) takeSetupLink();
 
   Data.start();
+  /* model data while the app is open: every minute check whether it is due (omEveryMin, slower near the free daily limit) */
+  setInterval(function () {
+    if (document.visibilityState === 'hidden') return;
+    if (state.mode === 'direct') Direct.earlyOnly();
+    else if (state.settings.kind === 'offshore') Off.load(false);
+  }, 60000);
   window.MC = { state: state, Off: Off, Adv: Adv, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
 })();

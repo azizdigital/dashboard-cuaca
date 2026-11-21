@@ -216,7 +216,7 @@ test('newAlerts: new or escalated only', () => {
 /* ------------------------------------------------------------- languages */
 const I18N = require('../www/assets/js/i18n');
 test('every L(\'...\') text in the code has an English translation', () => {
-  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'www/assets/js/risk.js', 'main.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
+  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'www/assets/js/risk.js', 'main.js', 'lib/ombudget.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
   const missing = [];
   files.forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
@@ -884,6 +884,31 @@ test('risk offshore: early warnings (wind rising, reaching limits, long swell) a
   const p = A.prompt({ result: r, settings: core.profileSettings({}, core.DEFAULT_PROFILES[1]), snap: {}, rep, target: 'claude', lang: 'ms', now });
   assert.ok(/Weather window/.test(p) && /Skor risiko operasi 0–100/.test(p) && /\[skor \d+\/100: Risiko angin \d+/.test(p));
   I18N.setLang('en');
+});
+
+test('Open-Meteo budget: model data every 3 minutes while open, slower near the free daily limit, a pause after 429', async () => {
+  const OMB = require('../lib/ombudget');
+  const now = Date.parse('2026-11-21T12:00:00+08:00');
+  assert.strictEqual(core.omEvery(0, 4000, 3, 0, now), 3 * 60000);
+  assert.strictEqual(core.omEvery(2100, 4000, 3, 0, now), 10 * 60000);
+  assert.strictEqual(core.omEvery(3100, 4000, 3, 0, now), 30 * 60000);
+  assert.strictEqual(core.omEvery(3700, 4000, 3, 0, now), 60 * 60000);
+  assert.strictEqual(core.omEvery(0, 4000, 1, 0, now), 3 * 60000);           /* never faster than 3 minutes */
+  assert.strictEqual(core.omEvery(0, 4000, 3, now + 1000, now), Infinity);    /* refused: wait */
+  assert.strictEqual(core.cleanSettings({}).omEveryMin, 3);
+  OMB.reset();
+  let calls = 0;
+  const f = OMB.wrap(async url => { calls++; if (/fail429/.test(url)) throw new Error('HTTP 429'); return { ok: 1 }; });
+  await f('https://api.open-meteo.com/v1/forecast?x=1');
+  await f('https://marine-api.open-meteo.com/v1/marine?x=1');
+  await f('https://publicinfobanjir.water.gov.my/x');                          /* not counted */
+  assert.strictEqual(OMB.info().calls, 2); assert.strictEqual(calls, 3);
+  assert.strictEqual(OMB.every({ omEveryMin: 3 }), 3 * 60000);
+  assert.strictEqual(OMB.every({ omEveryMin: 3 }, Date.now(), true), 30 * 60000);   /* window hidden (tray) */
+  await assert.rejects(f('https://api.open-meteo.com/v1/forecast?fail429'));
+  await assert.rejects(f('https://api.open-meteo.com/v1/forecast?x=2'), /had harian/);   /* paused for an hour */
+  assert.strictEqual(OMB.every({}), Infinity);
+  OMB.reset();
 });
 
 (async () => {

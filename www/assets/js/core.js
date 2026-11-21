@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.4.1';
+  var VERSION = '4.4.2';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -164,6 +164,7 @@
       'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
       'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
       '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
+    omEveryMin: 3,                   /* model data (5 rain models, offshore models): every this many minutes, slower near the free daily limit */
     ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
     visKm: 2, thunderAlert: true,
     staleHours: 6,
@@ -279,7 +280,7 @@
     out.tidePlace = out.tidePlace === 'model' || out.kind === 'offshore' ? 'model' : 'cukai';
     try { if (out.advLimits) { var al = JSON.parse(out.advLimits); if (!al || typeof al !== 'object' || Array.isArray(al)) out.advLimits = ''; } } catch (e) { out.advLimits = ''; }
     if (!/^\s*\d{1,2}\s*[-–:]\s*\d{1,2}\s*$/.test(out.advShift)) out.advShift = DEFAULTS.advShift;
-    [['advWindowH', 1, 24], ['ewConf', 50, 99], ['ewWindRise', 2, 30], ['ewSwellTp', 5, 20]].forEach(function (r) {
+    [['advWindowH', 1, 24], ['omEveryMin', 3, 60], ['ewConf', 50, 99], ['ewWindRise', 2, 30], ['ewSwellTp', 5, 20]].forEach(function (r) {
       if (!(out[r[0]] >= r[1] && out[r[0]] <= r[2])) out[r[0]] = DEFAULTS[r[0]];
     });
     if (!(out.offWindKt >= 1 && out.offWindKt <= 80)) out.offWindKt = DEFAULTS.offWindKt;
@@ -1087,6 +1088,13 @@
     out.sort(function (a, b) { return LEVEL_RANK[b.level] - LEVEL_RANK[a.level]; });
     return out;
   }
+  /* Open-Meteo is free for ~10,000 calls a day for one internet address. How long to wait between model fetches (ms):
+     the chosen minutes under half of the budget, then 10, 30, 60 minutes; nothing while refused (HTTP 429) */
+  function omEvery(count, budget, everyMin, blockedUntil, now) {
+    if (blockedUntil && now < blockedUntil) return Infinity;
+    var r = (count || 0) / (budget || 1), e = Math.max(3, everyMin || 3);
+    return (r < 0.5 ? e : r < 0.75 ? Math.max(e, 10) : r < 0.9 ? Math.max(e, 30) : 60) * 60000;
+  }
   /* alerts that should ring now: new keys, or the same subject at a higher level */
   function newAlerts(prevActive, current) {
     var prev = {};
@@ -1137,7 +1145,7 @@
     DEFAULTS: DEFAULTS, REFRESH_CHOICES: REFRESH_CHOICES, cleanSettings: cleanSettings, urls: urls, SCRAPE: SCRAPE, jpsUrls: jpsUrls, mirrorBase: mirrorBase, mirrorUrls: mirrorUrls, fromMirror: fromMirror, parseOutlook: parseOutlook, parseTideMirror: parseTideMirror, parseRiver: parseRiver, parseJps: parseJps, htmlRows: htmlRows, htmlText: htmlText, JPS_STATES: JPS_STATES,
     PROFILE_KEYS: PROFILE_KEYS, DEFAULT_PROFILES: DEFAULT_PROFILES, OFFSHORE_BASE: OFFSHORE_BASE, cleanProfile: cleanProfile, profileSettings: profileSettings,
     newestDate: newestDate, kt: kt,
-    num: num, localMs: localMs, flexTime: flexTime, myt: myt, dateKey: dateKey, wmo: wmo, compass: compass,
+    omEvery: omEvery, num: num, localMs: localMs, flexTime: flexTime, myt: myt, dateKey: dateKey, wmo: wmo, compass: compass,
     parseOpenMeteo: parseOpenMeteo, parseMarine: parseMarine, parseMetForecast: parseMetForecast, parseMetWarnings: parseMetWarnings,
     parseFloodWarning: parseFloodWarning, parseTables: parseTables, mergeStations: mergeStations, stationStatus: stationStatus,
     STATUS_RANK: STATUS_RANK, STATUS_BM: STATUS_BM, statusName: statusName, L: L, LEVEL_RANK: LEVEL_RANK, assemble: assemble, evaluateAlerts: evaluateAlerts, newAlerts: newAlerts,

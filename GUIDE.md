@@ -15,7 +15,7 @@ Each device keeps its own settings: Settings › Other devices › **Copy settin
 1. Install **Node.js 20 or newer** (once).
 2. In the project folder: `npm install`
 3. Run: `npm start`
-4. Build the `.exe` files: `npm run dist` → in `dist\`: `Dashboard Cuaca Aziz 4.4.1.exe` (portable) and `Dashboard Cuaca Aziz Setup 4.4.1.exe` (installer)
+4. Build the `.exe` files: `npm run dist` → in `dist\`: `Dashboard Cuaca Aziz 4.4.2.exe` (portable) and `Dashboard Cuaca Aziz Setup 4.4.2.exe` (installer)
 
 The app uses ports **30040–30042**, different from OIM Wazira (30030–30032), so both can be open at the same time.
 

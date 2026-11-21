@@ -16,6 +16,7 @@ const { create: createServer } = require('./lib/server');
 const storeLib = require('./lib/store');
 const collectorLib = require('./lib/collector');
 const apiLib = require('./lib/api');
+const OMB = require('./lib/ombudget');
 const { AdBlock } = require('./lib/adblock');
 
 const NAME = 'Dashboard Cuaca Aziz';
@@ -474,7 +475,8 @@ app.whenReady().then(async () => {
   store = storeLib.create(app.getPath('userData'));
   I18N.setLang(store.settings().lang);
   collector = collectorLib.create({
-    store, fetchJson, scrape, probe,
+    store, fetchJson: OMB.wrap(fetchJson), scrape, probe,
+    visible: () => !!(win && !win.isDestroyed() && win.isVisible() && !win.isMinimized()),
     onUpdate: snap => { api.broadcast('snapshot', Object.assign({}, collector.snapshot(), { settings: store.settings() })); updateTray(); },
     onAlerts: list => { api.broadcast('alert', list); notify(list); },
     log: (...a) => console.error(...a)
@@ -484,7 +486,8 @@ app.whenReady().then(async () => {
     info: role => ({ name: NAME, lang: store.settings().lang, version: app.getVersion(), desktop: role === 'app', sharing: srv.isSharing(), ports: srv.ports, ips: srv.lanIPs(), ca: srv.caName() }),
     onSettings: s => applySettings(s),
     onTestAlert: a => notify([a]),
-    offshoreFetch: url => fetchJson(url, 30000)
+    offshoreFetch: url => OMB.wrap(fetchJson)(url, 30000),
+    visible: () => !!(win && !win.isDestroyed() && win.isVisible() && !win.isMinimized())
   });
   srv = createServer({ www: path.join(__dirname, 'www'), dataDir: app.getPath('userData'), ports, api: api.handle, onError: e => console.error('server', e && e.message) });
   try { await srv.start(); } catch (e) {

@@ -1,0 +1,9 @@
+Dashboard Cuaca Aziz 4.4.2
+
+- Data model (5 model hujan untuk keyakinan amaran awal, model offshore) diambil setiap 3 minit selagi app dibuka
+  (Tetapan › Data model: kemas kini setiap, minimum 3 minit). Amaran awal dikira semula setiap kali data baru masuk.
+- Pengawal had Open-Meteo (percuma ~10,000 panggilan sehari untuk satu alamat internet):
+  app kira panggilannya sendiri; bila hampir had ia perlahan ke 10 / 30 / 60 minit; bila ditolak (HTTP 429) berhenti sejam.
+- App PC: klik ✕ = app tutup, tiada ambil data. Jika "Kekal di tray" dihidupkan dan tetingkap tersembunyi: 30 minit.
+- iPad / telefon / web: hanya bila app dibuka di skrin.
+- npm run dist bina kedua-dua: portable .exe dan installer (Setup) .exe dalam folder dist.
