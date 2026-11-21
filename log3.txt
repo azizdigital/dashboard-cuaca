@@ -1,14 +1,38 @@
-== https://api.data.gov.my/flood-warning?limit=3000 -> 200 1177181
-[{"station_id":"_CRAU0042","station_name":"Sg. Dong di Kg. Peruas","latitude":3.94385,"longitude":102.01854,"district":"Raub","state":"PAHANG","sub_basin":"Sg. Dong","main_basin":"Sungai Pahang","station_type":"RF,WL","water_level_current":133.36,"water_level_indicator":"ALERT","water_level_normal_level":133.4,"water_level_alert_level":133.93,"water_level_warning_level":133.33,"water_level_danger_
-== https://api.data.gov.my/flood-warning/?contains=Kemaman@district -> 200 7329
-[{"station_id":"25322","station_name":"Sg. Cherul di Ban Ho Terengganu (RHN)","latitude":4.138889,"longitude":103.170833,"district":"Kemaman","state":"TERENGGANU","sub_basin":"Sg. Cherul","main_basin":"Sungai Kemaman","station_type":"RF,WL","water_level_current":10.7,"water_level_indicator":"NORMAL","water_level_normal_level":10.0,"water_level_alert_level":17.0,"water_level_warning_level":10.0,"wa
-== https://api.data.gov.my/flood-warning -> 200 1177181
-[{"station_id":"_CRAU0042","station_name":"Sg. Dong di Kg. Peruas","latitude":3.94385,"longitude":102.01854,"district":"Raub","state":"PAHANG","sub_basin":"Sg. Dong","main_basin":"Sungai Pahang","station_type":"RF,WL","water_level_current":133.36,"water_level_indicator":"ALERT","water_level_normal_level":133.4,"water_level_alert_level":133.93,"water_level_warning_level":133.33,"water_level_danger_
-curl: (28) Operation timed out after 180002 milliseconds with 0 bytes received
-./check.sh: line 14: osm-rivers.json: No such file or directory
-== https://overpass.kumi.systems/api/interpreter rivers -> 000 
-curl: (28) Operation timed out after 180000 milliseconds with 0 bytes received
-./check.sh: line 14: osm-rivers.json: No such file or directory
-== https://overpass.private.coffee/api/interpreter rivers -> 000 
-== https://maps.mail.ru/osm/tools/overpass/api/interpreter rivers -> 504 695
-== https://overpass-api.de/api/interpreter rivers -> 406 558
+== https://overpass-api.de/api/interpreter rivers -> 502 534
+# 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a short interval, then retry.
+If the request fails again, double the wait time and retry again.
+
+## F
+== https://maps.mail.ru/osm/tools/overpass/api/interpreter rivers -> 504 160
+<html>
+<head><title>504 Gateway Time-out</title></head>
+<body>
+<center><h1>504 Gateway Time-out</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+curl: (6) Could not resolve host: overpass.osm.jp
+== https://overpass.osm.jp/api/interpreter rivers -> 000 160
+<html>
+<head><title>504 Gateway Time-out</title></head>
+<body>
+<center><h1>504 Gateway Time-out</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+== nominatim 14487
+## Kampung Rantau Panjang, Kemaman
+[{"place_id":256533114,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"way","osm_id":388177861,"lat":"4.2788070","lon":"103.2666192","category":"amenity","type":"place_of_worship","place_rank":30,"importance":3.750133516437045e-05,"addresstype":"amenity","name":"Masjid Kampung Batu 14","display_name":"Masjid Kampung Batu 14, Jalan Rantau Panjang, Kemaman, Terengganu, 24050, Malaysia","boundingbox":["4.2781575","4.2796047","103.2659154","103.2676284"]}]
+## Paya Paman, Kemaman
+[]
+## Kampung Baru Kemasik
+[{"place_id":256108507,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"node","osm_id":3755433275,"lat":"4.4240136","lon":"103.4390137","category":"place","type":"ne
