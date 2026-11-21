@@ -1,18 +1,12 @@
 #!/bin/bash
 mkdir -p s4; cd s4
 UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36'
-B='https://publicinfobanjir.water.gov.my'
-curl -sS -L -m 40 -A "$UA" -o wlgraph.html "$B/index.php/wl-graph/?stationid=25318"
-echo "== scripts"; grep -io '<script[^>]*src=[^>]*>' wlgraph.html | head -40
-echo "== forms"; grep -io '<form[^>]*>\|<input[^>]*>\|<select[^>]*>\|<button[^>]*>' wlgraph.html | head -40
-echo "== ajax-ish"; grep -io ".\{0,160\}\(ajax\|\$\.post\|\$\.get\|fetch(\|admin-ajax\|\.php?\|getJSON\|url *:\).\{0,200\}" wlgraph.html | head -40
-# fetch every same-site js and grep it too
-for s in $(grep -io 'src="[^"]*\.js[^"]*"' wlgraph.html | sed 's/src="//;s/"$//' | grep -i 'publicinfobanjir\|^/' | grep -iv 'jquery\.min\|bootstrap' | head -15); do
-  u="$s"; [[ "$u" == /* ]] && u="$B$u"
-  f=$(echo "$u" | md5sum | cut -c1-8).js
-  curl -sS -L -m 30 -A "$UA" -o "$f" "$u"
-  echo "== JS $u"; grep -io ".\{0,160\}\(ajax\|\$\.post\|admin-ajax\|\.php\|getJSON\|wl-graph\|stationid\).\{0,200\}" "$f" | head -15
-done
-# common guesses
-for q in "wl-graph/?stationid=25318&datefrom=2026-11-20&dateto=2026-11-21&interval=60" ; do curl -sS -L -m 30 -A "$UA" -o guess.html "$B/index.php/$q"; echo "== guess $q $(wc -c < guess.html)"; done
+Q='https://publicinfobanjir.water.gov.my/wp-content/themes/enlighten/query'
+curl -sS -L -m 40 -A "$UA" -D h7.txt -o last7.json "$Q/getwaterlevellast7dayslead.php?extra=&station=25318"
+echo "== last7 $(wc -c < last7.json)"; head -c 1500 last7.json; echo; grep -i 'access-control\|content-type' h7.txt
+curl -sS -L -m 40 -A "$UA" -o range.json "$Q/searchresultwaterleveldtlead.php?station=25318&from=20/11/2026%2000:00&to=21/11/2026%2010:00&datafreq=60"
+echo "== range $(wc -c < range.json)"; head -c 1200 range.json; echo
+# a Kemaman station id from the main list
+curl -sS -L -m 40 -A "$UA" -o main.html 'https://publicinfobanjir.water.gov.my/aras-air/data-paras-air/?state=TRG&district=KEMAMAN&station=ALL&lang=en'
+grep -o "stationid=[0-9]*" main.html | sort -u | head -20
 cd ..
