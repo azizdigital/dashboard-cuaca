@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.4.3';
+  var VERSION = '4.5.0';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
@@ -75,10 +75,10 @@
      Same source of data, shown inside the app. "relay": needs the relay (another site that refuses framing). */
   var WINDY = 'https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh&product=ecmwf&level=surface&detail=true&marker=true';
   var ALT = {
-    waterlevel: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub, stesen sama)' },
+    waterlevel: { prefer: true, url: 'kemaman.html?tab=water', local: true, page: true, title: 'Paras Air Kemaman (data JPS 5 minit, mirror GitHub)' },
     jpsaras: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
     infobanjir: { view: 'dashboard', anchor: 'cardWater', title: 'Paras air JPS di Dashboard (mirror GitHub)' },
-    rainfall: { view: 'dashboard', anchor: 'cardRainSt', title: 'Hujan stesen JPS di Dashboard (mirror GitHub)' },
+    rainfall: { prefer: true, url: 'kemaman.html?tab=rain', local: true, page: true, title: 'Hujan Kemaman (data JPS 5 minit, mirror GitHub)' },
     tideforecast: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard (mirror GitHub Tide Forecast)' },
     tideschart: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
     tides4fishing: { view: 'dashboard', anchor: 'cardTide', title: 'Pasang surut Cukai di Dashboard' },
@@ -115,7 +115,7 @@
       if (!relayFor({ id: site.id, url: a.url }, s)) return null;
       return { kind: 'url', url: a.url, viaRelay: true, title: a.title };
     }
-    return { kind: 'url', url: fill(a.url), viaRelay: false, local: !!a.local, title: a.title };
+    return { kind: 'url', url: fill(a.url), viaRelay: false, local: !!a.local, page: !!a.page, title: a.title };
   }
   function siteBlocked(site, health) { return health && typeof health.frameable === 'boolean' ? !health.frameable : !!(site && site.noFrame); }
   function siteById(id) { for (var i = 0; i < SITES.length; i++) if (SITES[i].id === id) return SITES[i]; return null; }
@@ -160,9 +160,9 @@
     advWindowH: 4,                   /* AI suggestion: shortest weather window worth showing (hours) */
     ewConf: 85,                      /* Early Flood Warning: rings only at this confidence (%) or more; below, shown quietly */
     /* river layout for the early warning (upstream gauges) and the villages at risk: "Station < upstream, ... | village, ..."; ~ = river mouth */
-    ewUpstream: 'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\n' +
-      'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
-      '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
+    ewUpstream: 'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nBan Ho < Sg. Mas\nAir Putih | Kg. Teladas, Kg. Dadong\n' +
+      'Rantau Panjang < Air Putih | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\n' +
+      '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n' +
       '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Tumpat | Kg. Baru Kemasik\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
     omEveryMin: 3,                   /* model data (5 rain models, offshore models): every this many minutes, slower near the free daily limit */
     ewWindRise: 8, ewSwellTp: 9,     /* offshore early warning: wind rising kt in 6 h; long swell period s */    /* offshore model comparison: limits for the % chance (knots, significant wave height m) */
@@ -185,6 +185,12 @@
   var PROFILE_KEYS = ['kind', 'lat', 'lon', 'marineLat', 'marineLon', 'riverLat', 'riverLon', 'metLocationId', 'warningKeywords', 'waterDistrict', 'waterAlertLevel', 'waterRiseM',
     'rain3hMm', 'rain24hMm', 'gustKmh', 'waveM', 'visKm', 'thunderAlert', 'scrapeInfobanjir', 'useDataGovFlood', 'jpsState', 'tidePlace',
     'offWindKt', 'offWaveM', 'coastal'];
+  var OLD_UPSTREAM = [
+    'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\nRantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
+      'Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok',
+    'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\nRantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n' +
+      '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Tumpat | Kg. Baru Kemasik\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok'
+  ];
   var CAN_BE_EMPTY = ['ewUpstream', 'advLimits', 'advPlaces', 'adblockExcept', 'relayUrl', 'relayKey', 'relayBad', 'relayAltOff', 'metLocationId', 'waterDistrict', 'warningKeywords'];
   var REFRESH_CHOICES = [5, 10, 15, 30, 60];
   var JPS_STATES = ['PLS', 'KDH', 'PNG', 'PRK', 'SEL', 'WLH', 'PTJ', 'NSN', 'MLK', 'JHR', 'PHG', 'TRG', 'KEL', 'SRK', 'SAB', 'WLP'];
@@ -261,6 +267,8 @@
       else if (typeof d === 'boolean') out[k] = v === true || v === 'true' || v === 1 || v === 'on';
       else out[k] = String(v).slice(0, k === 'adblockExcept' ? 2000 : k === 'advLimits' || k === 'advPlaces' || k === 'ewUpstream' ? 4000 : 200);
     }
+    /* the river layout of 4.4.1 - 4.4.3 had Sg. Mas above Rantau Panjang (it flows into Sg. Cherul at Ban Ho): an unchanged old default becomes the new one */
+    if (OLD_UPSTREAM.indexOf(String(out.ewUpstream).replace(/\r/g, '').trim()) >= 0) out.ewUpstream = DEFAULTS.ewUpstream;
     if (REFRESH_CHOICES.indexOf(out.refreshMin) < 0) out.refreshMin = DEFAULTS.refreshMin;
     if (['alert', 'warning', 'danger'].indexOf(out.waterAlertLevel) < 0) out.waterAlertLevel = 'alert';
     if (['land', 'offshore'].indexOf(out.kind) < 0) out.kind = 'land';

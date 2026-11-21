@@ -142,8 +142,62 @@ function wlSeries(now) {
 function rfSeries(now) {
   const end = Math.floor(now / 300000) * 300000, values = [];
   const f = t => { const d = new Date(t + 8 * 3600000); return String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') + '/' + d.getUTCFullYear() + ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0'); };
-  for (let t = end - 14 * 86400000; t <= end; t += 300000) { const h = (end - t) / 3600000; values.push({ dt: f(t), raw: 0, clean: h > 96 && h < 110 ? 0.6 : 0 }); }
+  /* like JPS: clean = rain of the last 60 minutes (moving total), cyearly = the year's counter (its steps are the rain of each reading) */
+  let y = 500;
+  for (let t = end - 14 * 86400000; t <= end; t += 300000) { const h = (end - t) / 3600000, r = h > 96 && h < 110 ? 0.5 : 0; y += r; values.push({ dt: f(t), raw: r, clean: h > 96 && h < 110 ? Math.min(6, (110 - h) * 6) : 0, cyearly: Math.round(y * 10) / 10 }); }
   return { info: { name: 'Kg. Sg. Mas (F2)', light: '10', moderate: '30', heavy: '60', veryheavy: '90', count: values.length }, values };
 }
 
-module.exports = { wlSeries, rfSeries, offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };
+
+/* Kemaman page (mirror folder kemaman/): 8 water level + 17 rain gauges, 5-minute data.
+   now.json = 26 hours of 5-minute levels, 7 days of hourly rain, 3 hours of 5-minute rain; wl-<gid> / rf-<gid> = 30 days of 5-minute data.
+   A rain event in the last day: Sg. Cherul (Ban Ho) rises into Amaran, the rest stay lower; the tidal gauges swing with the tide. */
+function kemaman(now) {
+  const m = mirror(now), W = m.jps.water.filter(s => s.district === 'Kemaman'), R0 = m.jps.rain.stations.filter(s => s.district === 'Kemaman');
+  const STEP = 5 * 60000, end = Math.floor((now - 15 * 60000) / STEP) * STEP, N30 = 30 * 288, t30 = end - (N30 - 1) * STEP;
+  let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const r2 = v => Math.round(v * 100) / 100, r1 = v => Math.round(v * 10) / 10;
+  /* rain events (hours before "end", length h, mm/h peak): an old one 12 days ago, one 4 days ago, the big one 14-4 hours ago */
+  const EV = [[12 * 24 + 6, 8, 9], [4 * 24 + 10, 5, 6], [14, 10, 22], [1.2, 3, 8]];
+  const rainAt = (t, k) => { const hb = (end - t) / 3600000; let v = 0;
+    EV.forEach(([a, len, pk]) => { const x = (a - hb) / len; if (x >= 0 && x <= 1) v += pk * Math.sin(Math.PI * x) * (0.55 + 0.9 * ((k * 37 % 11) / 11)); });
+    return v; };
+  const POS = {
+    'Sg. Mas di Kg. Sg. Mas (F2)': [4.128, 103.168], 'Sg. Kemaman di Jamb. Air Putih (F2)': [4.318, 103.186], 'Sg. Kemaman di Kg. Rantau Panjang (F2)': [4.262, 103.306],
+    'Sg. Cherul di Jambatan Ban Ho': [4.352, 103.292], 'Sg. Kemaman di Rumah Pam Paya Paman': [4.252, 103.372], 'Sg. Cukai di Kg. Yak Yah (F2)': [4.206, 103.398],
+    'Sg. Tumpat di Kg. Baru Kemasik': [4.428, 103.448], 'Muara Sg. Kemaman di Kg. Geliga (F2)': [4.243, 103.424] };
+  const water = W.map((st, k) => {
+    const gid = st.gid || String(9000 + k), tidal = /muara|paya paman|yak yah|kemasik/i.test(st.name), banHo = /ban ho/i.test(st.name);
+    const base = banHo ? st.alert - 1.6 : st.level, gain = banHo ? 2.9 : /Sg. Mas di/.test(st.name) ? 2.3 : tidal ? 0.35 : 0.9 + (k % 3) * 0.3, tp = (tidal ? 11 : banHo ? 9 : 6 + k % 3) * 3600000;
+    const v = [];
+    for (let i = 0; i < N30; i++) {
+      const t = t30 + i * STEP; let x = base + (rnd() - 0.5) * 0.01;
+      EV.forEach(([a, len, pk]) => { const dt = t - (end - (a - len / 2) * 3600000); if (dt > 0) x += gain * pk / 22 * (dt / tp) * Math.exp(1 - dt / tp); });
+      if (tidal) x += 0.55 * Math.sin(2 * Math.PI * (t / 3600000) / 12.42 + k);
+      v.push(i % 997 === 500 ? null : r2(x));
+    }
+    const last = v[v.length - 1];
+    return Object.assign({}, st, { gid, level: last, tidal, updated: new Date(end + 8 * 3600000).toISOString().slice(0, 19) + '+08:00', _v: v });
+  });
+  const RPOS = { 'Hulu Jabor': [4.062, 103.205], 'Jambatan Ban Ho': [4.352, 103.292], 'Kg. Baru Kemasik': [4.428, 103.448], 'Jambatan Air Putih': [4.318, 103.186], 'Rumah Pam Paya Paman': [4.252, 103.372],
+    'JPS Kemaman': [4.231, 103.418], 'Yak Yah': [4.206, 103.398], 'SMK Neram (F2)': [4.296, 103.246], 'Jambatan Air Putih (F2)': [4.321, 103.19], 'Hulu Jabor (F2)': [4.066, 103.21],
+    'Jambatan Tebak (F2)': [4.188, 103.252], 'Seri Bandi (F2)': [4.178, 103.352], 'Kg. Yak Yah (F2)': [4.209, 103.401], 'Kg. Rantau Panjang (F2)': [4.262, 103.306],
+    'Kg. Sg. Mas (F2)': [4.128, 103.168], 'Bukit Teruna Kijal (F2)': [4.342, 103.468], 'Kuarter JPS di Dusun Nyior (F2)': [4.115, 103.322] };
+  const rain = R0.map((st, k) => {
+    const gid = st.gid || String(8000 + k), v = [];
+    for (let i = 0; i < N30; i++) { const t = t30 + i * STEP, x = rainAt(t, k) / 12; v.push(x > 0.05 ? r1(x * (0.6 + 0.8 * rnd())) : 0); }
+    return Object.assign({}, st, { gid, updated: new Date(end + 8 * 3600000).toISOString().slice(0, 19) + '+08:00', _v: v });
+  });
+  const tail = (v, n) => v.slice(v.length - n);
+  const hourly = v => { const out = []; for (let i = v.length - 168 * 12; i < v.length; i += 12) out.push(r1(v.slice(i, i + 12).reduce((a, b) => a + (b || 0), 0))); return out; };
+  const nowJson = {
+    v: 1, at: new Date(end + 5 * 60000).toISOString(), end: end, step: 5,
+    water: water.map(st => { const o = Object.assign({}, st); delete o._v; o.s = tail(st._v, 26 * 12); return o; }),
+    rain: rain.map(st => { const o = Object.assign({}, st); delete o._v; o.h = hourly(st._v); o.m = tail(st._v, 36); return o; })
+  };
+  const files = {};
+  water.forEach(st => { files['wl-' + st.gid + '.json'] = { v: 1, gid: st.gid, end: end, step: 5, s: st._v }; });
+  rain.forEach(st => { files['rf-' + st.gid + '.json'] = { v: 1, gid: st.gid, end: end, step: 5, s: st._v }; });
+  return { now: nowJson, files };
+}
+module.exports = { kemaman, wlSeries, rfSeries, offshore, isOffshore, forecast, shiftOpenMeteo, mirror, warnings, metForecast, local };

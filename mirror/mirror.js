@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const P = require('./parse');
+const K = require('./kemaman');
 
 const OUT = path.resolve(process.argv[2] || 'out');
 const REPO = process.env.GITHUB_REPOSITORY || 'azizdigital/dashboard-cuaca';
@@ -34,7 +35,7 @@ async function get(url, tries = 3) {
 async function previous(file) {
   try { const r = await fetch(PREV + file + '?t=' + Date.now(), { signal: AbortSignal.timeout(20000) }); return r.ok ? await r.json() : null; } catch (e) { return null; }
 }
-function write(file, data) { fs.writeFileSync(path.join(OUT, file), JSON.stringify(data)); }
+function write(file, data) { fs.mkdirSync(path.dirname(path.join(OUT, file)), { recursive: true }); fs.writeFileSync(path.join(OUT, file), JSON.stringify(data)); }
 
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
@@ -54,6 +55,11 @@ async function main() {
       out.rain = r; out.rainAt = now;
     } catch (e) { out.errors.rain = String(e.message || e); if (prev) { out.rain = prev.rain; out.rainAt = prev.rainAt; } }
     write(file, out);
+    if (st === 'TRG') {
+      /* Daerah Kemaman: the JPS 5-minute readings of every gauge, 30 days (the app's Water Level / Rainfall Kemaman pages) */
+      try { status.sources.kemaman = await K.kemaman(out, { get: u => get(u, 2), previous, write }); }
+      catch (e) { status.sources.kemaman = { ok: false, error: String(e.message || e) }; }
+    }
     status.sources['jps-' + st] = { water: !out.errors.water, rain: !out.errors.rain, errors: out.errors, stations: (out.water || []).length };
   }
 

@@ -70,23 +70,52 @@ function jpsWater(html) {
 /* one station's history (JPS graph page data, JSON): {"info": {...}, "values": [{"dt":"20/11/2026 00:05","final":"15.28"}, ...]}
    -> [{ t: ms, v: metres }] oldest first; -9999 and empty readings dropped */
 /* one rain gauge's history (JPS graph page data): 5-minute "clean" mm -> hourly totals [{ t: start of hour ms, v: mm }] */
+/* JPS rain gauge graph data -> the rain of each hour [{t: start of the hour, v: mm}].
+   "clean" / "chourly" are the rain of the last 60 minutes (a moving total), so they are not added up; the rain of one reading is
+   the step of the year's counter "cyearly" (see rfReadings) */
 function rfSeries(body) {
+  const hours = new Map();
+  rfReadings(body).forEach(p => {
+    if (p.v === null) return;
+    /* a reading at hh:05 .. (hh+1):00 is rain in the hour that started at hh:00 */
+    const t = Math.floor((p.t - 1) / 3600000) * 3600000;
+    hours.set(t, (hours.get(t) || 0) + p.v);
+  });
+  return [...hours.entries()].sort((a, b) => a[0] - b[0]).map(e => ({ t: e[0], v: Math.round(e[1] * 10) / 10 }));
+}
+
+/* rain gauge graph data, one value per reading: mm since the reading before (5, 15 or 60 minutes).
+   From the year's counter "cyearly" (a small dip = a correction, not counted twice; a big drop = new year); the first reading
+   has no step (null). Without "cyearly": the day's counter "cdaily". */
+function rfReadings(body) {
   let j = body;
   if (typeof body === 'string') {
     const a = body.search(/\{\s*"info"/), b = body.lastIndexOf('}');
     try { j = JSON.parse(a >= 0 && b > a ? body.slice(a, b + 1) : body.trim()); } catch (e) { return []; }
   }
-  const hours = new Map();
+  const rows = [];
   ((j && j.values) || []).forEach(x => {
     const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4}) (\d{1,2}):(\d{2})/.exec(String(x.dt || ''));
-    const v = num(x.clean !== undefined ? x.clean : x.raw);
-    if (!m || v === null || v < 0) return;
-    /* a reading at hh:05 .. (hh+1):00 is rain in the hour that started at hh:00 */
-    let t = Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 8, +m[5]);
-    t = Math.floor((t - 1) / 3600000) * 3600000;
-    hours.set(t, (hours.get(t) || 0) + v);
+    if (!m) return;
+    rows.push({ t: Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4] - 8, +m[5]), y: num(x.cyearly), d: num(x.cdaily), c: num(x.clean !== undefined ? x.clean : x.raw) });
   });
-  return [...hours.entries()].sort((a, b) => a[0] - b[0]).map(e => ({ t: e[0], v: Math.round(e[1] * 10) / 10 }));
+  rows.sort((a, b) => a.t - b.t);
+  const useY = rows.filter(r => r.y !== null && r.y >= 0).length >= rows.length / 2;
+  let top = null, prevD = null, prevDay = null;
+  return rows.map(r => {
+    let v = null;
+    if (useY) {
+      if (r.y === null || r.y < 0) return { t: r.t, v: null };
+      if (top === null) top = r.y;
+      else if (r.y < top - 20) { v = r.y; top = r.y; }          /* the counter started again (1 January) */
+      else { v = Math.max(0, r.y - top); top = Math.max(top, r.y); }
+    } else if (r.d !== null && r.d >= 0) {
+      const day = Math.floor((r.t + 8 * 3600000 - 60000) / 86400000);   /* the reading at 00:00 still belongs to the day before */
+      v = prevD === null ? null : day !== prevDay || r.d < prevD - 0.01 ? r.d : Math.max(0, r.d - prevD);
+      prevD = r.d; prevDay = day;
+    }
+    return { t: r.t, v: v === null ? null : Math.round(v * 10) / 10 };
+  });
 }
 
 function wlSeries(body) {
@@ -161,5 +190,5 @@ function tides(html, nowMs) {
   return out.sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
 }
 
-return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides, wlSeries: wlSeries, rfSeries: rfSeries };
+return { text: text, rows: rows, num: num, mytIso: mytIso, jpsWater: jpsWater, jpsRain: jpsRain, tides: tides, wlSeries: wlSeries, rfSeries: rfSeries, rfReadings: rfReadings };
 }));

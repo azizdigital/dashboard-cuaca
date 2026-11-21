@@ -1,0 +1,25 @@
+Dashboard Cuaca Aziz 4.5.0
+
+Tab Water Level Kemaman & Rainfall Kemaman: halaman khas (web & iPad)
+- Dulu tab ini lompat ke kad di Dashboard. Kini halaman app sendiri; kad Dashboard tidak berubah. App PC kekal buka laman infobanjir.
+- Data: bacaan 5 minit JPS Public Infobanjir untuk 8 stesen paras air dan 17 stesen hujan Kemaman, 30 hari.
+  Mirror GitHub membacanya setiap ~15 minit (folder kemaman/ cawangan data): hanya beberapa jam terakhir setiap kali,
+  30 hari penuh sekali sehari bagi setiap stesen. Dua stesen (Paya Paman, Kemasik) memang lapor sejam sekali.
+- Paras air: ringkasan Normal / Waspada / Amaran / Bahaya, paling hampir Bahaya, paling laju naik; peta OpenStreetMap atau
+  skema sungai sebenar (arus bergerak ke hilir, cincin = % ke Bahaya) dengan ▶ main semula 24 jam; semua stesen berbanding
+  ambang dalam satu graf; kedudukan % ke Bahaya; kad besar setiap stesen dengan graf 24 jam; tanda merah bila bacaan > 1 jam.
+- Hujan: peta gelembung (1 j / 3 j / 24 j / 7 hari), kedudukan & jumlah 1/3/6/24 jam & 7 hari dengan kelas hujan JPS,
+  heatmap stesen × jam (24 jam / 7 hari), hujan sebenar berbanding ramalan 5 model (★ model paling tepat 24 jam lepas).
+- Tekan stesen: nombor besar (paras, berapa m ke Waspada / Amaran / Bahaya, kadar sejam, berubah 4 / 24 jam, tertinggi 24 jam &
+  7 hari, % ke Bahaya), hidrograf 1/3/7/14/30 hari dengan jalur ambang (seret melintang untuk zoom), hujan stesen berdekatan,
+  hujan 5 model 24 jam depan dan anggaran paras 4 / 24 jam (formula amaran awal yang sama, dengan keyakinan).
+- PDF (A4; iPad app: PDF + kongsi) dan Gambar (PNG). Boleh dipilih dalam Mod dinding. Segar sendiri setiap 5 minit.
+- Kedudukan stesen: koordinat JPS (data.gov.my) untuk 7 stesen; yang lain di titik sungai OpenStreetMap paling dekat
+  dengan kampung / jambatan dalam nama stesen (anggaran ~1 km, bulatan putus-putus).
+
+Pembetulan
+- Susunan sungai amaran awal (Tetapan › Susunan sungai) ikut peta sebenar: Sg. Mas mengalir ke Sg. Cherul (Ban Ho), bukan ke
+  Rantau Panjang; baris "Tebak" (tiada stesen paras air) dibuang. Susunan lama yang tidak diubah ditukar sendiri; susunan yang
+  awak tulis sendiri tidak disentuh.
+- Hujan tolok JPS dalam tab Sejarah & graf terlebih kira (sehingga 12 kali): medan "clean" JPS ialah jumlah 60 minit bergerak,
+  bukan hujan setiap bacaan. Kini dikira daripada kaunter tahunan JPS; jumlah harian sama dengan jadual JPS.

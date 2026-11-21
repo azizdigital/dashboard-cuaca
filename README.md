@@ -11,10 +11,11 @@ No PC server, no QR, no zip: every push to `main` publishes the folder `www/` ag
 
 - Data comes straight from Open-Meteo (now, 16-day forecast, waves & swell, sea level, 28-day GFS ensemble outlook) and data.gov.my (MET warnings & forecast).
 - **JPS water level & rainfall** (Terengganu) and the **Cukai tide table** do not let other web pages read them, so GitHub reads them every ~15 minutes (`mirror/`, `.github/workflows/mirror.yml`) and writes JSON to the branch `data`; the app reads that. No relay, no setup.
+- **Water Level / Rainfall Kemaman** tabs (web & iPad): `www/kemaman.html` - the JPS 5-minute readings of Kemaman, 30 days (`mirror/kemaman.js`, folder `kemaman/` of `data`), map / river schema (`assets/js/kemaman-geo.js`, rivers © OpenStreetMap), Leaflet (`assets/vendor/leaflet`, BSD-2).
 - Sites that refuse to be shown inside another app get a stand-in from the same source (Windy embed, RainViewer, the dashboard's own JPS / MET / tide cards) or open in a new tab.
 - Each device keeps its own settings. Settings › *Other devices* › **Copy settings link** moves them to another device (iPad / iPhone: *Paste link from another device*).
 
-Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes: **PERUBAHAN_4.1.0.txt**
+Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes: **PERUBAHAN_4.5.0.txt**
 
 ## Windows desktop app (optional, kept in this repo)
 
@@ -50,6 +51,8 @@ www/assets/js/i18n.js    English / Bahasa Melayu: dictionary, MET forecast phras
 www/assets/js/core.js    26 sites, profiles, default settings, parsers for every source, alert rules, date detector (shared by PC + phone)
 www/assets/js/app.js     The page: land/offshore dashboard, sites, wall, history, alerts, settings, profiles, Ctrl+K
 www/assets/js/charts.js  SVG charts (no library)
+www/kemaman.html         Water Level / Rainfall Kemaman page (assets/js/kemaman.js, kemaman-geo.js, css/kemaman.css)
+mirror/kemaman.js        GitHub mirror: JPS 5-minute readings of the Kemaman gauges, 30 days
 tools/build-precache.js  Offline file list + version from a content hash
 tests/                   unit.js (Node), app.spec.js, relay.spec.js, web.spec.js (Playwright), fixtures/make.js (made-up data)
 .github/workflows/pages.yml  Publishes www/ to GitHub Pages on every push to main

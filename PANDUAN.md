@@ -21,6 +21,13 @@ Rupa sama seperti app lama. Yang baru dalam 4.1:
   - Dibaca oleh GitHub setiap ~15 minit (mirror). Tiada relay, tiada setup.
   - Dalam kad paras air dan hujan, tekan **Jadual penuh JPS** untuk lihat jadual dengan lajur sama seperti laman asal.
   - Tekan *Semua negeri* untuk semua stesen Terengganu.
+- **Tab Water Level Kemaman & Rainfall Kemaman (4.5, web & iPad):** halaman khas app sendiri, bukan lagi lompat ke kad dashboard.
+  - Data: bacaan 5 minit JPS untuk 8 stesen paras air dan 17 stesen hujan Kemaman, 30 hari, dibaca oleh mirror GitHub setiap ~15 minit (folder `kemaman/` cawangan `data`).
+  - Paras air: ringkasan status, peta (OpenStreetMap) atau skema sungai sebenar dengan main semula 24 jam, graf semua stesen berbanding ambang, % ke Bahaya, kad setiap stesen.
+  - Hujan: peta gelembung, kedudukan & jumlah 1/3/6/24 jam & 7 hari, heatmap stesen × jam, hujan sebenar berbanding ramalan 5 model.
+  - Tekan stesen: nombor besar, hidrograf 1–30 hari (seret untuk zoom), hujan berdekatan, ramalan 5 model dan anggaran paras 4 / 24 jam.
+  - Butang **PDF** (A4) dan **Gambar** (PNG untuk WhatsApp); boleh dipilih dalam Mod dinding. App PC kekal buka laman infobanjir sebenar.
+  - Kedudukan stesen: koordinat JPS (data.gov.my) atau kampung / jambatan stesen di sungai OpenStreetMap (anggaran, bulatan putus-putus).
 - **Laman yang tidak benarkan dipaparkan dalam app lain:**
   - Kalau ada versi dari sumber yang sama, ia dibuka di dalam app dengan bar "Laman ganti" dan butang **Laman asal ↗**. Contoh: Windy (versi embed), RainViewer, dan kad JPS / MET / pasang surut di Dashboard.
   - Kalau tiada, laman itu dibuka di tab baru.
@@ -199,7 +206,7 @@ memaparkannya dalam pelayar sendiri; Safari di iPad tidak boleh. Dua cara, kedua
   Pelan percuma membenarkan 100,000 permintaan sehari, lebih daripada cukup untuk seorang.
 - **Laman ganti (3.5):** sesetengah laman kerajaan juga menolak Cloudflare (Uji relay tunjuk ✗). Untuk laman itu iPad
   memaparkan laman ganti dari sumber yang sama di dalam app, dengan bar "Laman ganti: …" dan pautan **Laman asal ↗**:
-  Water Level / Rainfall Kemaman → JPS Public Infobanjir (Terengganu, termasuk Kemaman); Info Banjir Terengganu → JPS
+  Water Level / Rainfall Kemaman → halaman Kemaman app sendiri (4.5); Info Banjir Terengganu → JPS
   Infobanjir Map; MET Peninsular Radar → radar hujan Windy (data radar MET Malaysia); Met Malaysia → kad MET di Dashboard;
   VesselFinder → peta embed rasmi VesselFinder. Ganti Windy dan VesselFinder berfungsi walaupun tanpa relay.
 

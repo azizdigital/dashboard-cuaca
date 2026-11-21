@@ -204,6 +204,9 @@
       onState && onState(fr);
     }
     var health = (state.snap && state.snap.sites || {})[site.id];
+    /* iPad / phone / web: the app's own page for this tab (Water Level / Rainfall Kemaman) */
+    var ownPage = !isDesktop ? C.altFor(site, state.settings) : null;
+    if (!(ownPage && ownPage.page)) ownPage = null;
     if (isDesktop) {
       var wv = document.createElement('webview');
       wv.setAttribute('partition', 'persist:sites');
@@ -245,7 +248,7 @@
       fr.fwd = function () { try { if (wv.canGoForward()) wv.goForward(); } catch (e) { /* */ } };
       fr.home = function () { clearMsg(); fr.url = fr.baseUrl; try { wv.loadURL(fr.baseUrl); } catch (e) { wv.src = fr.baseUrl; } };
       fr.setZoom = function (z) { fr.zoom = Math.max(-5, Math.min(5, z)); try { wv.setZoomLevel(fr.zoom); } catch (e) { /* */ } };
-    } else if (((C.siteBlocked(site, health) && C.relayFor(site, state.settings)) || (!isDesktop && C.relayAdsFor(site, state.settings))) && C.relayUrlFor(startUrl, state.settings)) {
+    } else if (!ownPage && ((C.siteBlocked(site, health) && C.relayFor(site, state.settings)) || (!isDesktop && C.relayAdsFor(site, state.settings))) && C.relayUrlFor(startUrl, state.settings)) {
       /* the site refuses to be framed: show it through the user's relay (Cloudflare Worker), which removes only that refusal */
       var rf = document.createElement('iframe');
       rf.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads');
@@ -260,13 +263,12 @@
       fr.home = function () { fr.url = fr.baseUrl; fr.reload(); };
       fr.goto = function (u) { fr.url = fr.baseUrl = u; fr.reload(); };
       fr.setZoom = function () { };
-    } else if (!isDesktop && C.siteBlocked(site, health) && (altInfo = C.altFor(site, state.settings)) && altInfo.kind === 'url') {
+    } else if (!isDesktop && (ownPage || C.siteBlocked(site, health)) && (altInfo = C.altFor(site, state.settings)) && altInfo.kind === 'url') {
       /* the site cannot be shown here and the relay cannot fetch it: a stand-in from the same source, inside the app */
       var bar = document.createElement('div');
       bar.className = 'altbar';
       bar.innerHTML = '<span>↪ ' + esc(L('Laman ganti:')) + ' <b>' + esc(L(altInfo.title)) + '</b></span><a href="' + esc(startUrl) + '" target="_blank" rel="noopener">' + esc(L('Laman asal ↗')) + '</a>';
-      wrap.appendChild(bar);
-      wrap.classList.add('has-alt');
+      if (!altInfo.page) { wrap.appendChild(bar); wrap.classList.add('has-alt'); }
       var af = document.createElement('iframe');
       if (altInfo.viaRelay) af.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads');
       af.setAttribute('allow', 'fullscreen; geolocation');
@@ -351,7 +353,9 @@
     show: function (id, tapped) {
       var site = C.siteById(id);
       /* the iPad app: every site in its own full browser view (like Electron on the PC) */
-      if (Native.ok && site && tapped) { Native.open(site); return; }
+      /* except the app's own Kemaman water level / rainfall pages: shown in the tab like on the web */
+      var own = !isDesktop && site && C.altFor(site, state.settings);
+      if (Native.ok && site && tapped && !(own && own.page)) { Native.open(site); return; }
       /* infobanjir Terengganu & met.gov.my only answer from Malaysia (not through the relay): their data on the
          dashboard cards (water level, station rainfall, MET); only a site with no stand-in opens the real site over the app */
       if (!isDesktop && site && tapped && C.malaysiaOnly(site, state.settings) && !C.altFor(site, state.settings)) {
@@ -704,6 +708,26 @@
       window.print();
     }
   };
+  /* A4 PDF of HTML from one of the app's own pages in a tab (Kemaman water level / rainfall): the same print path as the offshore report
+     (iPad app: its PDF + share sheet; PC: save dialog; browser: print) */
+  function printHtml(html, name, css) {
+    var root = $('printRoot');
+    if (!root) { root = document.createElement('div'); root.id = 'printRoot'; document.body.appendChild(root); }
+    var link = null, title = document.title, htmlEl = document.documentElement;
+    var done = function () { htmlEl.classList.remove('printing'); document.title = title; root.innerHTML = ''; if (link) link.remove(); };
+    var go = function () {
+      root.innerHTML = '<div class="rpt km-print">' + html + '</div>';
+      htmlEl.classList.add('printing'); document.title = name;
+      if (D && D.savePdf) { D.savePdf(name).then(function (r) { if (r && r.ok) toast(L('PDF disimpan'), r.path || ''); }, function (e) { toast(L('Gagal simpan PDF'), (e && e.message) || '', 'warning'); }).then(done); return; }
+      if (Native.pdfOk) { window.dcPdfDone = function () { window.dcPdfDone = null; done(); }; Native.pdf(name); return; }
+      window.addEventListener('afterprint', function h() { window.removeEventListener('afterprint', h); done(); });
+      window.print();
+    };
+    if (css && !document.querySelector('link[data-print="' + css + '"]')) {
+      link = document.createElement('link'); link.rel = 'stylesheet'; link.href = css; link.setAttribute('data-print', css);
+      link.onload = go; link.onerror = go; document.head.appendChild(link);
+    } else go();
+  }
   var OC_RISK = { high: 'tinggi', medium: 'sederhana', low: 'rendah' };
   function ocPct(p) { return p ? '<span class="' + (p.p >= 0.5 ? 'hot' : '') + '">' + Math.round(p.p * 100) + '%</span>' : '-'; }
   var LV5 = ['🟢', '🟡', '🟠', '🔴', '🟣'];   /* Sangat rendah · Rendah · Sederhana · Tinggi · Sangat tinggi */
@@ -2500,5 +2524,5 @@
     if (state.mode === 'direct') Direct.earlyOnly();
     else if (state.settings.kind === 'offshore') Off.load(false);
   }, 60000);
-  window.MC = { state: state, Off: Off, Adv: Adv, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
+  window.MC = { printHtml: printHtml, state: state, Off: Off, Adv: Adv, renderAll: renderAll, show: show, Sites: Sites, Data: Data, Wall: Wall, History: History, onAlerts: onAlerts, switchProfile: switchProfile }; /* for tests / dev tools */
 })();

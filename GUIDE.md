@@ -171,9 +171,16 @@ own browser; Safari on the iPad cannot. Two ways, both without the PC:
   The free plan allows 100,000 requests a day, plenty for one person.
 - **Stand-ins (3.5):** some government sites refuse Cloudflare too (Test relay shows them with ✗). For those the iPad shows
   a stand-in from the same source inside the app, with a bar "Stand-in: …" and an **Original site ↗** link:
-  Water Level / Rainfall Kemaman → JPS Public Infobanjir (Terengganu, incl. Kemaman); Info Banjir Terengganu → JPS Infobanjir
+  Water Level / Rainfall Kemaman → the app's own Kemaman page (4.5); Info Banjir Terengganu → JPS Infobanjir
   Map; MET Peninsular Radar → Windy rain radar (MET Malaysia radar data); Met Malaysia → the MET card on the Dashboard;
   VesselFinder → VesselFinder's official embeddable map. Windy and VesselFinder stand-ins work even without a relay.
+
+- **Water Level Kemaman & Rainfall Kemaman tabs (4.5, web & iPad):** the app's own page instead of the dashboard cards: JPS 5-minute
+  readings of the 8 water level and 17 rain gauges of Kemaman, 30 days, read by the GitHub mirror every ~15 minutes (folder `kemaman/`
+  of the branch `data`). Map (OpenStreetMap) or the real river schema with a 24-hour replay, all gauges against their thresholds,
+  % to Danger, rain bubbles, gauge × hour heatmap, measured rain vs the 5 models; tap a gauge for big numbers, a 1–30 day hydrograph
+  (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). The PC app
+  keeps the real infobanjir site.
 
 ## 10. Data files
 

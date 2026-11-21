@@ -139,12 +139,12 @@
   /* river layout: one line per gauge, "Station < upstream 1, upstream 2 | village 1, village 2"; "~" in front = river mouth (tidal).
      Names are matched by part of the JPS station name. */
   var KEMAMAN_RIVERS = [
+    /* from the rivers of OpenStreetMap: Sg. Mas flows into Sg. Cherul (Ban Ho), which meets Sg. Kemaman below Rantau Panjang */
     'Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu',
-    'Tebak < Sg. Mas | Kg. Padang Kubu',
+    'Ban Ho < Sg. Mas',
     'Air Putih | Kg. Teladas, Kg. Dadong',
-    'Rantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah',
-    'Ban Ho',
-    '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan',
+    'Rantau Panjang < Air Putih | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah',
+    '~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan',
     '~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting',
     '~Tumpat | Kg. Baru Kemasik',
     '~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok'

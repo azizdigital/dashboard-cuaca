@@ -216,7 +216,7 @@ test('newAlerts: new or escalated only', () => {
 /* ------------------------------------------------------------- languages */
 const I18N = require('../www/assets/js/i18n');
 test('every L(\'...\') text in the code has an English translation', () => {
-  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'www/assets/js/risk.js', 'main.js', 'lib/ombudget.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
+  const files = ['www/assets/js/app.js', 'www/assets/js/core.js', 'www/assets/js/charts.js', 'www/assets/js/offshore.js', 'www/assets/js/advisor.js', 'www/assets/js/risk.js', 'www/assets/js/kemaman.js', 'main.js', 'lib/ombudget.js', 'lib/collector.js', 'lib/api.js', 'lib/store.js'];
   const missing = [];
   files.forEach(f => {
     const src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
@@ -804,7 +804,13 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   assert.ok(tb.tidal && tb.rate24 > 0.04 && R.project(tb, kem, wet).tier === 24, JSON.stringify(tb));
   /* the warnings: ring only at >= 85 %, quiet below; key per level & tier; villages from the river layout */
   const rivers = R.parseRivers(core.DEFAULTS.ewUpstream);
-  assert.strictEqual(rivers.length, 9); assert.ok(R.riverFor(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }).up.includes('ban ho'));
+  assert.strictEqual(rivers.length, 8); assert.ok(R.riverFor(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }).up.includes('ban ho'));
+  /* OpenStreetMap: Sg. Mas flows into Sg. Cherul (Ban Ho), not to Rantau Panjang */
+  assert.deepStrictEqual(R.riverFor(rivers, { name: 'Sg. Cherul di Jambatan Ban Ho' }).up, ['sg. mas']);
+  assert.deepStrictEqual(R.riverFor(rivers, { name: 'Sg. Kemaman di Kg. Rantau Panjang (F2)' }).up, ['air putih']);
+  /* an unchanged 4.4.3 layout becomes the new one; one the user wrote is kept */
+  assert.strictEqual(core.cleanSettings({ ewUpstream: "Sg. Mas | Kg. Sg. Mas, Kg. Padang Kubu\nTebak < Sg. Mas | Kg. Padang Kubu\nAir Putih | Kg. Teladas, Kg. Dadong\nRantau Panjang < Air Putih, Tebak, Sg. Mas | Kg. Batu 16, Kg. Seberang Tayor, Kg. Batu 14, Kg. Pasir Gajah\nBan Ho\n~Paya Paman < Rantau Panjang, Ban Ho, Air Putih, Tebak, Sg. Mas | Kg. Sungai Pinang, Kg. Pasir Minal, Kg. Bukit Mentok, Pengkalan Pandan\n~Yak Yah | Kg. Yak Yah, Kg. Padang Kemunting\n~Tumpat | Kg. Baru Kemasik\n~Geliga < Paya Paman, Yak Yah, Rantau Panjang, Ban Ho | Bandar Chukai, Kg. Geliga, Kg. Bukit Mentok" }).ewUpstream, core.DEFAULTS.ewUpstream);
+  assert.strictEqual(core.cleanSettings({ ewUpstream: 'Ban Ho < Sg. Mas' }).ewUpstream, 'Ban Ho < Sg. Mas');
   assert.ok(R.isTidal(rivers, { name: 'Muara Sg. Kemaman di Kg. Geliga (F2)' }) && R.isTidal(rivers, { name: 'Sg. Tumpat di Kg. Baru Kemasik' }) && R.isTidal(rivers, { name: 'Sg. Kemaman di Rumah Pam Paya Paman' }) && !R.isTidal(rivers, { name: 'Sg. Mas di Kg. Sg. Mas (F2)' }));
   const pp = { id: 'PP', name: 'Sg. Kemaman di Kg. Rantau Panjang (F2)', level: 14.8, alert: 16, warning: 17, danger: 17.5 };
   const up1 = { id: 'AP', name: 'Sg. Kemaman di Jamb. Air Putih (F2)', level: 9 }, up2 = { id: 'SM', name: 'Sg. Mas di Kg. Sg. Mas (F2)', level: 29 };
@@ -823,7 +829,7 @@ test('risk: JPS 5-minute history, river trend & Early Flood Warning, Weather / R
   const trB = R.trend(rise.map(p => ({ t: p.t, v: p.v + 2.4 })), ppA, now + 60000, { stepMin: 5 });
   const ewB = R.earlyFlood([ppA], { [ppA.name]: trB }, now, { rivers, rain4: wet.rain4, rain24: wet.rain24, glofas: 1.6, obs: () => 35 });
   assert.ok(/^Amaran awal banjir \(4 jam\)/.test(ewB[0].title) && ewB[0].level === 'critical' && /pemindahan dimulakan/.test(ewB[0].body), JSON.stringify(ewB[0]));
-  assert.strictEqual(trends[pp.name].proj.upN, 2);   /* Air Putih & Sg. Mas of the 3 upstream names are in the list */
+  assert.strictEqual(trends[pp.name].proj.upN, 1);   /* Air Putih, the one gauge upstream of Rantau Panjang */
   /* dry: no warning at all */
   assert.strictEqual(R.earlyFlood([pp], { [pp.name]: tr }, now, { rivers, rain4: [0, 0, 0], rain24: [0, 0, 0], glofas: 0.9, minConf: 85, obs: () => 0 }).length, 0);
   /* a little rain, nothing upstream: a warning but below 85 % -> quiet */

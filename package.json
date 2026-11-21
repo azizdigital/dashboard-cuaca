@@ -1,7 +1,7 @@
 {
   "name": "dashboard-cuaca-aziz",
   "productName": "Dashboard Cuaca Aziz",
-  "version": "4.4.3",
+  "version": "4.5.0",
   "description": "Dashboard Cuaca Aziz - cuaca, banjir, laut & offshore: profil lokasi, alert ambang, laman web, PWA telefon melalui QR",
   "main": "main.js",
   "author": "Aziz Mohamad",

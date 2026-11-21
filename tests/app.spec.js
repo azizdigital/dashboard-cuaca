@@ -39,7 +39,9 @@ test('all 29 sites open as tabs (6 kept, oldest closed), then "Close all"', asyn
   expect(ids.length).toBe(29);
   /* sites whose stand-in is a card on the dashboard (MET, JPS, tides) */
   const toCard = await page.evaluate(() => MCCore.SITES.filter(s => { const a = MCCore.altFor(s, MC.state.settings); return a && a.kind === 'view'; }).map(s => s.id));
-  expect(toCard.length).toBe(10);
+  expect(toCard.length).toBe(8);
+  /* Water Level / Rainfall Kemaman: the app's own page (mirror 5-minute JPS data) */
+  expect(await page.evaluate(() => ['waterlevel', 'rainfall'].map(id => { const a = MCCore.altFor(MCCore.siteById(id), MC.state.settings); return a.kind + ' ' + a.page + ' ' + a.url; }))).toEqual(['url true kemaman.html?tab=water', 'url true kemaman.html?tab=rain']);
   await page.click('.site[data-site="tideforecast"]');
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
   /* no stand-in at all (Kamera banjir, NADMA): straight to a new tab, no tab here */

@@ -21,7 +21,13 @@ async function sources(page, opts = {}) {
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/warning/, r => json(r, F.warnings(now)));
   await page.route(/^https:\/\/api\.data\.gov\.my\/weather\/forecast/, r => json(r, F.metForecast(now).map(x => Object.assign(x, { location: { location_id: 'Ds065', location_name: 'Kemaman' } }))));
   await page.route(/^https:\/\/api\.data\.gov\.my\/flood-warning/, r => json(r, []));
-  await page.route(/^https:\/\/raw\.githubusercontent\.com\//, r => /jps-TRG/.test(r.request().url()) ? json(r, m.jps) : /tide-cukai/.test(r.request().url()) ? json(r, m.tide) : json(r, {}, 404));
+  const K = F.kemaman(now);
+  await page.route(/^https:\/\/raw\.githubusercontent\.com\//, r => {
+    const u = r.request().url(), k = /\/kemaman\/(.+?\.json)/.exec(u);
+    if (k) return k[1] === 'now.json' ? json(r, K.now) : K.files[k[1]] ? json(r, K.files[k[1]]) : json(r, {}, 404);
+    return /jps-TRG/.test(u) ? json(r, m.jps) : /tide-cukai/.test(u) ? json(r, m.tide) : json(r, {}, 404);
+  });
+  await page.route(/basemaps\.cartocdn\.com/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }));
   await page.route(/^https:\/\/(embed\.windy\.com|www\.rainviewer\.com|webcams\.windy\.com)\//, r => r.fulfill({ status: 200, contentType: 'text/html', body: '<h1 id=h>' + new URL(r.request().url()).hostname + '</h1>' }));
 }
 async function open(page, baseURL, opts) {
@@ -68,7 +74,7 @@ test('sites that refuse framing: stand-in inside the app or new tab, never the b
   await page.locator('[data-site="tideforecast"]').first().click();
   await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
   /* the Malaysia-only sites show their data on the dashboard, not a new tab */
-  for (const [id, card] of [['waterlevel', '#cardWater'], ['rainfall', '#cardRainSt'], ['infobanjir', '#cardWater'], ['metmalaysia', '#cardMet']]) {
+  for (const [id, card] of [['infobanjir', '#cardWater'], ['metmalaysia', '#cardMet']]) {
     await page.locator('[data-site="' + id + '"]').first().click();
     await expect(page.locator('#view-dashboard')).toHaveClass(/on/);
     await expect(page.locator(card)).toBeInViewport();
@@ -345,4 +351,44 @@ test('history: the full JPS record (5-minute, 14 days) through the relay, rain g
   expect(+(await page.locator('#hSub').textContent()).match(/^\d+/)[0]).toBeGreaterThanOrEqual(330);
   await expect(page.locator('#hTempTitle')).toHaveText('Temperature (Open-Meteo model)');
   await page.screenshot({ path: '/tmp/shots/history-off.png' });
+});
+
+test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (5-minute JPS data), station sheet, dashboard cards unchanged', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.addInitScript(() => localStorage.setItem('mc_lang', 'ms'));
+  await open(page, baseURL);
+  const cardWater = await page.locator('#cardWater').innerHTML();
+  await page.locator('[data-site="waterlevel"]').first().click();
+  const fr = page.frameLocator('#siteHost .frame.on iframe');
+  await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=water/);
+  await expect(fr.locator('.km-st')).toHaveCount(8);
+  await expect(fr.locator('.km-cnt.warning b')).toHaveText('1');
+  await expect(fr.locator('.km-st.warning')).toContainText('Jambatan Ban Ho');
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: '/tmp/kmshots/app-water.png' });
+  await fr.locator('.km-st.warning').click();
+  await expect(fr.locator('#kmHyd svg')).toBeVisible();
+  await expect(fr.locator('.km-big.main')).toContainText('18.30');
+  await expect(fr.locator('#kmProj')).toContainText(/Dalam 4 jam/);
+  await page.screenshot({ path: '/tmp/kmshots/app-water-sheet.png' });
+  /* PDF: the page hands its content to the app, which prints it (iPad app: its own PDF) */
+  await page.evaluate(() => { window.__printed = ''; window.print = () => { window.__printed = document.getElementById('printRoot').innerText; }; });
+  await fr.locator('#kmSheet [data-act="pdf"]').click();
+  await expect.poll(() => page.evaluate(() => window.__printed)).toContain('Jambatan Ban Ho');
+  expect(await page.evaluate(() => window.__printed)).toContain('Hidrograf');
+  await fr.locator('[data-act="close"]').click();
+  await page.locator('[data-site="rainfall"]').first().click();
+  await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=rain/);
+  const fr2 = page.frameLocator('#siteHost .frame.on iframe');
+  await expect(fr2.locator('.hm-row:not(.hm-head)')).toHaveCount(17);
+  await expect(fr2.locator('#kmModelTbl tr')).toHaveCount(7);
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: '/tmp/kmshots/app-rain.png' });
+  /* wall mode: the Water Level Kemaman pane shows the same page */
+  await page.locator('.rbtn[data-view="wall"]').click();
+  await expect(page.locator('#view-wall iframe[src*="kemaman.html?tab=water"]').first()).toBeAttached();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: '/tmp/kmshots/app-wall.png' });
+  await page.locator('.rbtn[data-view="dashboard"]').click();
+  expect(await page.locator('#cardWater').innerHTML()).toBe(cardWater);
 });
