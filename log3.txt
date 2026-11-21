@@ -1,139 +1,18 @@
-== wl14 datafreq=60 416695 bytes
-4033 07/11/2026 18:00 21/11/2026 18:00 07/11/2026 18:05
-== wl14 datafreq=15 416695 bytes
-4033 07/11/2026 18:00 21/11/2026 18:00 07/11/2026 18:05
-== wl30 905018
-8645 22/10/2026 18:00 21/11/2026 18:00
-== rf urls
-query/getrainfalllast3dayslead.php?extra=
-query/getrainfalllast7days.php?station=
-query/searchdistrictARI.php?name=
-query/searchresultrainfalldthourlylead.php?extra=
-query/searchstationWL.php?name=
-and dateto is specified
-    if((datefrom!="")&&(dateto!="")){
+== rf14 60 420796
 
-        var url= "/wp-content/themes/enlighten/query/searchresultrainfalldthourlylead.php?extra="+extra+"&station=" + station + "&from=" + datefrom + "&to=" + dateto+ "&datafreq=" + datafreq;
+{"info": {
+                        "name": "Sg. Terengganu di Stewong Jatuh (F1)",
+                        "light": "10",
+                        "moderate": "30",
+                        "heavy": "60",
+                        "veryheavy": "90","count":4005},"values":[{"dt":"07/11/2026 18:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:05","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:10","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:15","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:20","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:25","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},
+6 15:50","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 15:55","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 16:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0}]}
+== rf14 15 420796
 
-        console.log(url);
-        var partsff = datefrom.split(' ');
-        var partsfrom =partsff[0].split('/');
-
-        //please put attention to the month (parts[0]), Javascript counts months from 0:
-        // January - 0, February - 1, etc
-        var mydatefrom = new Date(partsfrom[2],partsfrom[1]-1,partsfrom[0]);
-        var partstt = dateto.split(' ');
-        var partsto =partstt[0].split('/');
-        //please put attention to the month (parts[0]), Javascript counts months from 0:
-        // January - 0, February - 1, etc
-        var mydateto = new Date(partsto[2],partsto[1]-1,partsto[0]);
-        console.log(mydatefrom);
-        //console.log(mydateto);
-        //console.log(Date.daysBetween(mydatefrom, mydateto));
-        daydiff = Date.daysBetween(mydatefrom, mydateto);
-        //console.log(daydiff);
-
-        startdt = moment(datefrom, "DD/MM/YYYY HH:mm");
-        
-        var startdttimeStr = moment(startdt).format('DD/MM/YYYY HH:mm');
-        //console.log("startdttimeStr: " + startdttimeStr);
-
-        startdtonly = moment(datefrom).format('DD/MM/YYYY');
-
-    } else {
-        //var url = "/wp-content/themes/enlighten/query/getrainfalllast7days.php?station=" + station;
-        var url = "/wp-content/themes/enlighten/query/getrainfalllast3dayslead.php?extra="+extra+"&station=" + station;
-       console.log(url);
-
-    }
-
-    var tickinterval = 6;
-
-    if(daydiff>=30){
-        tickinterval = 24;
-    } else if((daydiff>=14)&&(daydiff<30)) {
-        tickinterval = 12;
-    } else if((daydiff>=6)&&(daydiff<14)) {
-        tickinterval = 6;
-    } else if((daydiff>=3)&&(daydiff<6)) {
-        tickinterval = 3;
-    } else if(daydiff<3) {
-        tickinterval = 1;
-    }
-
-
-    if(xfreq!='0'){
-        tickinterval=Number(xfreq);
-    }
-
-    document.getElementById("xaxisfreq").value = tickinterval;
-
-   //console.log(tickinterval);
-
-    var rfmax = 0;
-    var rfmin = 0;
-    var rfnum = 0;
-    var bb = 0;
-    var prev_cum_daily = 0;
-    var curr_cum_daily = 0;
-    var clean_rf = 0;
-    var total_cleanrf = 0;
-    var prevtotal = 0;
-
-    document.getElementById("rfdata").innerHTML = "";
-
-    var rfdataStr = "";
-    var rfcolor = "";
-
-    var dfreq = parseInt(datafreq);
-
-
-    //if(dfreq==60) dfreqmod=0;
-
-    $.getJSON(url, function(result) {
-
-        var nom = 0;
-
-        $.each(result, function(i, field) {
-
-            //console.log(field);
-            //console.log(i);
-            if(i=='info'){
-                //console.log(field['name']);
-                //console.log(field.count);
-                cnt=field.count;
-
-                light = field.light;
-                moderate = field.moderate;
-                heavy = field.heavy;
-                veryheavy = field.veryheavy;
-                //console.log(field[0]['dt']);
-                console.log("light: "+light);
-                console.log("moderate: "+moderate);
-                console.log("heavy: "+heavy);
-                console.log("veryheavy: "+veryheavy);
-
-            }else{
-
-                
-
-                for(ii=0;ii<cnt;ii++){
-                    //console.log(field[ii]['dt']);
-                    last2ch = field[ii]['dt'];
-                    var last2 = Number(last2ch.slice(-2));
-                    if((last2 % dfreq)==0){
-
-                        //check if dt from json match from start dt outputf
-                        /* convert dt to moment then compare while less than insert NaN to data then ++datafreq */
-
-                        datadtstr = field[ii]['dt'];
-                        var datadt = moment(datadtstr, "DD/MM/YYYY HH:mm");//.add(dfreq, 'minutes');
-                        var datadtonly = moment(datadt).format('DD/MM/YYYY');
-                        var datadttime = moment(datadt).format('DD/MM/YYYY HH:mm');
-
-                        //console.log("datadttime: " + datadttime);
-
-                        //console.log("startdt: " + startdt);
-                        //console.log("datadt: " + datadt);
-                        //if(ii==0){
-                        //console.log("beforecompare:"+mom
+{"info": {
+                        "name": "Sg. Terengganu di Stewong Jatuh (F1)",
+                        "light": "10",
+                        "moderate": "30",
+                        "heavy": "60",
+                        "veryheavy": "90","count":4005},"values":[{"dt":"07/11/2026 18:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:05","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:10","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:15","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:20","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"07/11/2026 18:25","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},
+6 15:50","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 15:55","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0},{"dt":"21/11/2026 16:00","raw":0,"clean":0,"chourly":0,"cdaily":0,"tdaily":0,"cyearly":239.5,"c15min":0}]}
