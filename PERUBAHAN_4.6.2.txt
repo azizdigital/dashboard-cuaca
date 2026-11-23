@@ -1,0 +1,10 @@
+Dashboard Cuaca Aziz 4.6.2
+
+Pembetulan: app web tidak terbuka selepas kemas kini 4.6.1
+- Selepas kemas kini, telefon / iPad / pelayar memuatkan halaman baru tetapi skrip lama yang tersimpan dalam peranti;
+  skrip lama mencari butang "Buat kunci baru" yang sudah dibuang, lalu app berhenti (skrin tidak bertindak).
+- Kini setiap fail app diambil dari internet dahulu (sehingga 4 saat), salinan dalam peranti hanya bila luar talian
+  atau lambat. Halaman dan skrip sentiasa versi yang sama selepas kemas kini.
+- Butang lama disimpan tersembunyi supaya peranti yang masih ada skrip 4.6.0 boleh dibuka sekali untuk dapat versi baru.
+- Halaman Paras Air / Hujan / Aliran (dalam bingkai) kini disimpan di bawah alamat sendiri untuk luar talian
+  (dulu boleh tertindih halaman utama).

@@ -393,7 +393,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.1/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.2/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
