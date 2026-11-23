@@ -14,6 +14,24 @@ const test = (name, fn) => tests.push({ name, fn });
 const NOW = Date.UTC(2026, 10, 17, 12, 20); /* 17 Nov 2026 20:20 MYT */
 
 /* ---------------------------------------------------------------- core */
+test('relay key: typed by the user, URL-safe characters only, a bad key is never replaced or kept', () => {
+  assert.strictEqual(core.relayKeyProblem('2412Aziz21'), '');
+  assert.strictEqual(core.relayKeyProblem('2412Azi-21.x~y_z'), '');
+  assert.ok(/@/.test(core.relayKeyProblem('2412Azi@21')));
+  assert.ok(core.relayKeyProblem('2412 Aziz'));
+  assert.ok(core.relayKeyProblem('short1'));
+  assert.ok(core.relayKeyProblem(''));
+  assert.ok(core.relayKeyProblem('a'.repeat(65)));
+  assert.strictEqual(core.cleanSettings({ relayKey: ' 2412Azi.21 ' }).relayKey, '2412Azi.21');
+  assert.strictEqual(core.cleanSettings({ relayKey: '2412Azi@21' }).relayKey, '');
+  /* the key goes into the relay script as written and into every relay address unchanged */
+  const code = core.relayCode("const KEY = '__KEY__';", '2412Azi~21');
+  assert.ok(code.includes('const KEY = "2412Azi~21";'));
+  const s = core.cleanSettings({ relayUrl: 'https://r.workers.dev', relayKey: '2412Azi~21' });
+  const u = new URL(core.relayUrlFor('https://www.tide-forecast.com/x', s));
+  assert.strictEqual(u.pathname.split('/')[1], '2412Azi~21');
+});
+
 test('29 sites, unique ids, all https', () => {
   assert.strictEqual(core.SITES.length, 29);
   assert.strictEqual(core.SITES.filter(s => !s.added).length, 16);

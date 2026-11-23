@@ -15,7 +15,7 @@ No PC server, no QR, no zip: every push to `main` publishes the folder `www/` ag
 - Sites that refuse to be shown inside another app get a stand-in from the same source (Windy embed, RainViewer, the dashboard's own JPS / MET / tide cards) or open in a new tab.
 - Each device keeps its own settings. Settings › *Other devices* › **Copy settings link** moves them to another device (iPad / iPhone: *Paste link from another device*).
 
-Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes: **PERUBAHAN_4.6.0.txt**
+Full guide: **PANDUAN.md** (Bahasa Melayu) · **GUIDE.md** (English) · changes: **PERUBAHAN_4.6.1.txt**
 
 ## Windows desktop app (optional, kept in this repo)
 

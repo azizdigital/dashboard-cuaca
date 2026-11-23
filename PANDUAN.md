@@ -204,7 +204,7 @@ memaparkannya dalam pelayar sendiri; Safari di iPad tidak boleh. Dua cara, kedua
 - **Relay sendiri (percuma, kira-kira 5 minit, perlu akaun Cloudflare percuma):** laman keluar di dalam app, seperti di PC.
   1. Daftar di **dash.cloudflare.com** (emel + kata laluan; pelan percuma tidak perlu kad).
   2. **Workers & Pages** → **Create** → **Hello World** → beri nama (cth `cuaca-relay`) → **Deploy**.
-  3. Dalam app: **Tetapan › Relay laman** → **Salin skrip relay** (kunci rahsia dibuat kali pertama).
+  3. Dalam app: **Tetapan › Relay laman** → taip **Kunci relay** anda sendiri (8-64 aksara: huruf, nombor, `- _ . ~`, cth `2412Aziz-21`) → **Simpan** → **Salin skrip relay**. Kunci yang sama ditaip dalam Monsoon EYE & OceanWATCH (relay boleh dikongsi).
      Dalam Cloudflare: **Edit code** → padam semua → tampal → **Deploy**.
   4. Salin alamat worker (`https://cuaca-relay.<nama-anda>.workers.dev`) ke **Alamat relay** → **Simpan** → **Uji relay**.
   Relay hanya mengambil laman Dashboard Cuaca Aziz, perlu kunci, dan tidak menghantar cookie atau log masuk.
