@@ -154,19 +154,20 @@ async function ais(url, env, ctx) {
   /* the same question within 2 minutes: the kept answer (aisstream asks to keep connections few) */
   const cache = caches.default, ck = new Request('https://ais.cache/' + mmsi.join(',') + '/' + (box ? box.flat().join(',') : '') + '/' + wait);
   const hit = await cache.match(ck);
-  if (hit) return new Response(hit.body, hit);
+  if (hit && url.searchParams.get('debug') !== '1') return new Response(hit.body, hit);
   let res;
   try { res = await fetch('https://stream.aisstream.io/v0/stream', { headers: { Upgrade: 'websocket' } }); }
   catch (e) { return json({ ok: false, reason: 'connect', error: String(e && e.message || e) }); }
   const ws = res.webSocket;
   if (!ws) return json({ ok: false, reason: 'connect', status: res.status });
   ws.accept();
-  const seen = {}, t0 = Date.now(); let msgs = 0, err = '';
+  const seen = {}, t0 = Date.now(), debug = url.searchParams.get('debug') === '1', raw = [], reading = []; let msgs = 0, err = '';
   const done = new Promise(resolve => {
     const stop = setTimeout(resolve, Math.min(wait, AIS_WAIT));
-    ws.addEventListener('message', ev => {
-      msgs++;
-      let m; try { m = JSON.parse(typeof ev.data === 'string' ? ev.data : new TextDecoder().decode(ev.data)); } catch (e) { return; }
+    /* aisstream sends each message as binary (a Blob in Workers): read it as text first */
+    const take = text => {
+      if (debug && raw.length < 3) raw.push(String(text).slice(0, 600));
+      let m; try { m = JSON.parse(text); } catch (e) { return; }
       if (m.error) { err = String(m.error); clearTimeout(stop); resolve(); return; }
       const meta = m.MetaData || {}, id = String(meta.MMSI || ''), msg = m.Message || {};
       if (!id) return;
@@ -183,6 +184,14 @@ async function ais(url, env, ctx) {
       const sd = msg.ShipStaticData;
       if (sd) { if (sd.Destination) v.dest = String(sd.Destination).trim(); if (sd.CallSign) v.call = String(sd.CallSign).trim(); if (sd.Type !== undefined) v.type = sd.Type; }
       if (mmsi.length && !box && mmsi.every(x => seen[x] && seen[x].lat !== undefined)) { clearTimeout(stop); resolve(); }
+    };
+    ws.addEventListener('message', ev => {
+      msgs++;
+      const d = ev.data;
+      let read;
+      try { read = typeof d === 'string' ? Promise.resolve(d) : d && typeof d.text === 'function' ? d.text() : Promise.resolve(new TextDecoder().decode(d)); }
+      catch (e) { read = Promise.resolve(''); }
+      reading.push(read.then(take, () => {}));
     });
     ws.addEventListener('close', () => { clearTimeout(stop); resolve(); });
     ws.addEventListener('error', () => { clearTimeout(stop); resolve(); });
@@ -191,9 +200,12 @@ async function ais(url, env, ctx) {
   if (mmsi.length) sub.FiltersShipMMSI = mmsi;
   try { ws.send(JSON.stringify(sub)); } catch (e) { return json({ ok: false, reason: 'connect', error: String(e && e.message || e) }); }
   await done;
+  await Promise.all(reading);
   try { ws.close(1000, 'done'); } catch (e) { /* closed */ }
   const vessels = Object.keys(seen).map(k => seen[k]).filter(v => v.lat !== undefined);
-  const out = json(err ? { ok: false, reason: 'aisstream', error: err } : { ok: true, at: new Date().toISOString(), seconds: Math.round((Date.now() - t0) / 1000), messages: msgs, vessels });
+  const answer = err ? { ok: false, reason: 'aisstream', error: err } : { ok: true, at: new Date().toISOString(), seconds: Math.round((Date.now() - t0) / 1000), messages: msgs, vessels };
+  if (debug) { answer.debug = raw; return json(answer); }
+  const out = json(answer);
   if (!err) {
     const keep = new Response(out.clone().body, out); keep.headers.set('cache-control', 'max-age=' + AIS_KEEP);
     const put = cache.put(ck, keep);

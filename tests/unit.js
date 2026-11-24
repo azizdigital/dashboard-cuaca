@@ -637,7 +637,7 @@ test('relay v2 removes ads; ad-heavy sites go through the relay when wanted', as
   assert.strictEqual(core.relayAdsFor(core.siteById('tideforecast'), core.cleanSettings({})), false);
 });
 
-test('relay v5: vessel positions from aisstream.io (key kept in Cloudflare), only the asked vessels, kept 2 minutes', async () => {
+test('relay v5: vessel positions from aisstream.io (key kept in Cloudflare, binary messages read), only the asked vessels, kept 2 minutes', async () => {
   const { pathToFileURL } = require('url');
   const src = fs.readFileSync(path.join(__dirname, '..', 'www', 'relay-worker.js'), 'utf8').replace("'__KEY__'", '"k1234567"').replace('__HOSTS__', '["example.com"]');
   const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mc-w-')), 'w.mjs');
@@ -656,7 +656,8 @@ test('relay v5: vessel positions from aisstream.io (key kept in Cloudflare), onl
     const ws = { accept() {}, addEventListener(t, f) { (L[t] = L[t] || []).push(f); }, close() {},
       send(x) { sent = JSON.parse(x);
         setTimeout(() => {
-          const emit = m => (L.message || []).forEach(f => f({ data: JSON.stringify(m) }));
+          /* aisstream sends binary frames: a Blob in Workers (this was missed in the first v5) */
+          const emit = m => (L.message || []).forEach(f => f({ data: new Blob([JSON.stringify(m)]) }));
           emit({ MessageType: 'ShipStaticData', MetaData: { MMSI: 533049100, ShipName: 'SK PATRON   ' }, Message: { ShipStaticData: { Destination: 'IRONG BARAT', CallSign: '9MCD5', Type: 52 } } });
           emit({ MessageType: 'PositionReport', MetaData: { MMSI: 533049100, ShipName: 'SK PATRON', time_utc: '2026-11-24 00:10:00 +0000 UTC' }, Message: { PositionReport: { Latitude: 5.41, Longitude: 104.62, Sog: 9.8, Cog: 44.5, TrueHeading: 45, NavigationalStatus: 0 } } });
           emit({ MessageType: 'PositionReport', MetaData: { MMSI: 533000486 }, Message: { PositionReport: { Latitude: 91, Longitude: 200, Sog: 0 } } });
