@@ -328,7 +328,7 @@ test('relay worker v4: /KEY/mirror asks GitHub to run the mirror (GitHub backup)
   const W = await require('./relay-harness').loadWorker('k3y', ['publicinfobanjir.water.gov.my']);
   assert.ok(W.VERSION >= 4);
   const ask = env => W.handle(new Request('https://relay.test/k3y/mirror'), env).then(r => r.json());
-  assert.deepStrictEqual(await ask({}), { ok: false, reason: 'no-token' });
+  const nt = await ask({}); assert.strictEqual(nt.ok, false); assert.strictEqual(nt.reason, 'no-token');
   const real = globalThis.fetch, calls = [];
   let lastRun = { status: 'completed', created_at: new Date(Date.now() - 30 * 60000).toISOString() };
   globalThis.fetch = async (u, o) => {
@@ -338,17 +338,19 @@ test('relay worker v4: /KEY/mirror asks GitHub to run the mirror (GitHub backup)
     return new Response('?', { status: 500 });
   };
   try {
-    const a = await ask({ GH_TOKEN: 'ghp_x' });
-    assert.ok(a.ok && a.started, JSON.stringify(a));
+    const repo = 'azizdigital/dashboard-cuaca';                       /* relay v6: GH_REPO / GH_REPOS name them (one here) */
+    const a = await ask({ GH_TOKEN: 'ghp_x', GH_REPO: repo });
+    assert.ok(a.ok && a.repos[repo].started, JSON.stringify(a));
     assert.strictEqual(calls[1].u, 'https://api.github.com/repos/azizdigital/dashboard-cuaca/actions/workflows/mirror.yml/dispatches');
     assert.strictEqual(calls[1].m, 'POST'); assert.strictEqual(calls[1].auth, 'Bearer ghp_x'); assert.deepStrictEqual(JSON.parse(calls[1].body), { ref: 'main' });
     /* right after: not again */
-    const b = await ask({ GH_TOKEN: 'ghp_x' });
-    assert.strictEqual(b.skipped, 'recent'); assert.strictEqual(calls.length, 2);
+    const b = await ask({ GH_TOKEN: 'ghp_x', GH_REPO: repo });
+    assert.strictEqual(b.repos[repo].skipped, 'recent'); assert.strictEqual(calls.length, 2);
     /* a wrong token is reported */
     const W2 = await require('./relay-harness').loadWorker('k3y', ['x']);
     globalThis.fetch = async () => new Response('{}', { status: 401 });
-    assert.deepStrictEqual(await W2.handle(new Request('https://relay.test/k3y/mirror'), { GH_TOKEN: 'bad' }).then(r => r.json()), { ok: false, reason: 'token', status: 401 });
+    const bad = await W2.handle(new Request('https://relay.test/k3y/mirror'), { GH_TOKEN: 'bad', GH_REPO: repo }).then(r => r.json());
+    assert.strictEqual(bad.ok, false); assert.strictEqual(bad.reason, 'token'); assert.strictEqual(bad.repos[repo].status, 401);
     /* the wrong key is not the mirror */
     const W3 = await require('./relay-harness').loadWorker('k3y', ['x']);
     assert.strictEqual((await W3.handle(new Request('https://relay.test/nope/mirror'), { GH_TOKEN: 'x' })).status, 404);
