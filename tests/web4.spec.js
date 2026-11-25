@@ -393,7 +393,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.3/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.4/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
@@ -426,6 +426,7 @@ test('4.6.3 Ramalan: dashboard card, Ramalan Kemaman page (levels 1-24 h, GloFAS
   await open(page, baseURL);
   await expect(page.locator('#cardPred .pd-t').first()).toBeVisible({ timeout: 15000 });
   await expect(page.locator('#cardPred')).toContainText('3 hari');
+  await expect(page.locator('#cardPred .pd-rain tr.x')).toHaveCount(3);
   const ids = await page.evaluate(() => [].map.call(document.querySelectorAll('#sideList [data-site]'), b => b.getAttribute('data-site')));
   expect(ids.indexOf('ramalan')).toBe(ids.indexOf('floodhub') + 1);
   await page.locator('#cardPred [data-site="ramalan"]').click();
@@ -433,7 +434,8 @@ test('4.6.3 Ramalan: dashboard card, Ramalan Kemaman page (levels 1-24 h, GloFAS
   const fr = page.frameLocator('#siteHost .frame.on iframe');
   await expect(fr.locator('#kmPredLv tbody tr')).toHaveCount(8, { timeout: 20000 });
   await expect(fr.locator('#kmPredFlow .pd-tc')).toHaveCount(6);
-  await expect(fr.locator('#kmPredRain tbody tr')).toHaveCount(5);
+  await expect(fr.locator('#kmPredRain tbody tr')).toHaveCount(17);            /* 4.6.4: 4 zones x (middle, lowest, highest, confidence) + models */
+  await expect(fr.locator('#kmPredRain .pd-cf').first()).toContainText('%');
   await page.waitForTimeout(600);
   await page.screenshot({ path: '/tmp/kmshots/app-pred.png' });
   await fr.locator('#kmPredLv [data-wl]').first().click();

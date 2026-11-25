@@ -343,6 +343,8 @@
  "Data hujan real-time": "Real-time rainfall",
  "Data lama tidak mencetuskan alert": "Old data does not trigger alerts",
  "Data lama: {m} minit": "Old data: {m} minutes",
+ "Paling rendah": "Lowest",
+ "Paling tinggi": "Highest",
  "🔮 Ramalan": "🔮 Forecast",
  "Lihat penuh": "See all",
  "Paras 1–24 j · aliran & hujan hingga 14 hari": "Levels 1–24 h · flow & rain up to 14 days",

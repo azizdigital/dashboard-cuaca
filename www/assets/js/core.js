@@ -13,7 +13,7 @@
   /* L(text in BM) -> English when the language is EN (see i18n.js). Texts are written in BM here and translated on use. */
   function L(s, vars) { return I18N ? I18N.L(s, vars) : s; }
 
-  var VERSION = '4.6.3';
+  var VERSION = '4.6.4';
   var TZ_OFFSET_MIN = 480; /* Malaysia, UTC+8, no daylight saving */
 
   /* ------------------------------------------------------------------ sites
