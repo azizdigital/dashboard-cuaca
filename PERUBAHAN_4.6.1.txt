@@ -2,7 +2,7 @@ Dashboard Cuaca Aziz 4.6.1
 
 Kunci relay: anda taip sendiri (web, iPad & PC)
 - Butang "Buat kunci baru" dibuang. App tidak lagi membuat atau menukar kunci relay sendiri.
-- Taip kunci anda di Tetapan › Relay laman (8-64 aksara: huruf, nombor, - _ . ~; cth 2412Aziz-21), Simpan,
+- Taip kunci anda di Tetapan › Relay laman (8-64 aksara: huruf, nombor, - _ . ~; cth Kunci-Saya-2026), Simpan,
   kemudian Salin skrip relay dan tampal di Cloudflare (Edit code › padam semua › tampal › Deploy).
 - Kunci yang sama ditaip dalam Monsoon EYE dan Sentinel OceanWATCH: satu relay boleh dikongsi tiga app.
 - Kunci salah (aksara lain seperti @, jarak, terlalu pendek): mesej jelas sebabnya, kunci lama kekal, skrip tidak disalin.

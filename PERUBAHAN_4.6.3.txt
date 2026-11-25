@@ -1,0 +1,20 @@
+Dashboard Cuaca Aziz 4.6.3
+
+Ramalan (sama dengan Monsoon EYE 1.1.5)
+- Kad baru 🔮 Ramalan di Dashboard: 4 stesen paling hampir Bahaya (sekarang → 3 j → 6 j → 24 j, tahap, keyakinan), hujan dijangka
+  3 j / 24 j / 3 / 7 / 14 hari (5 model), aliran sungai GloFAS 3 / 7 / 14 hari. "Lihat penuh" = tab Ramalan Kemaman.
+- Tab baru "Ramalan Kemaman" (selepas Flood Hub Chukai): paras 1 / 3 / 6 / 12 / 24 jam untuk 8 stesen; 2–14 hari arah aliran
+  GloFAS (bukan paras); hujan 1 j – 14 hari ikut 4 zon (nilai tengah 5 model + julat + berapa model sampai).
+- Graf stesen (Water Level, tekan stesen, paparan 1 / 3 hari): garis putus-putus anggaran 24 jam dengan julat.
+- Formula: hingga 4 j kadar 1–4 j terakhir × jam; selepas 4 j kadar beransur ke trend 24 j, kenaikan × faktor hujan model
+  (≥ 30 mm × 1, ≥ 5 mm × 0.75, kurang × 0.5); ramalan kering = tidak naik, tidak turun bawah paras terendah 7 hari;
+  stesen muara = pasang surut Cukai × nisbah stesen + trend 24 j. Lebih 24 j paras tidak dianggar.
+- 5 model dibaca 15–16 hari ke depan (dulu 2 / 14 hari); bilangan panggilan Open-Meteo sama.
+
+Halaman Water Level / Rainfall Kemaman
+- Salinan GitHub dipapar serta-merta; bacaan langsung (relay / PC) masuk kemudian ("⟳ Membaca JPS langsung 12/24…",
+  12 s setiap bacaan). Dulu halaman tunggu semua bacaan dan hanya pusing bila talian perlahan.
+- Lencana sumber ikut umur bacaan: hijau ≤ 30 min, kuning sehingga 3 jam, merah lebih 3 jam.
+
+Lain-lain
+- Contoh kunci relay dalam Tetapan ditukar kepada "Kunci-Saya-2026".

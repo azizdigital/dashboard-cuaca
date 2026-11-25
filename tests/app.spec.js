@@ -25,18 +25,18 @@ test('dashboard shows water levels, weather, MET and alerts', async ({ page }) =
   await expect(page.locator('#chartRain svg')).toBeVisible();
   await expect(page.locator('#seaBody svg')).toBeVisible();
   await expect(page.locator('#bellBadge')).toHaveText('5');
-  await expect(page.locator('#dashLinks .link')).toHaveCount(29);
+  await expect(page.locator('#dashLinks .link')).toHaveCount(30);
   await expect(page.locator('#cardOffshore')).toBeHidden();
   await expect(page.locator('#profName')).toHaveText('Kemaman');
   await expect(page.locator('#statusText')).toContainText('Updated');
   expect(problems).toEqual([]);
 });
 
-test('all 29 sites open as tabs (6 kept, oldest closed), then "Close all"', async ({ page }) => {
+test('all 30 sites open as tabs (6 kept, oldest closed), then "Close all"', async ({ page }) => {
   const problems = []; await guard(page, problems);
   await ready(page);
   const ids = await page.evaluate(() => MCCore.SITES.map(s => s.id));
-  expect(ids.length).toBe(29);
+  expect(ids.length).toBe(30);
   /* sites whose stand-in is a card on the dashboard (MET, JPS, tides) */
   const toCard = await page.evaluate(() => MCCore.SITES.filter(s => { const a = MCCore.altFor(s, MC.state.settings); return a && a.kind === 'view'; }).map(s => s.id));
   expect(toCard.length).toBe(7);
@@ -438,7 +438,8 @@ test('PC: the Kemaman page reads everything through the PC server (JPS straight,
   const ext = []; page.on('request', r => { if (!/^http:\/\/127\.0\.0\.1/.test(r.url()) && !/^data:/.test(r.url())) ext.push(r.url()); });
   await page.goto('/kemaman.html?tab=water&pc=1');
   await expect(page.locator('.km-st')).toHaveCount(8);
-  await expect(page.locator('.km-badge')).toContainText(/Live \(JPS\)|Langsung \(JPS\)/);
+  await expect(page.locator('#kmLive')).toHaveCount(0, { timeout: 15000 });   /* 4.6.3: the GitHub copy shows first, the live readings after */
+  await expect(page.locator('.km-badge').first()).toContainText(/Live \(JPS\)|Langsung \(JPS\)/);
   await expect(page.locator('[data-act="orig"]')).toHaveCount(1);
   await page.locator('.km-st').first().click();
   await expect(page.locator('#kmHyd svg')).toBeVisible();

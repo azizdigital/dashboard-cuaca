@@ -181,6 +181,11 @@ own browser; Safari on the iPad cannot. Two ways, both without the PC:
   % to Danger, rain bubbles, gauge × hour heatmap, measured rain vs the 5 models; tap a gauge for big numbers, a 1–30 day hydrograph
   (drag to zoom), nearby rain, the 5-model forecast and the 4 / 24-hour level outlook. **PDF** (A4) and **Image** (PNG). PC app (4.5.4):
   the same page, JPS read straight from the PC every 3 minutes; **Original site** = the infobanjir site in the same tab, **← App page** back.
+- **Forecast (4.6.3, web, iPad & PC):** a 🔮 Forecast card on the dashboard and the **Kemaman Forecast** tab (after Flood Hub Chukai):
+  river levels in 1 / 3 / 6 / 12 / 24 h per gauge (recent rate up to 4 h, then toward the 24-hour trend, rises × the 5 models' rain
+  factor; dry = no rise and not under the 7-day low; river mouths follow the Cukai tide × the gauge's ratio), the GloFAS river flow
+  trend for 2–14 days (not levels), rain 1 h – 14 days per zone (middle of 5 models, range, models counted) and a dashed 24-hour
+  forecast on the gauge chart. The Water Level / Rainfall pages now show the GitHub copy at once, the live readings after.
 - **Flood Hub Chukai tab (4.6, web, iPad & PC):** the app's own river flow page instead of Google's map (which does not work inside the app).
   GloFAS v4 (Copernicus / ECMWF) through Open-Meteo, free, no key, at the main Kemaman River cell 4.225, 103.375 (below the Cherul
   junction). Pictures on top: the river cut across at Chukai (water at today's flow, Warning / Danger / Extreme marks, forecast peak),

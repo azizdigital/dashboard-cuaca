@@ -393,7 +393,7 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   await page.locator('[data-site="waterlevel"]').first().click();
   const fw = page.frameLocator('#siteHost .frame.on iframe');
   await fw.locator('[data-act="refresh"]').click();
-  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.2/);
+  await expect(fw.locator('#kmNote')).toContainText(/Data dikemas kini \d\d:\d\d · mirror JPS \d\d:\d\d · (tiada relay · )?Versi 4\.6\.3/);
   await page.locator('#btnForce').click();
   await expect(page.locator('.toast').last()).toContainText(/Data dikemas kini \d\d:\d\d/, { timeout: 20000 });
   await page.screenshot({ path: '/tmp/kmshots/force.png' });
@@ -420,6 +420,26 @@ test('Water Level / Rainfall Kemaman tabs: the app\'s own page from the mirror (
   expect(noAge(await page.locator('#cardWater').innerHTML())).toBe(cardWater);
 });
 
+test('4.6.3 Ramalan: dashboard card, Ramalan Kemaman page (levels 1-24 h, GloFAS 2-14 days, rain 1 h-14 days), dashed forecast on the hydrograph', async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.addInitScript(() => localStorage.setItem('mc_lang', 'ms'));
+  await open(page, baseURL);
+  await expect(page.locator('#cardPred .pd-t').first()).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#cardPred')).toContainText('3 hari');
+  const ids = await page.evaluate(() => [].map.call(document.querySelectorAll('#sideList [data-site]'), b => b.getAttribute('data-site')));
+  expect(ids.indexOf('ramalan')).toBe(ids.indexOf('floodhub') + 1);
+  await page.locator('#cardPred [data-site="ramalan"]').click();
+  await expect(page.locator('#siteHost .frame.on iframe')).toHaveAttribute('src', /kemaman\.html\?tab=pred/);
+  const fr = page.frameLocator('#siteHost .frame.on iframe');
+  await expect(fr.locator('#kmPredLv tbody tr')).toHaveCount(8, { timeout: 20000 });
+  await expect(fr.locator('#kmPredFlow .pd-tc')).toHaveCount(6);
+  await expect(fr.locator('#kmPredRain tbody tr')).toHaveCount(5);
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: '/tmp/kmshots/app-pred.png' });
+  await fr.locator('#kmPredLv [data-wl]').first().click();
+  await expect(fr.locator('#kmHyd .kc-line.fc')).toHaveCount(1, { timeout: 15000 });
+});
+
 test('Kemaman page with the relay: the last hours read live through the relay every time, GitHub copy for the rest; the relay is asked to back up to GitHub', async ({ page, baseURL }) => {
   await page.setViewportSize({ width: 1180, height: 820 });
   const now = Date.now(), K = F.kemaman(now), asked = [], poked = [];
@@ -439,7 +459,8 @@ test('Kemaman page with the relay: the last hours read live through the relay ev
   });
   await page.addInitScript(() => { localStorage.setItem('mc_lang', 'ms'); localStorage.setItem('mc_settings', JSON.stringify({ relayUrl: 'https://relay.test', relayKey: 'k1' })); });
   await page.goto(baseURL + 'kemaman.html?tab=water');
-  await expect(page.locator('.km-badge')).toContainText('Langsung (relay)');
+  await expect(page.locator('#kmLive')).toHaveCount(0, { timeout: 15000 });   /* 4.6.3: the GitHub copy shows first, the live readings after */
+  await expect(page.locator('.km-badge').first()).toContainText('Langsung (relay)');
   await expect(page.locator('.km-st', { hasText: 'Jambatan Ban Ho' }).locator('.v b')).toHaveText('18.55');
   expect(new Set(asked).size).toBe(25);
   await expect.poll(() => poked.length).toBe(1);

@@ -282,7 +282,7 @@
         if (on) {
           deskWebview();
           var bar = document.createElement('div'); bar.className = 'altbar origbar';
-          bar.innerHTML = '<span>🌐 ' + esc(site.id === 'floodhub' ? L('Laman asal') + ': Google Flood Hub' : L('Laman asal: infobanjir Terengganu')) + '</span><button class="btn sm" type="button">← ' + esc(L(site.id === 'rainfall' ? 'Halaman app (Hujan Kemaman)' : site.id === 'floodhub' ? 'Halaman app (Aliran Sungai Kemaman)' : 'Halaman app (Paras Air Kemaman)')) + '</button>';
+          bar.innerHTML = '<span>🌐 ' + esc(site.id === 'floodhub' || site.id === 'ramalan' ? L('Laman asal') + ': Google Flood Hub' : L('Laman asal: infobanjir Terengganu')) + '</span><button class="btn sm" type="button">← ' + esc(L(site.id === 'rainfall' ? 'Halaman app (Hujan Kemaman)' : site.id === 'floodhub' ? 'Halaman app (Aliran Sungai Kemaman)' : site.id === 'ramalan' ? 'Halaman app (Ramalan Kemaman)' : 'Halaman app (Paras Air Kemaman)')) + '</button>';
           bar.querySelector('button').onclick = function () { fr.showOrig(false); };
           wrap.insertBefore(bar, fr.view); wrap.classList.add('has-alt');
         } else { wrap.classList.remove('has-alt'); deskOwnPage(); }
@@ -1350,7 +1350,7 @@
         { name: L('Ambang alert'), color: '#c98500', dash: '4 4', unit: 'm', digits: 1, points: hh.length ? [[hh[0].t, state.settings.waveM], [hh[hh.length - 1].t, state.settings.waveM]] : [] }] });
     } else $('seaBody').innerHTML = '<div class="empty">Tiada data laut.</div>';
 
-    renderForecast(s); renderTide(s); renderRiver(s);
+    renderForecast(s); renderTide(s); renderRiver(s); if (state.settings.kind !== 'offshore') predCard();
 
     /* sources + site health */
     var srcs = s.sources || {}, keys = Object.keys(srcs).filter(function (k) { return !srcs[k].skipped; });
@@ -1452,6 +1452,28 @@
     }
   }
   /* river discharge forecast (GloFAS) - the app's own view of what Flood Hub shows */
+  /* 4.6.3: Ramalan card - the gauges nearest to Bahaya in 24 h, rain 3 h-14 days, GloFAS flow 3/7/14 days */
+  function predCard() {
+    var host = $('predBody'); if (!host) return;
+    var snap = state.snap || {}, fc = snap.fc, R = window.MCRisk;
+    if (!fc || !R) { host.innerHTML = '<p class="muted">' + esc(L('Ramalan dikira selepas data sungai & 5 model dibaca…')) + '</p>'; return; }
+    var LV = ['n', 'a', 'w', 'd'], LVN = ['Normal', 'Waspada', 'Amaran', 'Bahaya'], f2 = function (v) { return v === null || v === undefined ? '-' : (+v).toFixed(2); };
+    var pctD = function (x) { var d = x.danger, s24 = x.fc.steps.filter(function (q) { return q.h === 24; })[0]; return d && s24 ? s24.v / d : 0; };
+    var top = fc.levels.slice().sort(function (a, b) { return pctD(b) - pctD(a); }).slice(0, 4);
+    var cell = function (q) { return q ? '<td class="' + LV[Math.max(0, q.lv)] + '"><b>' + f2(q.v) + '</b><i>' + esc(q.lv > 0 ? L(LVN[q.lv]) : ({ up: '↑', down: '↓', flat: '→' })[q.dir]) + '</i></td>' : '<td>-</td>'; };
+    var at = function (x, h) { return x.fc.steps.filter(function (q) { return q.h === h; })[0]; };
+    var lvT = '<table class="pd-t"><thead><tr><th>' + esc(L('Stesen')) + '</th><th>' + esc(L('Sekarang')) + '</th><th>' + esc(L('3 j')) + '</th><th>' + esc(L('6 j')) + '</th><th>' + esc(L('24 j')) + '</th></tr></thead><tbody>' +
+      (top.length ? top.map(function (x) {
+        return '<tr><td class="nm">' + esc(String(x.name).replace(/^Sg\. \S+ di /, '').replace(/^Muara Sg\. \S+ di /, '')) + '<small>' + esc(L('keyakinan {c}%', { c: x.fc.conf === null ? '-' : x.fc.conf })) + (x.fc.dry ? ' · ' + esc(L('ramalan kering')) : '') + '</small></td><td class="now"><b>' + f2(x.fc.level) + '</b></td>' + cell(at(x, 3)) + cell(at(x, 6)) + cell(at(x, 24)) + '</tr>';
+      }).join('') : '<tr><td colspan="5" class="muted">' + esc(L('Tiada trend stesen lagi')) + '</td></tr>') + '</tbody></table>';
+    var RC = ['r0', 'r1', 'r2', 'r3', 'r4'], hl = function (h) { return h < 48 ? L('{h} j', { h: h }) : L('{d} hari', { d: h / 24 }); };
+    var rnT = fc.rain ? '<table class="pd-t"><thead><tr>' + fc.rain.map(function (w) { return '<th>' + esc(hl(w.h)) + '</th>'; }).join('') + '</tr></thead><tbody><tr>' +
+      fc.rain.map(function (w) { return '<td class="' + (w.cls < 0 ? '' : RC[w.cls]) + '"><b>' + (w.med === null ? '-' : (+w.med).toFixed(w.med < 10 ? 1 : 0)) + '</b><i>' + (w.lo === null ? '' : esc(Math.round(w.lo) + '–' + Math.round(w.hi) + ' · ' + w.n + ' ' + L('model'))) + '</i></td>'; }).join('') + '</tr></tbody></table>' : '<p class="muted">' + esc(L('5 model belum dibaca')) + '</p>';
+    var flT = fc.flow && fc.flow.length ? '<div class="pd-trend">' + fc.flow.map(function (x) { return '<div class="pd-tc"><span>' + esc(L('{d} hari', { d: x.d })) + '</span><b class="' + x.dir + '">' + ({ up: '↑', down: '↓', flat: '→' })[x.dir] + ' ' + (x.pct > 0 ? '+' : '') + x.pct + '%</b><small>' + x.v + ' m³/s</small></div>'; }).join('') + '</div>' : '';
+    host.innerHTML = '<div class="pd-row"><div><h4 class="pd-ttl">' + esc(L('Paras sungai (paling hampir Bahaya)')) + '</h4>' + lvT + '</div><div><h4 class="pd-ttl">' + esc(L('Hujan dijangka (mm, nilai tengah model)')) + '</h4>' + rnT +
+      (flT ? '<h4 class="pd-ttl">' + esc(L('Aliran sungai GloFAS (bukan paras)')) + '</h4>' + flT : '') + '</div></div>';
+    var sb = $('predSub'); if (sb) sb.textContent = L('Paras 24 jam · hujan & aliran sungai hingga 14 hari') + ' · ' + C.fmtTime(fc.at);
+  }
   function renderRiver(s) {
     var r = s.river, body = $('floodBody');
     if (!body) return;
@@ -1790,6 +1812,31 @@
       if (c && c.key === key && now - c.at < OM.every()) return Promise.resolve(R.rainAhead(c.raw, now));
       return A.collectLand([{ lat: s.lat, lon: s.lon }], Early.get).then(function (raw) { Early.rainCache = { key: key, at: now, raw: raw }; return R.rainAhead(raw, now); }).catch(function () { return {}; });
     },
+    /* 4.6.3: the dashboard's Ramalan card - water level 1-24 h per gauge, rain 3 h-14 days (5 models at the profile place),
+       GloFAS flow in 3, 7, 14 days (same formulas as the Ramalan Kemaman page) */
+    forecast: function (snap, sts, tr, now, gl, rains) {
+      var R = window.MCRisk, raw = Early.rainCache && Early.rainCache.raw, H1 = 3600000;
+      if (!R || !R.forecastLevel) return null;
+      var series = raw ? Object.keys(raw.models || {}).map(function (id) {
+        var m = raw.models[id], d = m && m.ok && m.data && m.data[0];
+        return d ? d.p.map(function (v, i) { return { t: d.t0 + i * H1, v: v }; }) : null;
+      }).filter(Boolean) : [];
+      var from = Math.floor(now / H1) * H1;
+      var rainH = function (h) {
+        return series.map(function (l) { var a = 0, n = 0; l.forEach(function (p) { if (p.t >= from && p.t < from + h * H1 && p.v !== null) { a += p.v; n++; } }); return n >= h * 0.95 ? a : null; })
+          .filter(function (v) { return v !== null; });
+      };
+      var ev = snap.tide && snap.tide.events;
+      var levels = sts.map(function (st) {
+        var t = tr[st.name], c = Early.cache[st.name]; if (!t) return null;
+        var fc = R.forecastLevel(t, st, { now: now, rainH: rainH, obsToday: R.obsRain(rains, st), tide: t.tidal ? ev : null,
+          ratio: t.tidal && ev && c ? R.tideRatio(c.pts, ev, now) : null, project: { glofas: gl } });
+        return fc ? { name: st.name, alert: st.alert, warning: st.warning, danger: st.danger, fc: fc } : null;
+      }).filter(Boolean);
+      var rv = snap.river && snap.river.days ? snap.river.days.filter(function (d) { return !d.past; }).map(function (d) { return { d: d.date, v: d.q }; }) : [];
+      return { at: now, levels: levels, rain: series.length ? R.rainWindows(series, now, [3, 24, 72, 168, 336]) : null, models: series.length,
+        flow: rv.length ? R.flowTrend(rv, rv[0].v, null, [3, 7, 14]) : [] };
+    },
     add: function (snap, s, hist, now, viaRelay) {
       var R = window.MCRisk, A = window.MCAdvisor;
       if (!R) return Promise.resolve();
@@ -1825,6 +1872,7 @@
         var rains = (snap.jps && snap.jps.rain && snap.jps.rain.stations) || snap.rainStations || [];
         snap.early = R.earlyFlood(sts, tr, now, { rivers: rivers, rain4: res[1].rain4, rain24: res[1].rain24, glofas: gl, minConf: s.ewConf, prevLoud: prevLoud,
           obs: function (st) { return R.obsRain(rains, st); } });
+        try { snap.fc = Early.forecast(snap, sts, tr, now, gl, rains); } catch (e) { snap.fc = null; }
       });
     }
   };

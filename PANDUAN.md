@@ -35,6 +35,11 @@ Rupa sama seperti app lama. Yang baru dalam 4.1:
   - Ambang = banjir 2 / 5 / 20 tahun daripada rekod GloFAS (bukan paras rasmi JPS).
   - **Flood Hub ↗** buka laman Google (PC: dalam tab yang sama, **← Halaman app** untuk kembali). Kad aliran sungai di dashboard kini guna sel yang sama.
   - Kedudukan stesen: koordinat JPS (data.gov.my) atau kampung / jambatan stesen di sungai OpenStreetMap (anggaran, bulatan putus-putus).
+- **Ramalan (4.6.3, web, iPad & PC):** kad 🔮 Ramalan di Dashboard dan tab **Ramalan Kemaman** (bawah Flood Hub Chukai).
+  - Paras sungai 1 / 3 / 6 / 12 / 24 jam setiap stesen, warna ikut tahap JPS, keyakinan 24 jam. Formula: kadar 1–4 j terakhir; selepas 4 j kadar beransur ke trend 24 j; kenaikan × faktor hujan 5 model (≥ 30 mm × 1, ≥ 5 mm × 0.75, kurang × 0.5); ramalan kering = tidak naik dan tidak turun bawah paras terendah 7 hari; stesen muara ikut jadual pasang surut Cukai × nisbah stesen.
+  - 2–14 hari: paras tidak dianggar — arah aliran sungai GloFAS (% berbanding hari ini, % paras banjir 2 tahun).
+  - Hujan 1 j – 14 hari ikut 4 zon (nilai tengah 5 model + julat, berapa model sampai: ICON & UKMO ~7 hari, JMA 11, ECMWF 15, GFS 16).
+  - Graf stesen (1 / 3 hari): garis putus-putus anggaran 24 jam dengan julat. Halaman Water Level / Rainfall kini terus tunjuk salinan GitHub, bacaan langsung masuk kemudian.
 - **Laman yang tidak benarkan dipaparkan dalam app lain:**
   - Kalau ada versi dari sumber yang sama, ia dibuka di dalam app dengan bar "Laman ganti" dan butang **Laman asal ↗**. Contoh: Windy (versi embed), RainViewer, dan kad JPS / MET / pasang surut di Dashboard.
   - Kalau tiada, laman itu dibuka di tab baru.
@@ -204,7 +209,7 @@ memaparkannya dalam pelayar sendiri; Safari di iPad tidak boleh. Dua cara, kedua
 - **Relay sendiri (percuma, kira-kira 5 minit, perlu akaun Cloudflare percuma):** laman keluar di dalam app, seperti di PC.
   1. Daftar di **dash.cloudflare.com** (emel + kata laluan; pelan percuma tidak perlu kad).
   2. **Workers & Pages** → **Create** → **Hello World** → beri nama (cth `cuaca-relay`) → **Deploy**.
-  3. Dalam app: **Tetapan › Relay laman** → taip **Kunci relay** anda sendiri (8-64 aksara: huruf, nombor, `- _ . ~`, cth `2412Aziz-21`) → **Simpan** → **Salin skrip relay**. Kunci yang sama ditaip dalam Monsoon EYE & OceanWATCH (relay boleh dikongsi).
+  3. Dalam app: **Tetapan › Relay laman** → taip **Kunci relay** anda sendiri (8-64 aksara: huruf, nombor, `- _ . ~`, cth `Kunci-Saya-2026`) → **Simpan** → **Salin skrip relay**. Kunci yang sama ditaip dalam Monsoon EYE & OceanWATCH (relay boleh dikongsi).
      Dalam Cloudflare: **Edit code** → padam semua → tampal → **Deploy**.
   4. Salin alamat worker (`https://cuaca-relay.<nama-anda>.workers.dev`) ke **Alamat relay** → **Simpan** → **Uji relay**.
   Relay hanya mengambil laman Dashboard Cuaca Aziz, perlu kunci, dan tidak menghantar cookie atau log masuk.
